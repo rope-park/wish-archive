@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================
+// ENUM
+// ===========================
+enum EventType {
+  ALBUM_RELEASE
+  MUSIC_SHOW
+  CONCERT
+  VARIETY_SHOW
+  MERCH_DROP
+  OTHER
+}
+
+enum AlbumType {
+  SINGLE
+  MINI
+  FULL
+  OST
+}
+
+// ===========================
+// CORE MODELS (MVP)
+// ===========================
+
+model Era {
+  id          String   @id @default(cuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  description String?
+
+  events      Event[]
+}
+
+model Album {
+  id          String    @id @default(cuid())
+  title       String
+  releaseDate DateTime
+  type        AlbumType
+  coverUrl    String?
+
+  events      EventOnAlbum[]
+
+  @@index([releaseDate])
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  type        EventType
+  date        DateTime
+  title       String
+  description String?
+  location    String?
+
+  eraId       String?
+  era         Era?          @relation(fields: [eraId], references: [id])
+
+  albums      EventOnAlbum[]
+
+  @@index([date])
+  @@index([type])
+  @@index([eraId])
+}
+
+model EventOnAlbum {
+  eventId String
+  albumId String
+
+  event   Event @relation(fields: [eventId], references: [id])
+  album   Album @relation(fields: [albumId], references: [id])
+
+  @@id([eventId, albumId])
+  @@index([albumId])
+}

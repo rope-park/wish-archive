@@ -54,3 +54,11 @@ export type { ToggleProps } from './Toggle';
 
 export { default as Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';
+
+// 🎨 WISH POP 테마 컴포넌트
+export { default as JellyCard } from './JellyCard';
+export { default as StickerCard } from './StickerCard';
+export { default as PixelButton } from './PixelButton';
+export { default as BeadNav } from './BeadNav';
+export { default as PolaroidCard } from './PolaroidCard';
+export { default as EraCard } from './EraCard';

@@ -15,8 +15,8 @@ export { default as BaseModal } from './base/BaseModal';
 export type { BaseModalProps } from './base/BaseModal';
 
 // Common 컴포넌트
-export { default as Header } from './common/Header';
-export { default as Footer } from './common/Footer';
+export { default as FloatingDecorations } from './common/FloatingDecorations';
+export { default as Taskbar } from './common/Taskbar';
 
 // Domain 컴포넌트 - Members
 export { default as MemberCard } from './domain/members/MemberCard';

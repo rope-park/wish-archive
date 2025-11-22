@@ -1,35 +1,73 @@
 @import url('https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Jersey+10&family=Jua&family=Just+Me+Again+Down+Here&family=Kavivanar&family=Press+Start+2P&family=Rubik+Bubbles&family=Shrikhand&display=swap');
 @import "tailwindcss";
 
+/* z-index 관리용 전역 스타일 */
+:root {
+  --z-backdrop: -10;
+  --z-desktop: 0;
+  --z-window: 10;
+  --z-dock: 50;
+  --z-modal: 100;
+  --z-cursor: 9999;
+}
+
 body {
   font-family: 'Bagel Fat One', 'Jua', 'Pretendard', sans-serif;
   background-color: #FDF9F3;
   color: #333333;
-  /* 모눈종이 배경 패턴 */
-  background-image:
-    linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+
+  /* 화면 고정 및 스크롤 방지 */
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+
+  /* TODO: 배경화면 이미지 추가*/
   background-size: 20px 20px;
   background-position: top left;
+
+  /* 커스텀 커서 적용 */
+  /* TODO: 커스텀 커서 이미지 파일 추가 */
+  /* cursor: url('/cursor.png'), auto; */
 }
 
-/* 커스텀 스크롤바 (옵션) */
+/* 텍스트 선택 색상 (테마 컬러 적용) */
+::selection {
+  background-color: #BFFF00;
+  color: #ffffff;
+}
+
+/* 이미지/텍스트 드래그 방지 */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -o-user-drag: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* 커스텀 스크롤바 (창 내부 스크롤용) */
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
   background: #BFFF00;
   border-radius: 5px;
+  border: 2px solid #f1f1f1;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #a8e600;
 }
 
 @layer utilities {
-  /* 젤리 유리 프레임 (WELCOME 사진 프레임) */
+  /* 젤리 유리 프레임 */
   .jelly-frame {
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(16px);
@@ -117,17 +155,33 @@ body {
     border: 2px solid #333333;
     border-radius: 9999px;
     box-shadow: 4px 4px 0px 0px #333333;
-    transition: all 0.15s ease;
+    transition: all 0.1s ease;
+    cursor: pointer;
   }
   
   .pixel-btn:hover {
-    box-shadow: 0px 0px 0px 0px #333333;
-    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px 0px #333333;
+    transform: translate(2px, 2px);
   }
   
   .pixel-btn:active {
     box-shadow: 0px 0px 0px 0px #333333;
     transform: translate(4px, 4px);
+  }
+
+  .window-open {
+    animation: window-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  @keyframes window-pop {
+    from {
+      transform: scale(0.8) translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
   }
 }
 
@@ -150,7 +204,7 @@ body {
     }
   }
 
-  /* Page transition */
+  /* 페이지 전환 */
   .page-transition {
     animation: fadeInUp 0.5s ease-out;
   }
@@ -166,7 +220,7 @@ body {
     }
   }
 
-  /* Loading spinner */
+  /* 로딩중 스피너 */
   .loading-spinner {
     width: 40px;
     height: 40px;
@@ -181,7 +235,7 @@ body {
     100% { transform: rotate(360deg); }
   }
 
-  /* Smooth hover effects */
+  /* 부드러운 hover 효과 */
   .hover-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }

@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Decoration {
   id: number;
@@ -21,17 +21,36 @@ interface Decoration {
 const emojis = ['⭐', '✨', '🎵', '🎶', '🪶', '💚', '💙', '💖', '🌟', '💫'];
 
 export default function FloatingDecorations() {
-  // 초기 장식 요소를 useState 초기값으로 생성
-  const [decorations] = useState<Decoration[]>(() => 
-    Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      delay: Math.random() * 3,
-      duration: 3 + Math.random() * 2,
-    }))
-  );
+  const [decorations, setDecorations] = useState<Decoration[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트에서만 장식 생성
+  useEffect(() => {
+    let rafId: number | null = null;
+    rafId = requestAnimationFrame(() => {
+      setDecorations(
+        Array.from({ length: 15 }, (_, i) => ({
+          id: i,
+          emoji: emojis[Math.floor(Math.random() * emojis.length)],
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          delay: Math.random() * 3,
+          duration: 3 + Math.random() * 2,
+        }))
+      );
+      setMounted(true);
+    });
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
+
+  // 마운트 전에는 아무것도 렌더링하지 않음
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

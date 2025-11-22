@@ -5,6 +5,8 @@
  * - 트랙 번호, 제목, 길이, MV 링크 등 표시
  */
 
+'use client';
+
 import type { Track } from '@prisma/client';
 import Badge from '@/components/ui/Badge';
 

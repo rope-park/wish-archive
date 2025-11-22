@@ -31,10 +31,13 @@ function getProgramTypeLabel(type: ProgramType): string {
 export default async function PerformancesPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const typeParam = searchParams.type as string | undefined;
-  const country = searchParams.country as string | undefined;
+  // searchParams를 Promise로 처리 (Next.js 15+)
+  const params = await searchParams;
+  
+  const typeParam = params.type as string | undefined;
+  const country = params.country as string | undefined;
 
   // WHERE 조건
   interface WhereClause {
@@ -64,130 +67,147 @@ export default async function PerformancesPage({
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <div className="wish-container min-h-screen py-8">
+      {/* 배경 장식 */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <span className="absolute top-[15%] left-[10%] text-5xl animate-float opacity-40">🎤</span>
+        <span className="absolute top-[35%] right-[12%] text-4xl animate-sparkle opacity-35" style={{ animationDelay: '0.8s' }}>🎸</span>
+        <span className="absolute bottom-[30%] left-[15%] text-4xl animate-float opacity-40" style={{ animationDelay: '1.5s' }}>🎭</span>
+        <span className="absolute bottom-[20%] right-[10%] text-3xl animate-sparkle opacity-30" style={{ animationDelay: '2s' }}>✨</span>
+      </div>
+
       {/* 헤더 */}
-      <header className="mb-6 sm:mb-8">
-        <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
-          Performances & Programs
+      <header className="mb-12 text-center relative z-10">
+        <h1 className="font-bagel-fat-one text-4xl md:text-5xl text-wish-pink mb-4 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.2)] relative inline-block">
+          PERFORMANCES
+          <span className="absolute -top-6 -right-10 text-4xl animate-sparkle">🎸</span>
+          <span className="absolute -bottom-4 -left-8 text-3xl animate-float" style={{ animationDelay: '0.5s' }}>🎤</span>
         </h1>
-        <p className="text-sm text-gray-600 sm:text-base">
-          NCT WISH가 출연한 방송 프로그램
+        <p className="text-lg font-jua text-text-dark mt-2">
+          NCT WISH의 무대와 방송 활동
         </p>
       </header>
 
       {/* 필터 - 타입 */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <a
-          href="/performances"
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            !typeParam
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          전체
-        </a>
-        <a
-          href="/performances?type=MUSIC_SHOW"
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            typeParam === 'MUSIC_SHOW'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          음악방송
-        </a>
-        <a
-          href="/performances?type=VARIETY_SHOW"
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            typeParam === 'VARIETY_SHOW'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          예능
-        </a>
-        <a
-          href="/performances?type=RADIO"
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            typeParam === 'RADIO'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          라디오
-        </a>
+      <div className="mb-6 flex justify-center relative z-10">
+        <div className="flex flex-wrap gap-3 bg-white/80 backdrop-blur-md rounded-full px-6 py-3 border-4 border-black shadow-hard-lg">
+          <a
+            href="/performances"
+            className={`px-5 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              !typeParam
+                ? 'bg-wish-pink text-white shadow-hard'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            ALL
+          </a>
+          <a
+            href="/performances?type=MUSIC_SHOW"
+            className={`px-5 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              typeParam === 'MUSIC_SHOW'
+                ? 'bg-wish-pink text-white shadow-hard'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            🎤 MUSIC
+          </a>
+          <a
+            href="/performances?type=VARIETY_SHOW"
+            className={`px-5 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              typeParam === 'VARIETY_SHOW'
+                ? 'bg-wish-purple text-white shadow-hard'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            📺 VARIETY
+          </a>
+          <a
+            href="/performances?type=RADIO"
+            className={`px-5 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              typeParam === 'RADIO'
+                ? 'bg-wish-sky text-white shadow-hard'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            📻 RADIO
+          </a>
+        </div>
       </div>
 
       {/* 필터 - 국가 */}
-      <div className="mb-6 flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-700">국가:</span>
+      <div className="mb-10 flex justify-center items-center gap-3 flex-wrap relative z-10">
+        <span className="font-bagel-fat-one text-lg text-text-dark">🌍 COUNTRY:</span>
         <a
           href="/performances"
-          className={`rounded px-2 py-1 text-sm transition-colors ${
+          className={`px-4 py-2 rounded-full font-jua text-sm border-2 border-black transition-all ${
             !country
-              ? 'bg-gray-900 text-white'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-wish-green text-black shadow-hard'
+              : 'bg-white text-gray-600 hover:shadow-hard hover:-translate-y-0.5'
           }`}
         >
           전체
         </a>
         <a
           href="/performances?country=KR"
-          className={`rounded px-2 py-1 text-sm transition-colors ${
+          className={`px-4 py-2 rounded-full font-jua text-sm border-2 border-black transition-all ${
             country === 'KR'
-              ? 'bg-gray-900 text-white'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-wish-green text-black shadow-hard'
+              : 'bg-white text-gray-600 hover:shadow-hard hover:-translate-y-0.5'
           }`}
         >
-          한국
+          🇰🇷 한국
         </a>
         <a
           href="/performances?country=JP"
-          className={`rounded px-2 py-1 text-sm transition-colors ${
+          className={`px-4 py-2 rounded-full font-jua text-sm border-2 border-black transition-all ${
             country === 'JP'
-              ? 'bg-gray-900 text-white'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-wish-green text-black shadow-hard'
+              : 'bg-white text-gray-600 hover:shadow-hard hover:-translate-y-0.5'
           }`}
         >
-          일본
+          🇯🇵 일본
         </a>
       </div>
 
       {/* 프로그램 리스트 */}
-      {programs.length === 0 ? (
-        <Card>
-          <p className="text-center text-gray-500">
-            프로그램이 없습니다.
-          </p>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {programs.map((program) => (
+      <div className="relative z-10">
+        {programs.length === 0 ? (
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl border-4 border-black shadow-hard-xl p-12 text-center">
+            <div className="text-5xl mb-4 animate-float">📺</div>
+            <p className="font-jua text-xl text-gray-500">
+              프로그램이 없습니다.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {programs.map((program, idx) => (
             <Link key={program.id} href={`/performances/${program.id}`}>
-              <Card hoverable className="cursor-pointer">
-                <div className="space-y-3">
+              <div 
+                className="era-card bg-white/70 p-6 cursor-pointer animate-pop-in hover-lift"
+                style={{ animationDelay: `${idx * 0.1}s` }}
+              >
+                <div className="space-y-4">
                   {/* 프로그램 타입 */}
-                  <div>
-                    <Badge variant="primary" size="sm">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-wish-pink text-white rounded-full text-xs font-press-start-2p shadow-hard">
                       {getProgramTypeLabel(program.pType)}
-                    </Badge>
+                    </span>
                   </div>
 
                   {/* 프로그램 이름 */}
-                  <h2 className="text-lg font-bold text-gray-900">
+                  <h2 className="font-bagel-fat-one text-xl text-gray-900">
                     {program.name}
                   </h2>
 
                   {/* 네트워크 */}
                   {program.network && (
-                    <p className="text-sm text-gray-600">{program.network}</p>
+                    <p className="text-sm font-jua text-gray-600">{program.network}</p>
                   )}
 
                   {/* 국가 */}
                   {program.country && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-sm font-jua text-gray-500">
                         {program.country === 'KR' && '🇰🇷 한국'}
                         {program.country === 'JP' && '🇯🇵 일본'}
                         {program.country !== 'KR' && program.country !== 'JP' && program.country}
@@ -196,24 +216,26 @@ export default async function PerformancesPage({
                   )}
 
                   {/* 출연 횟수 */}
-                  <div>
-                    <Badge variant="info" size="sm">
-                      {program._count.appearances}회 출연
-                    </Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-wish-sky text-white rounded-full text-xs font-press-start-2p shadow-hard">
+                      {program._count.appearances} TIMES
+                    </span>
+                    <span className="text-xl animate-sparkle">✨</span>
                   </div>
 
                   {/* 메모 */}
                   {program.notes && (
-                    <p className="line-clamp-2 text-xs text-gray-500">
+                    <p className="line-clamp-2 text-xs font-jua text-gray-600">
                       {program.notes}
                     </p>
                   )}
                 </div>
-              </Card>
+              </div>
             </Link>
           ))}
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

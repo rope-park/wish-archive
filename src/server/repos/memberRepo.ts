@@ -1,4 +1,9 @@
 import 'server-only';
+/**
+ * 멤버 리포지토리
+ * 
+ * 멤버 관련 DB 쿼리 처리
+ */
 import { prisma } from '@/lib/prisma';
 import type { Member } from '@prisma/client';
 import { safeAgeUTC } from '@/lib/date';

@@ -62,3 +62,5 @@ export { default as PixelButton } from './PixelButton';
 export { default as BeadNav } from './BeadNav';
 export { default as PolaroidCard } from './PolaroidCard';
 export { default as EraCard } from './EraCard';
+export { default as LoadingSpinner } from './LoadingSpinner';
+export { default as PageHeader } from './PageHeader';

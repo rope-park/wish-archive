@@ -38,7 +38,11 @@ function getMarketLabel(market: string): string {
   return labels[market] || market;
 }
 
-// 동적 메타데이터
+/**
+ * 동적 메타데이터 생성
+ * @param param0 - params 객체
+ * @returns params 기반 메타데이터
+ */
 export async function generateMetadata({
   params,
 }: {
@@ -61,6 +65,11 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * 앨범 상세 페이지 컴포넌트
+ * @param param0 - params 객체
+ * @returns 앨범 상세 페이지 JSX
+ */
 export default async function AlbumDetailPage({
   params,
 }: {

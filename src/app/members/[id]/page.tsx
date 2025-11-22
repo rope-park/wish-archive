@@ -27,7 +27,11 @@ function getAge(birthDate: Date): number {
   return age;
 }
 
-// 동적 메타데이터
+/**
+ * 동적 메타데이터 생성
+ * @param param0 - params 객체
+ * @returns params 기반 메타데이터
+ */
 export async function generateMetadata({
   params,
 }: {
@@ -66,6 +70,7 @@ export default async function MemberDetailPage({
           event: {
             include: {
               era: true,
+              series: true,
               albums: {
                 include: {
                   album: {
@@ -110,42 +115,50 @@ export default async function MemberDetailPage({
 
   // 포지션 배열
   const positions = member.positions?.split(',').map((p) => p.trim()) || [];
-
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      {/* 프로필 헤더 */}
-      <Card className="mb-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          {/* 프로필 이미지 */}
-          <div className="flex justify-center sm:justify-start">
-            {member.profileImageUrl ? (
-              <Image
-                src={member.profileImageUrl as string}
-                alt={member.stageName}
-                width={160}
-                height={160}
-                className="h-40 w-40 rounded-full object-cover"
-                priority
-              />
-            ) : (
-              <div className="flex h-40 w-40 items-center justify-center rounded-full bg-linear-to-br from-blue-400 to-purple-500 text-5xl">
-                {member.emoji || '👤'}
-              </div>
-            )}
-          </div>
+    <div className="wish-container min-h-screen py-8">
+      {/* 배경 장식 */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <span className="absolute top-[10%] left-[8%] text-4xl animate-float opacity-20">💚</span>
+        <span className="absolute top-[20%] right-[12%] text-3xl animate-sparkle opacity-20" style={{ animationDelay: '0.5s' }}>⭐</span>
+        <span className="absolute bottom-[15%] left-[15%] text-5xl animate-float opacity-15" style={{ animationDelay: '1s' }}>✨</span>
+        <span className="absolute bottom-[30%] right-[10%] text-4xl animate-sparkle opacity-20" style={{ animationDelay: '1.5s' }}>🎤</span>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl px-4">
+        {/* 프로필 헤더 */}
+        <div className="jelly-frame bg-white/90 backdrop-blur-md mb-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+            {/* 프로필 이미지 */}
+            <div className="flex justify-center sm:justify-start">
+              {member.profileImageUrl ? (
+                <Image
+                  src={member.profileImageUrl as string}
+                  alt={member.stageName}
+                  width={160}
+                  height={160}
+                  className="h-40 w-40 rounded-full object-cover border-4 border-black shadow-hard-lg"
+                  priority
+                />
+              ) : (
+                <div className="flex h-40 w-40 items-center justify-center rounded-full bg-linear-to-br from-wish-sky to-wish-purple text-6xl border-4 border-black shadow-hard-lg">
+                  {member.emoji || '👤'}
+                </div>
+              )}
+            </div>
 
           {/* 프로필 정보 */}
           <div className="flex-1 space-y-4">
             {/* 이름 */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="font-bagel-fat-one text-4xl text-text-dark drop-shadow-[3px_3px_0px_rgba(0,0,0,0.1)]">
                 {member.stageName}
               </h1>
               {member.name && (
-                <p className="mt-1 text-lg text-gray-600">{member.name}</p>
+                <p className="mt-2 font-jua text-xl text-gray-600">{member.name}</p>
               )}
               {member.nameEn && (
-                <p className="text-sm text-gray-500">{member.nameEn}</p>
+                <p className="font-jua text-base text-gray-500">{member.nameEn}</p>
               )}
             </div>
 
@@ -153,19 +166,19 @@ export default async function MemberDetailPage({
             {positions.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {positions.map((pos) => (
-                  <Badge key={pos} variant="primary">
+                  <span key={pos} className="bg-wish-pink text-white px-4 py-1.5 rounded-full font-bold text-sm border-2 border-black shadow-hard">
                     {pos}
-                  </Badge>
+                  </span>
                 ))}
               </div>
             )}
 
             {/* 상세 정보 그리드 */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {member.birthDate && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700">생년월일</span>
-                  <p className="text-gray-900">
+                <div className="bg-wish-lemon/30 rounded-2xl p-3 border-2 border-black">
+                  <span className="font-press-start-2p text-[10px] text-gray-600">🎂 생년월일</span>
+                  <p className="font-jua text-base text-gray-900 mt-1">
                     {new Date(member.birthDate).toLocaleDateString('ko-KR', {
                       year: 'numeric',
                       month: 'long',
@@ -181,30 +194,30 @@ export default async function MemberDetailPage({
               )}
 
               {member.nationality && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700">국적</span>
-                  <p className="text-gray-900">{member.nationality}</p>
+                <div className="bg-wish-sky/30 rounded-2xl p-3 border-2 border-black">
+                  <span className="font-press-start-2p text-[10px] text-gray-600">🌍 국적</span>
+                  <p className="font-jua text-base text-gray-900 mt-1">{member.nationality}</p>
                 </div>
               )}
 
               {member.bloodType && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700">혈액형</span>
-                  <p className="text-gray-900">{member.bloodType}</p>
+                <div className="bg-wish-pink/30 rounded-2xl p-3 border-2 border-black">
+                  <span className="font-press-start-2p text-[10px] text-gray-600">💉 혈액형</span>
+                  <p className="font-jua text-base text-gray-900 mt-1">{member.bloodType}</p>
                 </div>
               )}
 
               {member.ownNumber !== null && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700">고유 번호</span>
-                  <p className="text-gray-900">{member.ownNumber}</p>
+                <div className="bg-wish-purple/30 rounded-2xl p-3 border-2 border-black">
+                  <span className="font-press-start-2p text-[10px] text-gray-600">🔢 고유 번호</span>
+                  <p className="font-jua text-base text-gray-900 mt-1">{member.ownNumber}</p>
                 </div>
               )}
 
               {member.joinDate && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700">합류일</span>
-                  <p className="text-gray-900">
+                <div className="bg-wish-green/30 rounded-2xl p-3 border-2 border-black">
+                  <span className="font-press-start-2p text-[10px] text-gray-600">📅 합류일</span>
+                  <p className="font-jua text-base text-gray-900 mt-1">
                     {new Date(member.joinDate).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
@@ -213,45 +226,53 @@ export default async function MemberDetailPage({
 
             {/* 활동 상태 */}
             <div>
-              <Badge variant={member.isActive ? 'success' : 'default'}>
-                {member.isActive ? '활동 중' : '비활동'}
-              </Badge>
+              <span className={`inline-block px-5 py-2 rounded-full font-bold text-sm border-2 border-black shadow-hard ${member.isActive ? 'bg-wish-green text-black' : 'bg-gray-300 text-gray-700'}`}>
+                {member.isActive ? '✅ 활동 중' : '⏸️ 비활동'}
+              </span>
             </div>
           </div>
         </div>
 
         {/* 메모 */}
         {member.note && (
-          <div className="mt-6 border-t pt-4">
-            <p className="text-sm text-gray-600">{member.note}</p>
+          <div className="mt-6 pt-6 border-t-2 border-dashed border-gray-300">
+            <div className="bg-wish-lemon/20 rounded-2xl p-4 border-2 border-black">
+              <p className="font-nanum-pen text-lg text-gray-700">{member.note}</p>
+            </div>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* 참여 활동 */}
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">참여 활동</h2>
+      <section className="mt-10">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="font-bagel-fat-one text-3xl text-text-dark drop-shadow-[3px_3px_0px_rgba(0,0,0,0.1)]">
+            💚 참여 활동
+          </h2>
           <Link
             href={`/timeline?member=${member.id}`}
-            className="text-sm text-blue-600 hover:underline"
+            className="pixel-btn px-4 py-2 text-sm bg-wish-sky text-white font-bold hover-lift"
           >
             전체 보기 →
           </Link>
         </div>
 
         {member.events.length === 0 ? (
-          <Card>
-            <p className="text-center text-gray-500">참여한 활동이 없습니다.</p>
-          </Card>
+          <div className="jelly-frame bg-white/90 backdrop-blur-md text-center py-12">
+            <p className="text-5xl mb-4">📭</p>
+            <p className="font-jua text-lg text-gray-500">참여한 활동이 없습니다.</p>
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {member.events.map(({ event }) => (
-              <EventCard key={event.id} event={event} />
+            {member.events.map(({ event }, idx) => (
+              <div key={event.id} className="animate-pop-in" style={{ animationDelay: `${idx * 0.05}s` }}>
+                <EventCard event={event} />
+              </div>
             ))}
           </div>
         )}
       </section>
+      </div>
 
       {/* JSON-LD for SEO */}
       <script

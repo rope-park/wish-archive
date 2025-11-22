@@ -8,7 +8,7 @@
 
 import { prisma } from '@/lib/prisma';
 import EventCard from '@/components/domain/timeline/EventCard';
-import type { Event, Era, Album, EventOnAlbum, MemberOnEvent, EventType } from '@prisma/client';
+import type { Event, Era, Album, EventOnAlbum, MemberOnEvent, EventType, EventSeries } from '@prisma/client';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 // Prisma include 결과 형태를 위한 타입
 export interface EventWithRelations extends Event {
   era: Era | null;
+  series: EventSeries | null;
   albums: (EventOnAlbum & { album: Album })[];
   members: (MemberOnEvent & {
     member: { id: string; stageName: string; emoji: string | null };
@@ -29,12 +30,15 @@ export interface EventWithRelations extends Event {
 export default async function TimelinePage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  // searchParams를 Promise로 처리 (Next.js 15+)
+  const params = await searchParams;
+  
   // 필터 파라미터 읽기
-  const type = searchParams.type as EventType | undefined;
-  const year = searchParams.year ? parseInt(searchParams.year as string) : undefined;
-  const member = searchParams.member as string | undefined;
+  const type = params.type as EventType | undefined;
+  const year = params.year ? parseInt(params.year as string) : undefined;
+  const member = params.member as string | undefined;
 
   // WHERE 조건 구성
   interface WhereClause {
@@ -78,6 +82,7 @@ export default async function TimelinePage({
     where,
     include: {
       era: true,
+      series: true,
       albums: {
         include: { album: true },
       },
@@ -101,59 +106,73 @@ export default async function TimelinePage({
   ).sort((a, b) => b - a);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <div className="wish-container min-h-screen py-8">
+      {/* 배경 장식 */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <span className="absolute top-[10%] right-[12%] text-4xl animate-float opacity-40">🕒</span>
+        <span className="absolute top-[30%] left-[10%] text-5xl animate-sparkle opacity-35" style={{ animationDelay: '1s' }}>⭐</span>
+        <span className="absolute bottom-[25%] right-[15%] text-4xl animate-float opacity-40" style={{ animationDelay: '1.5s' }}>📅</span>
+        <span className="absolute bottom-[40%] left-[8%] text-3xl animate-sparkle opacity-30" style={{ animationDelay: '2s' }}>✨</span>
+      </div>
+
       {/* 페이지 헤더 */}
-      <header className="mb-6 sm:mb-8">
-        <h1 className="mb-2 text-2xl font-bold sm:text-3xl">Timeline</h1>
-        <p className="text-sm text-gray-600 sm:text-base">
-          NCT WISH의 활동을 시간 순으로 정리한 타임라인입니다
+      <header className="mb-12 text-center relative z-10">
+        <h1 className="font-bagel-fat-one text-5xl md:text-6xl text-wish-sky mb-4 drop-shadow-[4px_4px_0px_rgba(0,0,0,0.2)] relative inline-block">
+          TIMELINE
+          <span className="absolute -top-6 -right-10 text-4xl animate-sparkle">🕒</span>
+          <span className="absolute -bottom-4 -left-8 text-3xl animate-float" style={{ animationDelay: '0.6s' }}>✨</span>
+        </h1>
+        <p className="text-lg font-jua text-text-dark mt-2">
+          NCT WISH의 모든 순간들을 함께 해요!
         </p>
       </header>
 
-      {/* 필터 바 (간단한 버전) */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <a
-          href="/timeline"
-          className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-            !type ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          전체
-        </a>
-        <a
-          href="/timeline?type=RELEASE"
-          className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-            type === 'RELEASE' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          발매
-        </a>
-        <a
-          href="/timeline?type=MUSIC_SHOW"
-          className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-            type === 'MUSIC_SHOW' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          음악방송
-        </a>
-        <a
-          href="/timeline?type=CONCERT"
-          className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-            type === 'CONCERT' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          콘서트
-        </a>
+      {/* 필터 바 - 비드 스타일 */}
+      <div className="mb-8 flex justify-center relative z-10">
+        <div className="flex flex-wrap gap-3 bg-white/80 backdrop-blur-md rounded-full px-6 py-3 border-4 border-black shadow-hard-lg">
+          <a
+            href="/timeline"
+            className={`px-4 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              !type ? 'bg-wish-sky text-white shadow-hard' : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            ALL
+          </a>
+          <a
+            href="/timeline?type=RELEASE"
+            className={`px-4 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              type === 'RELEASE' ? 'bg-wish-green text-black shadow-hard' : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            💿 RELEASE
+          </a>
+          <a
+            href="/timeline?type=MUSIC_SHOW"
+            className={`px-4 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              type === 'MUSIC_SHOW' ? 'bg-wish-pink text-white shadow-hard' : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            🎤 MUSIC
+          </a>
+          <a
+            href="/timeline?type=CONCERT"
+            className={`px-4 py-2 rounded-full font-press-start-2p text-xs transition-all ${
+              type === 'CONCERT' ? 'bg-wish-purple text-white shadow-hard' : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            🎸 CONCERT
+          </a>
+        </div>
       </div>
 
       {/* 연도 필터 */}
       {uniqueYears.length > 1 && (
-        <div className="mb-6 flex flex-wrap gap-2">
-          <span className="text-sm font-medium text-gray-700">연도:</span>
+        <div className="mb-8 flex justify-center items-center gap-3 flex-wrap relative z-10">
+          <span className="font-bagel-fat-one text-lg text-text-dark">📅 YEAR:</span>
           <a
             href="/timeline"
-            className={`rounded px-2 py-1 text-sm transition-colors ${
-              !year ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
+            className={`px-4 py-2 rounded-full font-jua text-sm border-2 border-black transition-all ${
+              !year ? 'bg-wish-lemon text-black shadow-hard' : 'bg-white text-gray-600 hover:shadow-hard hover:-translate-y-0.5'
             }`}
           >
             전체
@@ -162,8 +181,8 @@ export default async function TimelinePage({
             <a
               key={y}
               href={`/timeline?year=${y}`}
-              className={`rounded px-2 py-1 text-sm transition-colors ${
-                year === y ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
+              className={`px-4 py-2 rounded-full font-jua text-sm border-2 border-black transition-all ${
+                year === y ? 'bg-wish-lemon text-black shadow-hard' : 'bg-white text-gray-600 hover:shadow-hard hover:-translate-y-0.5'
               }`}
             >
               {y}
@@ -173,15 +192,18 @@ export default async function TimelinePage({
       )}
 
       {/* 타임라인 리스트 */}
-      <section className="space-y-3 sm:space-y-4">
+      <section className="relative z-10">
         {events.length === 0 ? (
-          <div className="rounded-lg bg-white p-8 text-center">
-            <p className="text-gray-500">조건에 맞는 활동이 없습니다.</p>
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl border-4 border-black shadow-hard-xl p-12 text-center">
+            <div className="text-5xl mb-4 animate-float">🔍</div>
+            <p className="font-jua text-xl text-gray-500">조건에 맞는 활동이 없습니다.</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {events.map((event) => (
-              <EventCard key={event.id} event={event} />
+          <div className="grid gap-6 sm:grid-cols-2">
+            {events.map((event, idx) => (
+              <div key={event.id} className="animate-pop-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                <EventCard event={event} />
+              </div>
             ))}
           </div>
         )}

@@ -1,30 +1,193 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+@import url('https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Jersey+10&family=Jua&family=Just+Me+Again+Down+Here&family=Kavivanar&family=Press+Start+2P&family=Rubik+Bubbles&family=Shrikhand&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: 'Bagel Fat One', 'Jua', 'Pretendard', sans-serif;
+  background-color: #FDF9F3;
+  color: #333333;
+  /* 모눈종이 배경 패턴 */
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: top left;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* 커스텀 스크롤바 (옵션) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #BFFF00;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8e600;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  /* 젤리 유리 프레임 (WELCOME 사진 프레임) */
+  .jelly-frame {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    border: 5px solid #BFFF00;
+    border-radius: 2.5rem;
+    box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .jelly-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+    pointer-events: none;
+  }
+  
+  /* 폴라로이드 카드 스타일 */
+  .polaroid-card {
+    background: white;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 12px;
+    padding-bottom: 32px;
+    position: relative;
+    transition: all 0.2s ease-out;
+  }
+  
+  .polaroid-card:hover {
+    transform: scale(1.05);
+    z-index: 20;
+  }
+  
+  /* 마스킹 테이프 */
+  .tape {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 80px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Era 카드 젤리 박스 */
+  .era-card {
+    backdrop-filter: blur(16px);
+    border: 4px solid #333333;
+    border-radius: 2rem;
+    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  
+  .era-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .era-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+    pointer-events: none;
+  }
+  
+  /* 픽셀 버튼 스타일 */
+  .pixel-btn {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 2px solid #333333;
+    border-radius: 9999px;
+    box-shadow: 4px 4px 0px 0px #333333;
+    transition: all 0.15s ease;
+  }
+  
+  .pixel-btn:hover {
+    box-shadow: 0px 0px 0px 0px #333333;
+    transform: translate(4px, 4px);
+  }
+  
+  .pixel-btn:active {
+    box-shadow: 0px 0px 0px 0px #333333;
+    transform: translate(4px, 4px);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .wish-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .wish-container {
+      padding: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .wish-container {
+      padding: 2rem;
+    }
+  }
+
+  /* Page transition */
+  .page-transition {
+    animation: fadeInUp 0.5s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Loading spinner */
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #BFFF00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Smooth hover effects */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
+  }
 }

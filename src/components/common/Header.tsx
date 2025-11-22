@@ -2,154 +2,99 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-
-const NAV_ITEMS = [
-  { href: '/', label: 'Home' },
-  { href: '/timeline', label: 'Timeline' },
-  { href: '/releases', label: 'Releases' },
-  { href: '/performances', label: 'Performances' },
-  { href: '/members', label: 'Members' },
-  { href: '/goods', label: 'Goods' },
-  { href: '/eras', label: 'Eras' },
-];
-
-function cx(...list: Array<string | false | null | undefined>) {
-  return list.filter(Boolean).join(' ');
-}
-
-function isActive(pathname: string, href: string) {
-  if (href === '/') {
-    return pathname === href;
-  }
-  return pathname === href || pathname.startsWith(href + '/');
-}
+import { useState } from 'react';
 
 export default function Header() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  const activeMap = useMemo(() =>
-    Object.fromEntries(
-      NAV_ITEMS.map((item) => [item.href, isActive(pathname ?? '', item.href)]),
-    ) as Record<(typeof NAV_ITEMS)[number]['href'], boolean>,
-    [pathname],
-  )
+  const navItems = [
+    { name: 'HOME', path: '/', color: 'bg-white', emoji: '🏠' },
+    { name: 'TIMELINE', path: '/timeline', color: 'bg-wish-sky', emoji: '🕓' },
+    { name: 'RELEASES', path: '/releases', color: 'bg-wish-green', emoji: '💿' },
+    { name: 'PERFORMANCES', path: '/performances', color: 'bg-wish-pink', emoji: '🎤' },
+    { name: 'GOODS', path: '/goods', color: 'bg-wish-lemon', emoji: '🛍️' },
+    { name: 'ERAS', path: '/eras', color: 'bg-wish-purple', emoji: '✨' },
+  ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white/70 backdrop-blur supports-backdrop-filter:bg-white/60">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        {/* 좌측: 로고/타이틀 */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-semibold tracking-tight text-gray-900 hover:opacity-90"
-        >
-          {/* 텍스트 로고 (이미지 로고로 대체 가능) */}
-          <span className="select-none">NCT WISH Archive</span>
-        </Link>
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b-2 border-black/5 shadow-sm py-3">
+      <div className="wish-container">
+        <div className="flex justify-between items-center">
+          {/* 로고 */}
+          <Link href="/" className="flex items-center space-x-2 hover:scale-105 transition-transform">
+            <div className="w-12 h-12 bg-linear-to-br from-wish-green to-wish-sky rounded-full flex items-center justify-center text-2xl shadow-hard">
+              ⭐
+            </div>
+            <span className="text-xl font-bagel-fat-one text-wish-pink hidden sm:inline">
+              NCT WISH
+            </span>
+          </Link>
 
-        {/* 데스크톱 내비게이션 */}
-        <nav className="hidden items-center gap-1 md:flex">
-          {NAV_ITEMS.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={cx(
-                'rounded-md px-3 py-1.5 text-sm transition-colors',
-                activeMap[n.href]
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-700 hover:bg-gray-100',
-              )}
-              aria-current={activeMap[n.href] ? 'page' : undefined}
-            >
-              {n.label}
-            </Link>
-          ))}
-        </nav>
+          {/* 데스크톱 네비게이션 */}
+          <nav className="hidden md:flex items-center space-x-2 lg:space-x-3">
+            {navItems.map((item) => {
+              const isActive = pathname === item.path;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.path}
+                  className={`
+                    px-4 py-2 
+                    font-press-start-2p text-xs lg:text-sm uppercase
+                    border-2 border-text-dark rounded-full
+                    transition-all duration-150
+                    ${item.color}
+                    ${isActive 
+                      ? 'shadow-none translate-x-1 translate-y-1' 
+                      : 'shadow-hard hover:shadow-none hover:translate-x-1 hover:translate-y-1'
+                    }
+                  `}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* 모바일: 햄버거 버튼 */}
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden"
-          aria-label="Open main menu"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {/* 아이콘: 열림/닫힘 */}
-          {open ? (
-            // X 아이콘
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              className="block"
-            >
-              <path
-                d="M18 6L6 18M6 6l12 12"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          ) : (
-            // 햄버거 아이콘
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              className="block"
-            >
-              <path
-                d="M4 6h16M4 12h16M4 18h16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
+          {/* 모바일 햄버거 */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden px-4 py-2 text-lg border-2 border-text-dark rounded-full bg-wish-green shadow-hard hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+          >
+            {isMenuOpen ? '✕' : '☰'}
+          </button>
+        </div>
 
-      {/* 모바일 드롭다운 패널 */}
-      <div
-        className={cx(
-          'border-t bg-white md:hidden',
-          open ? 'block' : 'hidden',
+        {/* 모바일 메뉴 */}
+        {isMenuOpen && (
+          <div className="fixed inset-0 top-[72px] z-40 bg-linear-to-br from-wish-pink/90 via-wish-purple/90 to-wish-sky/90 backdrop-blur-lg md:hidden animate-pop-in">
+            <nav className="wish-container flex flex-col space-y-4 pt-8">
+              {navItems.map((item) => {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.path}
+                    className={`
+                      px-6 py-4 text-center text-lg
+                      font-press-start-2p uppercase
+                      border-2 border-text-dark rounded-full
+                      ${item.color}
+                      ${isActive ? 'shadow-none translate-x-1 translate-y-1' : 'shadow-hard'}
+                      transition-all duration-150
+                    `}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span className="mr-2">{item.emoji}</span>
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         )}
-      // role="dialog"로 볼 수도 있으나 단순 네비 영역이므로 nav 유지
-      >
-        <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">
-          {NAV_ITEMS.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={cx(
-                'rounded-md px-3 py-2 text-sm',
-                activeMap[n.href]
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-800 hover:bg-gray-100',
-              )}
-              aria-current={activeMap[n.href] ? 'page' : undefined}
-              // 모바일에서 누르면 닫히도록
-              onClick={() => setOpen(false)}
-            >
-              {n.label}
-            </Link>
-          ))}
-        </nav>
       </div>
     </header>
-  )
-}     
+  );
+}

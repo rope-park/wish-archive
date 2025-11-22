@@ -25,6 +25,11 @@ export async function seedAlbums(
       distributor: 'Avex Entertainment',
       description: 'Pre-debut Single',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: 'https://youtu.be/ZVcy7bQkBhA',
+      themeColor: '#C6B2FF',
+      themeTextColor: '#2D1B4E',
+      themeIcon: '🙌',
       groupId,
     },
     {
@@ -43,6 +48,11 @@ export async function seedAlbums(
       distributor: 'Kakao Entertainment',
       description: 'The 1st Single',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: 'https://youtu.be/hvQZs3k6Ytk?si=VsbSFNYf1IdUTn04&t=50',
+      themeColor: '#BFFF00',
+      themeTextColor: '#000000',
+      themeIcon: '💚',
       groupId,
     },
     {
@@ -61,6 +71,11 @@ export async function seedAlbums(
       distributor: 'Avex Entertainment',
       description: 'The 2nd Single (Japanese Ver.)',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: 'https://youtu.be/2XqVNFBtVo4?si=y-aefZXFXeC-XLsH&t=2',
+      themeColor: '#8EE3F5',
+      themeTextColor: '#004466',
+      themeIcon: '🐦',
       groupId,
     },
     {
@@ -79,6 +94,11 @@ export async function seedAlbums(
       distributor: 'Kakao Entertainment',
       description: 'The 1st Mini Album',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: 'https://youtu.be/IKlkZZv76Ho?si=PWRiLpqTfyuX6nE4',
+      themeColor: '#FFB6D9',
+      themeTextColor: '#660033',
+      themeIcon: '💖',
       groupId,
     },
     {
@@ -97,6 +117,11 @@ export async function seedAlbums(
       distributor: 'Avex Entertainment',
       description: 'The 1st Japanese Album',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: 'https://youtu.be/2XqVNFBtVo4',
+      themeColor: '#FFF89A',
+      themeTextColor: '#4A4000',
+      themeIcon: '✨',
       groupId,
     },
     {
@@ -115,6 +140,11 @@ export async function seedAlbums(
       distributor: 'Kakao Entertainment',
       description: 'The 2nd Mini Album',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: null,
+      themeColor: '#FF69B4',
+      themeTextColor: '#FFFFFF',
+      themeIcon: '🎈',
       groupId,
     },
     {
@@ -133,6 +163,11 @@ export async function seedAlbums(
       distributor: 'Kakao Entertainment',
       description: 'The 3rd Mini Album',
       catalogNumber: null,
+      // 테마 설정
+      mvUrl: null,
+      themeColor: '#FF6B9D',
+      themeTextColor: '#FFFFFF',
+      themeIcon: '🌈',
       groupId,
     }
   ]

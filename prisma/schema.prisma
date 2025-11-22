@@ -279,6 +279,12 @@ model Album {
   description   String?
   catalogNumber String? // 카탈로그 번호 (필요하면 사용)
 
+  // 테마 & UI 설정
+  mvUrl          String? // 뮤직비디오 URL
+  themeColor     String? // 테마 배경색 (HEX: #BFFF00)
+  themeTextColor String? // 테마 텍스트색 (HEX: #000000)
+  themeIcon      String? // 이모지 아이콘 (💚)
+
   groupId String?
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 

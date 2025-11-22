@@ -9,6 +9,7 @@
 
 import { prisma } from '@/lib/prisma';
 import AlbumSlider from '@/components/domain/releases/AlbumSlider';
+import WindowFrame from '@/components/os/WindowFrame';
 
 // DB에서 앨범 데이터 가져오기 (트랙 포함)
 async function getAlbums() {
@@ -26,5 +27,19 @@ async function getAlbums() {
 export default async function ReleasesPage() {
   const albums = await getAlbums();
 
-  return <AlbumSlider albums={albums} />;
+  return (
+    <WindowFrame title="DISCOGRAPHY PLAYER" icon="💿">
+      <div className="w-full h-full flex flex-col">
+        <div className="flex-1 relative rounded-xl overflow-hidden border-2 border-black shadow-inner bg-black">
+          <AlbumSlider albums={albums} />
+        </div>
+
+        <div className="mt-3 text-center">
+          <p className="font-press-start-2p text-[10px] text-gray-500 animate-pulse">
+            USE ARROW KEYS TO NAVIGATE
+          </p>
+        </div>
+      </div>
+    </WindowFrame>
+  );
 }

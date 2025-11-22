@@ -18,6 +18,11 @@ export type { BaseModalProps } from './base/BaseModal';
 export { default as FloatingDecorations } from './common/FloatingDecorations';
 export { default as Taskbar } from './common/Taskbar';
 
+// OS 컴포넌트
+export { default as WindowFrame } from './os/WindowFrame';
+export { default as DesktopIcon } from './os/DesktopIcon';
+export { default as ProfileWidget } from './os/ProfileWidget';
+
 // Domain 컴포넌트 - Members
 export { default as MemberCard } from './domain/members/MemberCard';
 

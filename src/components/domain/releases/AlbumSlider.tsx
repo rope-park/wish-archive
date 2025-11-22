@@ -1,5 +1,5 @@
 /**
- * AlbumSlider Component
+ * AlbumSlider 컴포넌트
  * 
  * 풀스크린 슬라이더 + Shared Element Transition
  * - 앨범 클릭 시 상세 페이지로 부드럽게 확장
@@ -35,11 +35,20 @@ const TYPE_LABELS: Record<ReleaseType, string> = {
   PARTICIPATION: 'PARTICIPATION',
 };
 
-// 앨범별 테마 컬러 + 뮤직비디오 URL
+// 앨범별 테마 컬러 + 뮤직비디오 URL 
 const getAlbumTheme = (album: Album): { bg: string; text: string; icon: string; mvUrl?: string } => {
+  // DB에 저장된 값이 있으면 사용
+  if (album.themeColor || album.themeTextColor || album.themeIcon || album.mvUrl) {
+    return {
+      bg: album.themeColor || '#BFFF00',
+      text: album.themeTextColor || '#000000',
+      icon: album.themeIcon || '💿',
+      mvUrl: album.mvUrl || undefined,
+    };
+  }
+
   const title = album.title.toLowerCase();
   
-  // 타이틀 기반 테마 + MV URL
   if (title.match('wish')) {
     return { 
       bg: '#BFFF00', 
@@ -68,12 +77,10 @@ const getAlbumTheme = (album: Album): { bg: string; text: string; icon: string; 
     return { bg: '#C6B2FF', text: '#330066', icon: '🏫' };
   }
   
-  // 시장 기반
   if (album.market === 'JAPAN') {
     return { bg: '#FFB6D9', text: '#660033', icon: '🌸' };
   }
   
-  // 타입 기반
   switch (album.type) {
     case 'STUDIO_ALBUM':
       return { bg: '#BFFF00', text: '#000000', icon: '💿' };
@@ -121,7 +128,7 @@ export default function AlbumSlider({ albums }: AlbumSliderProps) {
   
   if (albums.length === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-paper-bg">
+      <div className="h-full flex items-center justify-center bg-paper-bg">
         <p className="font-jua text-xl text-gray-500">앨범 데이터가 없습니다 😢</p>
       </div>
     );
@@ -141,7 +148,7 @@ export default function AlbumSlider({ albums }: AlbumSliderProps) {
   const prevSlide = () => setIndex((prev) => (prev - 1 + albums.length) % albums.length);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden">
       
       {/* YouTube 뮤직비디오 배경 (MV가 있으면 MV, 없으면 배경색) */}
       {theme.mvUrl ? (
@@ -360,10 +367,10 @@ export default function AlbumSlider({ albums }: AlbumSliderProps) {
         </p>
       </div>
 
-      {/* 상세 페이지 모달 (Shared Element Transition) */}
+      {/* 상세 페이지 모달 */}
       <AnimatePresence>
         {selectedAlbum && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="relative inset-0 z-50 flex items-center justify-center p-4">
             
             {/* 배경 블러 처리 (클릭 시 닫힘) */}
             <motion.div

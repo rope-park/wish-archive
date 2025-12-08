@@ -1,63 +1,70 @@
 /**
  * Checkbox 컴포넌트
  * 
- * 체크박스 입력 필드
- * - 레이블, 설명 지원
- * - 접근성 고려
+ * - 윈도우 98 스타일의 체크박스
+ * - 레이블 텍스트 지원
+ * - ref 전달 가능
  */
+'use client';
 
-import { forwardRef, useId, type InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes } from 'react';
 
-export interface CheckboxProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label?: string;
-  description?: string;
+export interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string; // 옆에 표시할 텍스트
 }
 
 const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, description, className = '', id, disabled, ...props }, ref) => {
-    const generatedId = useId();
-    const checkboxId = id || `checkbox-${generatedId}`;
-
+  ({ label, className = '', ...props }, ref) => {
     return (
-      <div className="flex items-start gap-3">
-        {/* 체크박스 */}
+      <label className={`inline-flex items-center gap-2 cursor-pointer group ${className}`}>
+        
+        {/* 실제 Input (숨김 처리) */}
         <input
           ref={ref}
           type="checkbox"
-          id={checkboxId}
-          disabled={disabled}
-          className={[
-            'mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 transition-colors',
-            'focus:ring-2 focus:ring-blue-200 focus:ring-offset-0',
-            disabled && 'cursor-not-allowed opacity-50',
-            className,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          className="peer sr-only"
           {...props}
         />
 
-        {/* 레이블 & 설명 */}
-        {(label || description) && (
-          <div className="flex flex-col">
-            {label && (
-              <label
-                htmlFor={checkboxId}
-                className={[
-                  'text-sm font-medium text-gray-700',
-                  disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                ].join(' ')}
-              >
-                {label}
-              </label>
-            )}
-            {description && (
-              <p className="text-xs text-gray-500">{description}</p>
-            )}
-          </div>
+        {/* 커스텀 디자인 (Checkbox Box) */}
+        <div className="
+          relative w-4 h-4 shrink-0
+          bg-white
+          
+          /* --- 윈도우 98 스타일 --- */
+          /* 1. 테두리 */
+          border border-gray-900
+          
+          /* 2. 그림자 (푹 파인 느낌 + 하단 하이라이트) */
+          shadow-inset
+          /* shadow-[1px_1px_0px_0px_rgba(255,255,255,1.00)] (필요시 추가) */
+          
+          /* 3. 상태별 스타일 */
+          peer-disabled:opacity-50 peer-disabled:cursor-not-allowed
+          peer-focus:outline-none
+          
+          /* 4. 체크 표시 정렬 */
+          flex items-center justify-center
+        ">
+          
+          {/* 체크 아이콘 (✔) - 체크되면 나타남 */}
+          <span className="
+            font-pixel text-[10px] text-black leading-none
+            opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100
+            transition-all duration-75
+          ">
+            ✔
+          </span>
+          
+        </div>
+
+        {/* 라벨 텍스트 */}
+        {label && (
+          <span className="font-pixel text-sm text-gray-900 select-none group-active:translate-y-[1px]">
+            {label}
+          </span>
         )}
-      </div>
+      </label>
     );
   }
 );

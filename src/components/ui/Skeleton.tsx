@@ -1,12 +1,13 @@
 /**
  * Skeleton 컴포넌트
  * 
- * 로딩 중 플레이스홀더
- * - 다양한 형태 지원
+ * - 로딩 중인 UI 표시
+ * - 다양한 형태 지원: 텍스트, 사각형, 원형
  */
+'use client';
 
 export interface SkeletonProps {
-  variant?: 'text' | 'circular' | 'rectangular';
+  variant?: 'text' | 'rectangular' | 'circular'; // 텍스트용, 박스용, 원형
   width?: string | number;
   height?: string | number;
   className?: string;
@@ -18,59 +19,37 @@ export default function Skeleton({
   height,
   className = '',
 }: SkeletonProps) {
-  const variantClasses = {
-    text: 'h-4 rounded',
+  
+  // 모양별 기본 스타일
+  const variantStyles = {
+    text: 'h-4 w-full rounded-none',
+    
+    rectangular: 'w-full h-full rounded-none',
+    
     circular: 'rounded-full',
-    rectangular: 'rounded-md',
   };
 
-  const style = {
-    width: width ? (typeof width === 'number' ? `${width}px` : width) : undefined,
-    height: height ? (typeof height === 'number' ? `${height}px` : height) : undefined,
+  // 크기 스타일
+  const sizeStyle = {
+    width: typeof width === 'number' ? `${width}px` : width,
+    height: typeof height === 'number' ? `${height}px` : height,
   };
 
   return (
     <div
-      className={[
-        'animate-pulse bg-gray-200',
-        variantClasses[variant],
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      style={style}
+      className={`
+        /* --- 기본 애니메이션 & 색상 --- */
+        animate-pulse bg-gray-200
+        
+        /* --- 모양 스타일 --- */
+        shadow-inset
+        border border-gray-400/50
+        
+        ${variantStyles[variant]}
+        ${className}
+      `}
+      style={sizeStyle}
       aria-hidden="true"
     />
   );
 }
-
-// 프리셋 스켈레톤들
-Skeleton.Text = function SkeletonText({
-  lines = 3,
-  className = '',
-}: {
-  lines?: number;
-  className?: string;
-}) {
-  return (
-    <div className={`space-y-2 ${className}`}>
-      {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          variant="text"
-          width={i === lines - 1 ? '80%' : '100%'}
-        />
-      ))}
-    </div>
-  );
-};
-
-Skeleton.Card = function SkeletonCard({ className = '' }: { className?: string }) {
-  return (
-    <div className={`space-y-3 rounded-lg border bg-white p-4 ${className}`}>
-      <Skeleton variant="rectangular" height={200} />
-      <Skeleton variant="text" width="60%" />
-      <Skeleton variant="text" width="80%" />
-    </div>
-  );
-};

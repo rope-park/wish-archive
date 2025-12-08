@@ -1,19 +1,18 @@
 /**
  * Tooltip 컴포넌트
  * 
- * 호버 시 툴팁 표시
- * - CSS only 버전 (간단한 구현)
+ * - 윈도우 98 스타일의 툴팁을 구현
+ * - 호버 시 툴팁 내용이 표시됨
  */
-
 'use client';
 
-import { type ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 export interface TooltipProps {
-  children: ReactNode;
-  content: string;
-  position?: 'top' | 'bottom' | 'left' | 'right';
-  className?: string;
+  children: ReactNode;      // 툴팁을 띄울 대상 (아이콘, 텍스트 등)
+  content: string;          // 툴팁 내용
+  position?: 'top' | 'bottom' | 'left' | 'right'; // 위치 (기본: top)
+  className?: string;       // 추가 스타일
 }
 
 export default function Tooltip({
@@ -22,38 +21,37 @@ export default function Tooltip({
   position = 'top',
   className = '',
 }: TooltipProps) {
+  
+  // 위치별 스타일링
   const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-1',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-1',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-1',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-1',
   };
 
   return (
-    <div className={`group relative inline-block ${className}`}>
+    <div className={`group relative inline-flex ${className}`}>
+      {/* Trigger (마우스 올릴 대상) */}
       {children}
-      
-      {/* 툴팁 컨텐츠 */}
+
+      {/* Tooltip Content (평소엔 숨김 -> 호버 시 등잡) */}
       <div
         role="tooltip"
-        className={[
-          'pointer-events-none absolute z-50 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white shadow-lg',
-          'opacity-0 transition-opacity group-hover:opacity-100',
-          positionClasses[position],
-        ].join(' ')}
+        className={`
+          absolute z-50 whitespace-nowrap
+          hidden group-hover:block
+          
+          /* --- 윈도우 98 스타일 --- */
+          bg-[#FFFFE1] text-black font-pixel text-xs
+          border border-black
+          px-1 py-0.5
+          shadow-[2px_2px_0px_rgba(0,0,0,1)]
+          
+          ${positionClasses[position]}
+        `}
       >
         {content}
-        
-        {/* 화살표 */}
-        <div
-          className={[
-            'absolute h-2 w-2 rotate-45 bg-gray-900',
-            position === 'top' && '-bottom-1 left-1/2 -translate-x-1/2',
-            position === 'bottom' && '-top-1 left-1/2 -translate-x-1/2',
-            position === 'left' && '-right-1 top-1/2 -translate-y-1/2',
-            position === 'right' && '-left-1 top-1/2 -translate-y-1/2',
-          ].join(' ')}
-        />
       </div>
     </div>
   );

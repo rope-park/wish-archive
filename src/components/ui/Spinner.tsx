@@ -1,54 +1,89 @@
 /**
  * Spinner 컴포넌트
  * 
- * 로딩 인디케이터
- * - 다양한 크기 지원
+ * - 다양한 스타일의 로딩 스피너
  */
+'use client';
 
 export interface SpinnerProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'hourglass' | 'star' | 'cd' | 'pixel'; // 스피너 종류
+  size?: 'sm' | 'md' | 'lg' | 'xl';                // 크기
   className?: string;
-  label?: string;
+  label?: string;                                  // 옆에 뜰 텍스트 (옵션)
 }
 
 export default function Spinner({
+  variant = 'pixel',
   size = 'md',
   className = '',
   label,
 }: SpinnerProps) {
-  const sizeClasses = {
-    xs: 'h-3 w-3',
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-8 w-8',
-    xl: 'h-12 w-12',
+
+  // 크기 설정 (텍스트 크기 기반)
+  const sizeClass = {
+    sm: 'text-lg',    // 18px
+    md: 'text-2xl',   // 24px
+    lg: 'text-4xl',   // 36px
+    xl: 'text-6xl',   // 60px
+  };
+
+  // 아이콘 및 애니메이션 설정
+  /** TODO: 아이콘 이미지 추가 */
+  const renderIcon = () => {
+    switch (variant) {
+      case 'hourglass':
+        return (
+          <div className="animate-spin [animation-duration:2s] [animation-timing-function:steps(2)]">
+            ⏳
+          </div>
+        );
+      case 'cd':
+        return (
+          <div className="animate-spin [animation-duration:1.5s] [animation-timing-function:linear]">
+            💿
+          </div>
+        );
+      case 'star':
+        return (
+          <div className="animate-spin [animation-duration:3s]">
+            ⭐
+          </div>
+        );
+      case 'pixel':
+      default:
+        return (
+          <div className={`
+            inline-block relative
+            ${size === 'sm' ? 'w-4 h-4' : size === 'md' ? 'w-6 h-6' : size === 'lg' ? 'w-8 h-8' : 'w-12 h-12'}
+          `}>
+            <div className="
+              w-full h-full
+              border-4 border-gray-300
+              border-t-black border-r-gray-300 border-b-gray-300 border-l-gray-300
+              rounded-none
+              animate-spin
+            " />
+          </div>
+        );
+    }
   };
 
   return (
-    <div className="flex items-center justify-center gap-2">
-      <svg
-        className={`animate-spin text-blue-600 ${sizeClasses[size]} ${className}`}
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        role="status"
-        aria-label={label || 'Loading'}
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        />
-      </svg>
-      {label && <span className="text-sm text-gray-600">{label}</span>}
+    <div 
+      role="status" 
+      className={`inline-flex items-center gap-3 ${className}`}
+    >
+      <div className={`${sizeClass[size]} select-none`}>
+        {renderIcon()}
+      </div>
+      
+      {label && (
+        <span className="font-pixel text-sm text-gray-500 animate-pulse">
+          {label}
+        </span>
+      )}
+      
+      <span className="sr-only">Loading...</span>
     </div>
   );
 }

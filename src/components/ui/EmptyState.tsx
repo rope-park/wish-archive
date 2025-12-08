@@ -1,18 +1,20 @@
 /**
  * EmptyState 컴포넌트
  * 
- * 빈 상태 표시
- * - 데이터 없을 때 안내
+ * - 데이터가 없을 때 보여줌
+ * - 검색 결과가 없을 때 보여줌
+ * - 에러 발생 시 보여줌
  */
+'use client';
 
-import type { ReactNode } from 'react';
-import Button from './Button';
+import { ReactNode } from 'react';
+import Button from '@/components/ui/Button';
 
 export interface EmptyStateProps {
-  icon?: ReactNode;
-  title: string;
-  description?: string;
-  action?: {
+  icon?: ReactNode;      // 아이콘 (이모지 또는 컴포넌트)
+  title: string;         // 제목 (예: 데이터가 없습니다)
+  description?: string;  // 설명 (예: 검색 결과가 없어요)
+  action?: {             // 하단 액션 버튼 (선택사항)
     label: string;
     onClick: () => void;
   };
@@ -28,26 +30,35 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-12 text-center ${className}`}
+      className={`
+        flex flex-col items-center justify-center p-8 text-center
+        bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg
+        ${className}
+      `}
     >
-      {/* 아이콘 */}
-      {icon && (
-        <div className="mb-4 text-gray-400" aria-hidden="true">
-          {icon}
-        </div>
-      )}
+      {/* 아이콘 영역 */}
+      <div className="mb-4 text-4xl animate-bounce">
+        {icon || '📂'} {/* 기본값은 빈 폴더 */}
+      </div>
 
-      {/* 제목 */}
-      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
-
-      {/* 설명 */}
+      {/* 텍스트 영역 */}
+      <h3 className="mb-2 font-pixel text-lg text-gray-900">
+        {title}
+      </h3>
+      
       {description && (
-        <p className="mb-6 max-w-md text-sm text-gray-600">{description}</p>
+        <p className="mb-6 font-body text-sm text-gray-500 max-w-[200px] mx-auto leading-relaxed">
+          {description}
+        </p>
       )}
 
       {/* 액션 버튼 */}
       {action && (
-        <Button variant="primary" onClick={action.onClick}>
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={action.onClick}
+        >
           {action.label}
         </Button>
       )}
@@ -55,54 +66,33 @@ export default function EmptyState({
   );
 }
 
-// 기본 아이콘들
-EmptyState.Icon = {
-  NoData: () => (
-    <svg
-      width="64"
-      height="64"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-      />
-    </svg>
+EmptyState.Presets = {
+  // 검색 결과 없음
+  NoResult: ({ query, onReset }: { query: string; onReset?: () => void }) => (
+    <EmptyState
+      icon="🔍"
+      title="검색 결과 없음"
+      description={`'${query}'에 대한 결과를 찾을 수 없습니다.`}
+      action={onReset ? { label: "검색 초기화", onClick: onReset } : undefined}
+    />
   ),
-  Search: () => (
-    <svg
-      width="64"
-      height="64"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-      />
-    </svg>
+
+  // 데이터 없음 (기본)
+  NoData: ({ message = "표시할 데이터가 없습니다." }: { message?: string }) => (
+    <EmptyState
+      icon="📭"
+      title="비어있음"
+      description={message}
+    />
   ),
-  Folder: () => (
-    <svg
-      width="64"
-      height="64"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-      />
-    </svg>
+
+  // 에러 발생
+  Error: ({ onRetry }: { onRetry?: () => void }) => (
+    <EmptyState
+      icon="💣"
+      title="오류 발생"
+      description="데이터를 불러오는 중 문제가 생겼습니다."
+      action={onRetry ? { label: "다시 시도", onClick: onRetry } : undefined}
+    />
   ),
 };

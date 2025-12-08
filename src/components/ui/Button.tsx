@@ -1,80 +1,105 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+/**
+ * 버튼 컴포넌트
+ * 
+ * - 다양한 변형(variant)과 크기(size) 지원
+ * - 아이콘 삽입 가능 (왼쪽/오른쪽)
+ * - 활성화 상태 지원 (탭 등에서 사용)
+ */
+'use client';
 
+import { ButtonHTMLAttributes, forwardRef, ReactNode } from 'react';
+
+// 버튼의 변형(Variant) 타입 정의
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: "primary" | "secondary" | "hover" | "pressed" | "loading" | "ghost" | "danger";
-    size?: "sm" | "md" | "lg";
-    loading?: boolean;
-    leftIcon?: ReactNode;
-    rightIcon?: ReactNode;
-    children: ReactNode;
+  variant?: 'default' | 'primary' | 'ghost'; // 버튼 종류
+  size?: 'sm' | 'md' | 'lg';                 // 버튼 크기
+  leftIcon?: ReactNode;                      // 왼쪽 아이콘 (옵션)
+  rightIcon?: ReactNode;                     // 오른쪽 아이콘 (옵션)
+  isActive?: boolean;                        // 강제로 눌린 상태 (탭 등에서 사용)
 }
 
-export default function Button({
-    variant = "primary",
-    size = "md",
-    loading = false,
-    leftIcon,
-    rightIcon,
-    disabled,
-    children,
-    className = "",
-    ...props
-}: ButtonProps) {
-    const variantClasses = {
-        primary: "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400",
-        secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-100",
-        hover: "bg-white text-gray-800 hover:bg-gray-100 disabled:bg-gray-50",
-        pressed: "bg-gray-300 text-gray-800 hover:bg-gray-400 disabled:bg-gray-200",
-        loading: "bg-gray-100 text-gray-400 cursor-not-allowed",
-        ghost: "bg-transparent text-gray-800 hover:bg-gray-100 disabled:bg-gray-50",
-        danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400",
-    }
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className = '',
+      variant = 'default',
+      size = 'md',
+      leftIcon,
+      rightIcon,
+      isActive = false,
+      disabled,
+      children,
+      ...props
+    },
+    ref
+  ) => {
 
-    const sizeClasses = {
-        sm: "px-3 py-1.5 text-sm",
-        md: "px-4 py-2 text-base",
-        lg: "px-5 py-3 text-lg",
-    }
+    // 스타일 정의
+    // A. 공통 베이스 스타일 (폰트, 정렬, 트랜지션)
+    const baseStyles = `
+      inline-flex items-center justify-center gap-2
+      font-pixel leading-none
+      transition-all duration-75
+      select-none cursor-pointer
+      active:translate-y-[1px] active:translate-x-[1px]
+      disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0
+    `;
 
-      return (
-    <button
-      disabled={disabled || loading}
-      className={[
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        variantClasses[variant],
-        sizeClasses[size],
-        className,
-      ].join(' ')}
-      {...props}
-    >
-      {loading && <Spinner size="sm" />}
-      {!loading && leftIcon}
-      {children}
-      {!loading && rightIcon}
-    </button>
-  )
-}
+    // B. 종류별 스타일 (색상, 그림자)
+    const variantStyles = {
+      default: `
+        bg-gray-200 text-gray-900
+        border border-transparent
+        shadow-outset
+        active:shadow-inset
+        ${isActive ? 'shadow-inset translate-y-[1px] translate-x-[1px] bg-dither' : ''} 
+      `,
+      primary: `
+        bg-brand-primary text-gray-900 font-bold
+        border border-transparent
+        shadow-outset
+        active:shadow-inset
+        hover:shadow-glow-green
+      `,
+      ghost: `
+        bg-transparent text-gray-900
+        hover:bg-gray-200 hover:shadow-outset
+        active:shadow-inset
+      `,
+    };
 
-// 미니 스피너
-function Spinner({ size = 'sm' }: { size?: 'sm' | 'md' }) {
-  const sizeMap = { sm: 'h-4 w-4', md: 'h-6 w-6' }
-  return (
-    <svg className={`animate-spin ${sizeMap[size]}`} viewBox="0 0 24 24">
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-        fill="none"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      />
-    </svg>
-  )
-}
+    // C. 크기별 스타일 (패딩, 폰트 크기)
+    const sizeStyles = {
+      sm: 'h-6 px-2 text-xs',       // 윈도우 타이틀바 버튼용
+      md: 'h-8 px-3 text-sm',       // 일반 버튼 (표준)
+      lg: 'h-10 px-4 text-base',    // 시작 버튼용
+    };
+
+    return (
+      <button
+        ref={ref}
+        disabled={disabled}
+        className={`
+          ${baseStyles}
+          ${variantStyles[variant]}
+          ${sizeStyles[size]}
+          ${className}
+        `}
+        {...props}
+      >
+        {/* 왼쪽 아이콘이 있으면 렌더링 */}
+        {leftIcon && <span className="flex items-center justify-center">{leftIcon}</span>}
+
+        {/* 텍스트 내용 */}
+        <span className="pt-[2px]">{children}</span>
+
+        {/* 오른쪽 아이콘이 있으면 렌더링 */}
+        {rightIcon && <span className="flex items-center justify-center">{rightIcon}</span>}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';
+
+export default Button;

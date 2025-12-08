@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, ReactNode, ReactElement, isValidElement } from 'react';
+import { useState, useRef, useEffect, ReactNode, ReactElement, isValidElement, cloneElement } from 'react';
 
 export interface DropdownProps {
     children: ReactNode;
@@ -38,12 +38,17 @@ export default function Dropdown({ children, className = '' }: DropdownProps) {
         >
 
             {Array.isArray(children)
-                ? children.map((child: ReactNode) => {
+                ? children.map((child: ReactNode, index: number) => {
                     if (!isValidElement(child)) return null;
                     const element = child as ReactElement;
-                    return element.type === DropdownTrigger
-                        ? <element.type {...element.props} key="trigger" isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
-                        : isOpen ? <element.type {...element.props} key="menu" /> : null
+                    if (element.type === DropdownTrigger) {
+                        return cloneElement(element, { 
+                            key: `trigger-${index}`, 
+                            isOpen, 
+                            onClick: () => setIsOpen(!isOpen) 
+                        } as Partial<DropdownTriggerProps>);
+                    }
+                    return isOpen ? cloneElement(element, { key: `menu-${index}` }) : null;
                 })
                 : children
             }

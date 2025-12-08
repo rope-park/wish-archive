@@ -1,18 +1,18 @@
 /**
  * Pagination 컴포넌트
  * 
- * 페이지네이션 네비게이션
- * - 이전/다음 버튼
- * - 페이지 번호 표시
+ * - 페이지 네비게이션
+ * - 최대 표시 페이지 수 조절 가능
  */
-
 'use client';
+
+import Button from '@/components/ui/Button';
 
 export interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  maxVisible?: number;
+  maxVisible?: number; // 한 번에 보여줄 페이지 번호 개수
   className?: string;
 }
 
@@ -23,7 +23,8 @@ export default function Pagination({
   maxVisible = 5,
   className = '',
 }: PaginationProps) {
-  // 표시할 페이지 범위 계산
+  
+  // 표시할 페이지 번호 계산 로직
   const getPageNumbers = (): (number | '...')[] => {
     if (totalPages <= maxVisible) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -62,94 +63,66 @@ export default function Pagination({
 
   const pages = getPageNumbers();
 
+  // 페이지가 1개뿐이면 숨김 (선택사항)
+  if (totalPages <= 1) return null;
+
   return (
     <nav
       aria-label="Pagination"
       className={`flex items-center justify-center gap-1 ${className}`}
     >
       {/* 이전 버튼 */}
-      <button
-        type="button"
-        onClick={() => onPageChange(currentPage - 1)}
+      <Button
+        size="sm"
+        variant="default"
         disabled={currentPage === 1}
+        onClick={() => onPageChange(currentPage - 1)}
         aria-label="Previous page"
-        className={[
-          'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500',
-          currentPage === 1
-            ? 'cursor-not-allowed text-gray-400'
-            : 'text-gray-700 hover:bg-gray-100',
-        ].join(' ')}
+        className="w-8 px-0 font-pixel"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fillRule="evenodd"
-            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
+        ◀
+      </Button>
 
-      {/* 페이지 번호 */}
+      {/* 페이지 번호들 */}
       {pages.map((page, idx) =>
         page === '...' ? (
-          <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">
+          // 생략 표시 (...)
+          <span 
+            key={`ellipsis-${idx}`} 
+            className="px-1 font-pixel text-xs text-gray-500 select-none"
+          >
             ...
           </span>
         ) : (
-          <button
+          // 숫자 버튼
+          <Button
             key={page}
-            type="button"
+            size="sm"
+            isActive={currentPage === page} 
             onClick={() => onPageChange(page)}
             aria-label={`Page ${page}`}
             aria-current={currentPage === page ? 'page' : undefined}
-            className={[
-              'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500',
-              currentPage === page
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-700 hover:bg-gray-100',
-            ].join(' ')}
+            className={`
+              w-8 px-0 font-pixel
+              ${currentPage === page ? 'font-bold text-brand-deep' : 'text-gray-900'}
+            `}
           >
             {page}
-          </button>
+          </Button>
         )
       )}
 
       {/* 다음 버튼 */}
-      <button
-        type="button"
-        onClick={() => onPageChange(currentPage + 1)}
+      <Button
+        size="sm"
+        variant="default"
         disabled={currentPage === totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
         aria-label="Next page"
-        className={[
-          'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500',
-          currentPage === totalPages
-            ? 'cursor-not-allowed text-gray-400'
-            : 'text-gray-700 hover:bg-gray-100',
-        ].join(' ')}
+        className="w-8 px-0 font-pixel"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fillRule="evenodd"
-            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
+        ▶
+      </Button>
     </nav>
   );
 }

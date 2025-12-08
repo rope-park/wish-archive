@@ -1,20 +1,20 @@
 /**
  * Input 컴포넌트
  * 
- * 텍스트 입력 필드
- * - 레이블, 에러 메시지, 헬퍼 텍스트 지원
- * - 접근성 고려 (aria-invalid, aria-describedby)
+ * - 윈도우 98 스타일의 입력창
+ * - 레이블, 에러 메시지, 아이콘 지원
+ * - 포커스 및 에러 상태 스타일링
  */
+'use client';
 
-import { forwardRef, useId, type InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, ReactNode } from 'react';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  fullWidth?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  label?: string;         // 상단 레이블 (옵션)
+  error?: string;         // 에러 메시지 (옵션)
+  leftIcon?: ReactNode;   // 왼쪽에 들어갈 아이콘 (돋보기 등)
+  rightIcon?: ReactNode;  // 오른쪽에 들어갈 아이콘 (지우기 버튼 등)
+  fullWidth?: boolean;    // 가로 꽉 채울지 여부
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -22,86 +22,88 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     {
       label,
       error,
-      helperText,
-      fullWidth = false,
       leftIcon,
       rightIcon,
+      fullWidth = false,
       className = '',
-      id,
       disabled,
       ...props
     },
     ref
   ) => {
-    const generatedId = useId();
-    const inputId = id || `input-${generatedId}`;
-    const errorId = error ? `${inputId}-error` : undefined;
-    const helperId = helperText ? `${inputId}-helper` : undefined;
-
     return (
-      <div className={fullWidth ? 'w-full' : ''}>
-        {/* 레이블 */}
+      <div className={`flex flex-col gap-1.5 ${fullWidth ? 'w-full' : 'w-auto'}`}>
+        
+        {/* 1. 레이블 (있을 경우에만 표시) */}
         {label && (
-          <label
-            htmlFor={inputId}
-            className="mb-1.5 block text-sm font-medium text-gray-700"
+          <label 
+            className="font-pixel text-xs text-gray-900 ml-1"
+            htmlFor={props.id}
           >
             {label}
           </label>
         )}
 
-        {/* 입력 필드 래퍼 */}
-        <div className="relative">
+        {/* 2. 입력창 컨테이너 (아이콘 배치를 위해 relative 사용) */}
+        <div className="relative group">
+          
           {/* 좌측 아이콘 */}
           {leftIcon && (
-            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none flex items-center justify-center">
               {leftIcon}
             </div>
           )}
 
-          {/* 실제 input */}
+          {/* 실제 Input 요소 */}
           <input
             ref={ref}
-            id={inputId}
             disabled={disabled}
-            aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={[errorId, helperId].filter(Boolean).join(' ') || undefined}
-            className={[
-              'block w-full rounded-lg border px-3 py-2 text-sm transition-colors',
-              'placeholder:text-gray-400',
-              'focus:outline-none focus:ring-2',
-              error
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200',
-              disabled && 'cursor-not-allowed bg-gray-100 text-gray-500',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
-              className,
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            className={`
+              /* --- 기본 레이아웃 & 폰트 --- */
+              block w-full h-10 px-3 py-2.5
+              bg-white text-gray-900 font-body text-base
+              
+              /* --- 아이콘 여백 확보 --- */
+              ${leftIcon ? 'pl-10' : ''}
+              ${rightIcon ? 'pr-10' : ''}
+
+              /* --- 윈도우 98 스타일 (Default) --- */
+              rounded-none  /* 직각 모서리 */
+              border border-gray-400
+              shadow-inset  /* 푹 파인 효과 */
+              placeholder:text-gray-500
+
+              /* --- 포커스 스타일 (Focus) --- */
+              focus:outline-none
+              focus:border-black
+              focus:shadow-glow-green  /* 입력할 때 네온 빛 */
+              focus:bg-white
+
+              /* --- 에러 상태 --- */
+              ${error ? 'border-system-error focus:border-system-error focus:shadow-none bg-red-50' : ''}
+
+              /* --- 비활성 상태 --- */
+              disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
+
+              /* --- 트랜지션 --- */
+              transition-all duration-200
+              ${className}
+            `}
             {...props}
           />
 
           {/* 우측 아이콘 */}
           {rightIcon && (
-            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
               {rightIcon}
             </div>
           )}
         </div>
 
-        {/* 에러 메시지 */}
+        {/* 3. 에러 메시지 */}
         {error && (
-          <p id={errorId} className="mt-1.5 text-xs text-red-600">
-            {error}
-          </p>
-        )}
-
-        {/* 헬퍼 텍스트 */}
-        {helperText && !error && (
-          <p id={helperId} className="mt-1.5 text-xs text-gray-500">
-            {helperText}
+          <p className="text-[10px] text-system-error font-pixel ml-1 mt-0.5">
+            *{error}
           </p>
         )}
       </div>

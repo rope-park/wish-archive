@@ -14,7 +14,7 @@ export interface DropdownProps {
     className?: string;
 }
 
-export default function Dropdown({ children, className = '' }: DropdownProps) {
+function DropdownComponent({ children, className = '' }: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -158,3 +158,11 @@ export function DropdownItem({
         </button>
     );
 }
+
+const Dropdown = Object.assign(DropdownComponent, {
+    Trigger: DropdownTrigger,
+    Menu: DropdownMenu,
+    Item: DropdownItem,
+});
+
+export default Dropdown;

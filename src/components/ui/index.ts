@@ -10,6 +10,9 @@ export type { BadgeProps } from './Badge';
 export { default as Button } from './Button';
 export type { ButtonProps } from './Button';
 
+export { default as Calendar } from './Calendar';
+export type { CalendarProps } from './Calendar';
+
 export { default as Card } from './Card';
 export type { CardProps } from './Card';
 
@@ -19,11 +22,11 @@ export type { CheckboxProps } from './Checkbox';
 export { default as ColorChip } from './ColorChip';
 export type { ColorChipProps } from './ColorChip';
 
-export { default as DatePicker } from './Calendar';
-export type { DatePickerProps } from './Calendar';
-
 export { default as Divider } from './Divider';
 export type { DividerProps } from './Divider';
+
+export { default as Dropdown } from './Dropdown';
+export type { DropdownProps, DropdownTriggerProps } from './Dropdown';
 
 export { default as EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
@@ -31,11 +34,11 @@ export type { EmptyStateProps } from './EmptyState';
 export { default as Input } from './Input';
 export type { InputProps } from './Input';
 
-export { default as Notification } from './Notification';
-export type { NotificationProps } from './Notification';
-
 export { default as Modal } from './Modal';
 export type { ModalProps } from './Modal';
+
+export { default as Notification } from './Notification';
+export type { NotificationProps } from './Notification';
 
 export { default as Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
@@ -51,9 +54,6 @@ export type { ScrollbarProps } from './Scrollbar';
 
 export { default as SearchBar } from './SearchBar';
 export type { SearchBarProps } from './SearchBar';
-
-export { default as Select } from './';
-export type { SelectProps, SelectOption } from './';
 
 export { default as Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';

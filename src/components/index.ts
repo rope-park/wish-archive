@@ -4,35 +4,20 @@
  * 프로젝트의 모든 컴포넌트를 카테고리별로 export
  */
 
-// Base 컴포넌트
-export { default as BaseCard } from './base/BaseCard';
-export type { BaseCardProps } from './base/BaseCard';
+// 공통 UI 컴포넌트
+export { default as Tooltip } from './ui/Tooltip';
+export type { TooltipProps } from './ui/Tooltip';
 
-export { default as BaseList } from './base/BaseList';
-export type { BaseListProps } from './base/BaseList';
+export { default as Scrollbar } from './ui/Scrollbar';
+export type { ScrollbarProps } from './ui/Scrollbar';
 
-export { default as BaseModal } from './base/BaseModal';
-export type { BaseModalProps } from './base/BaseModal';
-
-// Common 컴포넌트
-export { default as FloatingDecorations } from './common/FloatingDecorations';
-export { default as Taskbar } from './common/Taskbar';
+export { default as Spinner } from './ui/Spinner';
+export type { SpinnerProps } from './ui/Spinner';
 
 // OS 컴포넌트
 export { default as WindowFrame } from './os/WindowFrame';
 export { default as DesktopIcon } from './os/DesktopIcon';
-export { default as ProfileWidget } from './os/ProfileWidget';
 
-// Domain 컴포넌트 - Members
-export { default as MemberCard } from './domain/members/MemberCard';
-
-// Domain 컴포넌트 - Releases
-export { default as AlbumCard } from './domain/releases/AlbumCard';
-export { default as TrackTable } from './domain/releases/TrackTable';
-
-// Domain 컴포넌트 - Timeline
-export { default as EventCard } from './domain/timeline/EventCard';
-export { default as FilterBar } from './domain/timeline/FilterBar';
-
-// UI 컴포넌트 (모두 re-export)
 export * from './ui';
+export * from './os';
+export * from './widgets';

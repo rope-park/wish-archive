@@ -1,67 +1,188 @@
 /**
  * WindowFrame 컴포넌트
  * 
- * 윈도우 스타일의 프레임을 제공하는 컴포넌트.
- * 타이틀 바, 컨텐츠 영역, 상태바로 구성.
- * 닫기 버튼 클릭 시 홈(바탕화면) 이동.
+ * - 윈도우 스타일의 프레임 제공
+ * - 드래그 가능한 헤더 (추후 Draggable 라이브러리 연동 가능)
+ * - 반응형 크기 조절
  */
+
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { ReactNode } from 'react';
+import { Button } from '@/components/ui';
 
-interface WindowFrameProps {
-  title: string;
-  icon?: string;
-  children: ReactNode;
-  className?: string;
+export interface WindowFrameProps {
+  title: string;        // 창 제목
+  iconSrc?: string;        // 창 아이콘 (이모지 또는 이미지 등)
+  children: ReactNode;  // 창 내부 컨텐츠
+  className?: string;   // 추가 커스텀 클래스
+  isActive: boolean;   // 활성화 여부 (포커스 상태)
+  isMaximized?: boolean; // 최대화 여부
+
+  onClose: () => void; // 닫기 핸들러
+  onMinimize: () => void; // 최소화 핸들러
+  onMaximize: () => void; // 최대화 핸들러
+
 }
 
-export default function WindowFrame({ title, icon = '📂', children, className = '' }: WindowFrameProps) {
-  const router = useRouter();
+export default function WindowFrame({
+  title,
+  iconSrc = '',
+  children,
+  className = '',
+  isActive,
+  isMaximized = false,
+  onClose,
+  onMinimize,
+  onMaximize,
+}: WindowFrameProps) {
+
+  // 닫기 핸들러
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();  // 버튼 클릭 시 이벤트 버블링(창 포커스) 방지
+    onClose();
+  }
+
+  const handleMinimize = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMinimize();
+  }
+
+  const handleMaximize = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMaximize();
+  }
 
   return (
-    // [1] 화면 중앙에 창 배치 (flex layout)
-    <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4 animate-pop-in">
-      
-      {/* [2] 윈도우 창 본체 (젤리 프레임 스타일 적용) */}
-      <div className={`relative w-full max-w-5xl bg-white/80 backdrop-blur-xl border-[3px] border-white/50 rounded-3xl shadow-[8px_8px_0px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col max-h-[85vh] ${className}`}>
+    // [1] 윈도우 프레임 본체
+    <div className={`
+        relative flex flex-col
+        /* 최대화 상태면 꽉 채우고, 아니면 기본 크기 */
+        ${isMaximized ? 'w-full h-full' : 'w-full max-w-5xl h-[80vh] md:h-auto md:min-h-[600px]'}
         
-        {/* [3] 윈도우 타이틀 바 (드래그 핸들 역할) */}
-        <div className="bg-gradient-to-r from-wish-pink/20 to-wish-sky/20 border-b-2 border-white/50 p-3 flex items-center justify-between shrink-0 select-none">
-          
-          {/* 좌측: 제목 */}
-          <div className="flex items-center gap-2 px-2">
-            <span className="text-xl filter drop-shadow-sm">{icon}</span>
-            <span className="font-bagel-fat-one text-gray-700 text-lg pt-1">{title}</span>
-          </div>
+        /* --- 배경 및 질감 (Glassmorphism + Noise) --- */
+        bg-white/80 backdrop-blur-md
+        
+        /* --- 테두리 및 그림자 (3D 입체감) --- */
+        rounded-sm
+        border border-white/50
+        outline outline-1 outline-black
+        shadow-outset
+        
+        ${className}
+      `}>
 
-          {/* 우측: 윈도우 제어 버튼 (장식용 + 닫기 기능) */}
-          <div className="flex items-center gap-2">
-            <button className="w-4 h-4 rounded-full bg-yellow-400 border border-yellow-600 hover:bg-yellow-300" title="최소화 (장식)" />
-            <button className="w-4 h-4 rounded-full bg-green-400 border border-green-600 hover:bg-green-300" title="최대화 (장식)" />
-            <button 
-              onClick={() => router.push('/')} // 닫으면 홈(바탕화면)으로 이동
-              className="w-4 h-4 rounded-full bg-red-400 border border-red-600 hover:bg-red-300 group flex items-center justify-center" 
-              title="닫기"
-            >
-              <span className="hidden group-hover:block text-[10px] font-bold text-red-900 leading-none">×</span>
-            </button>
-          </div>
+      {/* [2] 헤더 (Title Bar) - 드래그 핸들 역할 */}
+      <div className={`
+        h-8 pl-3 pr-2 py-1 shrink-0
+        flex items-center justify-between
+        
+        /* 활성 상태일 때 핑크색, 비활성일 때 회색 */
+        ${isActive ? 'bg-linear-to-r from-[#ff2e93]/80 to-[#ff2e93]' : 'bg-gray-400'}
+        border-b border-white/50
+        
+        select-none cursor-default
+      `}>
+        {/* 좌측: 아이콘 + 제목 */}
+        <div className="flex items-center gap-2 text-white drop-shadow-md">
+          {iconSrc && (
+            iconSrc.startsWith('/')
+              ? <img src={iconSrc} alt="" className="w-4 h-4 object-contain" />
+              : <span className="text-sm filter drop-shadow-sm">{iconSrc}</span>
+          )}
+
+          <span className="font-pixel text-sm pt-1 tracking-wide truncate max-w-[200px] md:max-w-md">
+            {title}.exe
+          </span>
         </div>
 
-        {/* [4] 컨텐츠 영역 (스크롤 가능) */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-white/40">
-          {children}
+        {/* 우측: 컨트롤 버튼 그룹 */}
+        <div className="flex gap-1">
+          <WindowControlBtn type="minimize" onClick={handleMinimize} />
+          <WindowControlBtn type="maximize" onClick={handleMaximize} isMaximized={isMaximized} />
+          <WindowControlBtn type="close" onClick={handleClose} />
         </div>
-
-        {/* [5] 하단 상태바 (디테일) */}
-        <div className="bg-white/60 border-t border-white/50 px-4 py-1 flex justify-between items-center text-[10px] font-press-start-2p text-gray-500 shrink-0">
-          <span>{title}.exe</span>
-          <span>READY</span>
-        </div>
-
       </div>
+
+      {/* [4] 툴바/메뉴바 영역 (옵션 - 필요시 여기에 MenuBar 추가) */}
+      {/* <div className="h-7 bg-gray-200 border-b border-white shadow-inset">...</div> */}
+
+      {/* [3] 컨텐츠 영역 (Body) */}
+      <div className="
+          flex-1 m-1 p-4 md:p-6
+          
+          /* --- 본문 스타일: 반투명 흰색 + 푹 파인 효과 --- */
+          bg-white/60 
+          shadow-inset 
+          border border-gray-400
+          
+          /* 스크롤 처리 */
+          overflow-y-auto custom-scrollbar
+        ">
+        {children}
+      </div>
+
+      {/* [4] 상태바 (Status Bar) */}
+      <div className="
+          h-6 mx-1 mb-1 px-2
+          flex justify-between items-center shrink-0
+          
+          bg-gray-200 
+          shadow-inset
+          text-[10px] font-pixel text-gray-600
+        ">
+        <span className="truncate">Connected to WISH World...</span>
+        <div className="flex gap-2">
+          <span>Mem: 128MB</span>
+          <span>Online</span>
+        </div>
+      </div>
+
     </div>
+  );
+}
+
+// 윈도우 컨트롤 버튼 컴포넌트
+function WindowControlBtn({
+  type,
+  onClick,
+  isMaximized
+}: {
+  type: 'minimize' | 'maximize' | 'close';
+  onClick?: (e: React.MouseEvent) => void;
+  isMaximized?: boolean;
+}) {
+  // 버튼 타입별 라벨 및 스타일
+  const isClose = type === 'close';
+
+  let label = '';
+  if (type === 'close') label = 'X';
+  else if (type === 'minimize') label = '_';
+  else if (type === 'maximize') label = isMaximized ? '❐' : '□';
+
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        w-[18px] h-[18px] flex items-center justify-center
+        
+        /* --- 버튼 기본 스타일 --- */
+        bg-white/20 
+        border border-white
+        shadow-outset active:shadow-inset active:translate-y-[1px]
+        
+        /* --- 폰트 및 색상 --- */
+        font-pixel text-[10px] text-white leading-none
+        
+        /* --- 호버 효과 --- */
+        transition-colors
+        ${isClose ? 'hover:bg-red-500' : 'hover:bg-white/40'}
+      `}
+      aria-label={type}
+    >
+      <span className={type === 'minimize' ? '-mt-[6px]': '-mt-[1px]'}>
+        {label}
+      </span>
+    </button>
   );
 }

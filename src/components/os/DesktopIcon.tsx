@@ -1,46 +1,87 @@
 /**
  * DesktopIcon 컴포넌트
  * 
- * 데스크탑 아이콘을 렌더링하는 컴포넌트
+ * - 데스크탑 아이콘을 렌더링하는 컴포넌트
  */
+
 'use client';
 
-import Link from 'next/link';
+import Image from 'next/image';
+import { MouseEventHandler } from 'react';
 
 interface DesktopIconProps {
-  name: string;     // 아이콘 이름
-  icon: string;     // 이모지 또는 이미지 경로
-  href: string;     // 이동할 경로
-  isExternal?: boolean; // 외부 링크 여부
+  label: string;        // 아이콘 이름 
+  iconSrc: string;      // 이미지 경로
+  isSelected?: boolean; // 선택된 상태 여부
+  onClick?: MouseEventHandler<HTMLDivElement>; // 클릭 이벤트
+  onDoubleClick?: MouseEventHandler<HTMLDivElement>; // 더블클릭 (실행)
+  size?: 'desktop' | 'app'; // 크기 변형
+  className?: string;
 }
 
-/**
- * DesktopIcon 컴포넌트
- * @param param0 프로퍼티 객체
- * @returns JSX.Element
- */
-export default function DesktopIcon({ name, icon, href, isExternal }: DesktopIconProps) {
-  const Content = (
-    <div className="group flex flex-col items-center gap-2 p-2 w-[100px] cursor-pointer rounded-lg hover:bg-white/10 transition-colors active:scale-95">
-      {/* 아이콘 박스 */}
-      <div className="w-14 h-14 md:w-16 md:h-16 bg-linear-to-br from-white/40 to-white/10 backdrop-blur-md border border-white/50 rounded-2xl flex items-center justify-center text-3xl md:text-4xl shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-200">
-        {icon}
-      </div>
-      
-      {/* 이름표 */}
-      <span className="text-sm font-jua text-gray-800 bg-white/40 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm group-hover:bg-white/80 transition-colors whitespace-nowrap">
-        {name}
-      </span>
-    </div>
-  );
+export default function DesktopIcon({
+  label,
+  iconSrc,
+  isSelected = false,
+  onClick,
+  onDoubleClick,
+  size = 'desktop', // 기본은 바탕화면용
+  className = '',
+}: DesktopIconProps) {
 
-  if (isExternal) {
+  // Taskbar나 Window Title용 작은 아이콘 (16x16)
+  if (size === 'app') {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer">
-        {Content}
-      </a>
+      <div className={`relative w-4 h-4 flex items-center justify-center ${className}`}>
+        <Image 
+          src={iconSrc} 
+          alt={label} 
+          fill 
+          className="object-contain" 
+        />
+      </div>
     );
   }
 
-  return <Link href={href}>{Content}</Link>;
+  // 바탕화면용 큰 아이콘 (48x48 + 텍스트)
+  return (
+    <div
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      className={`
+        group flex flex-col items-center justify-start gap-1
+        w-[72px] cursor-pointer select-none
+        ${className}
+      `}
+    >
+      {/* 아이콘 이미지 영역 */}
+      <div className={`
+        relative w-12 h-12 
+        ${isSelected ? 'brightness-75' : 'brightness-100'}
+      `}>
+        <Image
+          src={iconSrc}
+          alt={label}
+          fill
+          className="object-contain drop-shadow-md"
+          draggable={false} // 이미지 드래그 방지
+        />
+      </div>
+
+      {/* 텍스트 라벨 영역 */}
+      <div className={`
+        px-1 py-[1px]
+        text-center font-pixel text-sm leading-tight tracking-tight
+        break-words line-clamp-2 max-w-full
+        
+        /* --- 상태별 스타일 --- */
+        ${isSelected
+          ? 'bg-[#000080] text-white outline outline-1 outline-dashed outline-white' // 선택됨 (네이비 배경 + 점선)
+          : 'text-white [text-shadow:_1px_1px_1px_rgba(0,0,0,0.8)]' // 평소 (흰 글씨 + 그림자)
+        }
+      `}>
+        {label}
+      </div>
+    </div>
+  );
 }

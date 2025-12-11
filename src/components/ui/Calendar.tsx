@@ -78,7 +78,7 @@ export default function Calendar({
         ${className}
       `}
     >
-      {/* 1. 헤더 (월/년도 + 이동 버튼) */}
+      {/* 헤더 (월/년도 + 이동 버튼) */}
       <div className="flex justify-between items-center mb-1">
         <Button 
           size="sm" 

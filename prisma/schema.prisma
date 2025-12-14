@@ -13,20 +13,20 @@ datasource db {
 
 // 활동 타입 (Timeline Event의 상위 분류)
 enum EventType {
-  RELEASE         // 음반/싱글/디지털 발매
-  MUSIC_SHOW      // 음악방송 출연
-  CONCERT         // 콘서트
-  TOUR            // 투어
-  FANMEETING      // 팬미팅
-  SHOWCASE        // 쇼케이스
-  VARIETY_SHOW    // 예능/특집/일반 TV 출연
-  POPUP_STORE     // 팝업 스토어
-  AWARD_SHOW      // 시상식 참석/수상
-  CF_AD           // 광고/브랜드 콜라보
-  MAGAZINE        // 화보/잡지 촬영
-  ONLINE_CONTENT  // 유튜브/Weverse/웹 콘텐츠
-  MERCH_DROP      // 굿즈
-  ANNOUNCEMENT    // 공식 발표/공지
+  RELEASE // 음반/싱글/디지털 발매
+  MUSIC_SHOW // 음악방송 출연
+  CONCERT // 콘서트
+  TOUR // 투어
+  FANMEETING // 팬미팅
+  SHOWCASE // 쇼케이스
+  VARIETY_SHOW // 예능/특집/일반 TV 출연
+  POPUP_STORE // 팝업 스토어
+  AWARD_SHOW // 시상식 참석/수상
+  CF_AD // 광고/브랜드 콜라보
+  MAGAZINE // 화보/잡지 촬영
+  ONLINE_CONTENT // 유튜브/Weverse/웹 콘텐츠
+  MERCH_DROP // 굿즈
+  ANNOUNCEMENT // 공식 발표/공지
   OTHER
 }
 
@@ -35,8 +35,15 @@ enum ReleaseType {
   STUDIO_ALBUM // 정규 앨범
   MINI_ALBUM // 미니 앨범
   SINGLE_ALBUM // 싱글 앨범
-  DIGITAL_SINGLE // 디지털/프리데뷔 싱글
+  DIGITAL_SINGLE // 디지털 싱글
   PARTICIPATION // OST, SMTOWN, Featuring 등 참여 음반
+}
+
+enum EditionType {
+  CD // CD-R 등
+  SMART_ALBUM // NFC 등
+  MUSIC_NFC_CD // SMini 등
+  QR_CARD // QR 카드
 }
 
 // 주요 시장/지역
@@ -84,8 +91,11 @@ enum LinkType {
   TIKTOK // 틱톡
   NAVER_TV
   SPOTIFY // 스포티파이
+  AMAZON_MUSIC // 아마존 뮤직
   APPLE_MUSIC // 애플뮤직
   MELON_MUSIC // 멜론뮤직
+  GENIE_MUSIC // 지니뮤직
+  BUGS_MUSIC // 벅스
   FACEBOOK // 페이스북
   WEIBO // 웨이보
   BILIBILI // 빌리빌리
@@ -167,24 +177,46 @@ enum Currency {
   EUR
 }
 
+// 포토카드 출처
+enum PhotoCardSource {
+  ALBUM // 앨범
+  EVENT // 행사/md
+  COLLAB // 광고/콜라보
+  OTHER // 기타 (특전 등)
+}
+
 // ===========================
 // CORE MODELS
 // ===========================
 
-// 그룹 자체 정보
+// === 1. GROUP (그룹 기본 정보) ===
 model Group {
-  id            String    @id @default(cuid())
-  slug          String    @unique // URL 식별자
-  name          String // "NCT WISH"
-  nameKo        String? // "엔시티 위시"
-  debutDate     DateTime? // 데뷔일
-  formationDate DateTime? // 결성일
-  fandomName    String? // "NCTzen WISH"
-  officialColor String? // "PEARL NEO CHAMPAGNE"
-  agency        String? // "SM Entertainment"
-  label         String? // "Avex Trax" 등
+  id   String @id @default(cuid())
+  slug String @unique // URL 식별자
 
-  // 관계
+  // --- a. 기본 정보 ---
+  name   String // 공식 명칭 (영문/기본): "NCT WISH"
+  nameKo String? // 국문 명칭: "엔시티 위시"
+  nameJa String? // 일문 명칭: "NCT WISH"
+
+  // --- b. 기념일 ---
+  debutDate     DateTime? // 정식 데뷔일
+  formationDate DateTime? // 결성일
+
+  // --- c. 팬덤 정보 ---
+  fandomName String? // "NCTzen WISH"
+
+  // --- d. OS 테마 및 비주얼 ---
+  officialColor String? // "PEARL NEO CHAMPAGNE"
+  logoUrl       String? // 메인 로고 이미지 URL
+  iconUrl       String? // 심볼 아이콘 이미지 URL
+
+  // --- e. 상세 정보 ---
+  agency      String? // 소속사: "SM Entertainment"
+  label       String? // 레이블: "Avex Trax" 등
+  description String? @db.Text // 그룹 소개글
+
+  // --- f. 관계 ---
   members       Member[]
   eras          Era[]
   albums        Album[]
@@ -197,40 +229,51 @@ model Group {
   updatedAt DateTime @updatedAt
 }
 
-// 멤버 프로필
+// === 2. MEMBER (멤버 프로필) ===
 model Member {
   id      String @id @default(cuid())
   groupId String
   group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-  stageName   String // 활동명
-  name        String? // 본명
-  nameHanja   String? // 한문 표기명
-  nameEn      String? // 로마자/영문
+  // --- a. 핵심 신상 정보 ---
+  stageName String // 활동명
+  name      String? // 본명
+  nameEn    String? // 로마자/영문명
+  nameHanja String? // 한문 표기명
+
   birthDate   DateTime? // 생년월일
   nationality String? // 국적
-  hometown    String? // 출신지역
-  positions   String? // 보컬, 래퍼, 센터 등 (콤마 구분 텍스트)
-  emoji       String? // 상징 이모지
-  ownNumber   Int? // 고유 번호
-  bloodType   String? // 혈액형
+  hometown    String? // 출신지
 
-  // 활동 상태
-  joinDate  DateTime?
-  leaveDate DateTime?
-  isActive  Boolean   @default(true)
+  // --- b. 아이돌 프로필 ---  
+  positions String? // 보컬, 래퍼, 센터 등 (콤마 구분 텍스트)
+  emoji     String? // 상징 이모지
+  ownNumber String? // 고유 번호
+  bloodType String? // 혈액형
+  mbti      String? // mbti
 
-  // 프로필 이미지
-  profileImageUrl String?
+  description String? @db.Text // 멤버 소개글/TMI
 
-  // 기타 메모
-  note String?
+  // --- c. 비주얼 에셋 ---
+  profileImageUrl String? // 프로필 사진 URL
+  iconUrl         String? // 아이콘/심볼 URL
+  characterUrl    String? // 위시돌 캐릭터 URL
 
-  // 관계
+  colorCode String? // 상징색 코드
+
+  // --- d. 활동 메타데이터 ---
+  isActive Boolean   @default(true)
+  joinDate DateTime? // 데뷔일
+
+  // --- e. 관계 ---
   events        MemberOnEvent[]
   contents      MemberOnContent[]
   externalLinks ExternalLink[]
   medias        Media[]
+  quotes        Quote[]
+  photoCards    DigitalPhotoCard[]
+  albumEditions AlbumEdition[]
+  awardWins     AwardWin[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -239,56 +282,50 @@ model Member {
   @@index([groupId])
 }
 
-// 세계관/활동 시기
-model Era {
-  id          String    @id @default(cuid())
-  name        String
-  startDate   DateTime
-  endDate     DateTime?
-  description String?
-  color       String?
-
-  groupId String?
-  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
-
-  events    Event[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// 음반/릴리스 (정규/미니/싱글/디지털/참여 음반)
+// === 3. ALBUM (음반/릴리스) ===
 model Album {
-  id              String      @id @default(cuid())
-  slug            String?     @unique
-  title           String
-  releaseDate     DateTime
-  type            ReleaseType
-  market          Market      @default(KOREA)
-  primaryLanguage Language    @default(KOREAN)
+  id   String  @id @default(cuid())
+  slug String? @unique
 
-  isPreDebut   Boolean @default(false) // Hands Up 등
-  isPreRelease Boolean @default(false) // Dunk Shot, Surf 등 선공개
-  isOst        Boolean @default(false) // OST/참여 음반 구분용
+  // --- a. 기본 메타 데이터---
+  title String // 앨범명
 
-  totalLengthSec Int? // 전체 재생 시간(초)
-  trackCount     Int? // 곡 수
+  releaseDate DateTime // 발매일
+  type        ReleaseType // 앨범 종류
 
-  coverUrl      String?
-  label         String?
-  distributor   String?
-  description   String?
-  catalogNumber String? // 카탈로그 번호 (필요하면 사용)
+  // --- b. 앨범 스펙 ---
+  trackCount     Int? // 트랙 수
+  totalLengthSec Int? // 전체 재생 시간 (초)
 
-  // 테마 & UI 설정
-  mvUrl          String? // 뮤직비디오 URL
-  themeColor     String? // 테마 배경색 (HEX: #BFFF00)
-  themeTextColor String? // 테마 텍스트색 (HEX: #000000)
-  themeIcon      String? // 이모지 아이콘 (💚)
+  label       String? // 레이블
+  distributor String? // 유통사
+  description String? @db.Text // 앨범 소개글
 
-  groupId String?
-  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  // --- c. 비주얼 에셋 ---
+  coverImageUrl String? // 앨범 커버 URL
 
-  // 관계
+  diskImageUrl  String? // CD/LP 알판 이미지
+  vinylImageUrl String? // LP판 이미지
+
+  iconUrl String? // 폴더/아이콘용 픽셀 아트 커버
+
+  // --- d. 테마 설정 ---  
+  themeColor     String? // 앨범 테마 메인 컬러
+  themeTextColor String? // 테마 텍스트 컬러
+
+  mvUrl String? // 타이틀곡 MV 공식 링크
+
+  // --- e. 분류 ---
+  market          Market   @default(KOREA)
+  primaryLanguage Language @default(KOREAN)
+  groupId         String?
+  group           Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  isPreDebut Boolean @default(false) // Hands Up 등
+  isOst      Boolean @default(false) // OST/참여 음반 구분용
+
+  // --- f. 관계 ---
+  releases       AlbumRelease[]
   tracks         Track[]
   events         EventOnAlbum[]
   chartEntries   ChartEntry[]
@@ -299,7 +336,9 @@ model Album {
   medias         Media[]
   contents       Content[]
   salesDaily     AlbumDailySales[]
-  awards         AwardWin[]        @relation("AlbumAwards")
+  awards         AwardWin[]         @relation("AlbumAwards")
+  photoCards     DigitalPhotoCard[]
+  era            Era?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -309,53 +348,102 @@ model Album {
   @@index([market])
 }
 
-// 앨범의 버전/에디션 (Photobook/Jewel 등)
-model AlbumEdition {
-  id      String @id @default(cuid())
+// === ALBUM RELEASE (국가별/포맷별 상세 발매일)
+model AlbumRelease {
+  id String @id @default(cuid())
+
   albumId String
   album   Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
 
-  name      String
-  sku       String? // 카탈로그/상품번호
-  isLimited Boolean @default(false)
+  market Market // KOREA, JAPAN, GLOBAL
+  date   DateTime // 해당 국가 발매일
 
-  // 가격(옵션)
-  priceAmount   Int? // 통화 최소단위(원/엔)
-  priceCurrency Currency?
-
-  // 구성품(JSON: {items: ["포토북 104p", "CD-R 1종", ...]})
-  components Json?
-
-  url String? // 판매/상세 페이지
+  // 발매 형태 (PHYSICAL: 음반, DIGITAL: 음원)
+  format String @default("PHYSICAL")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([albumId])
+  @@index([date])
+}
+
+// === 4. ALBUM EDITION (앨범 버전/사양) ===
+model AlbumEdition {
+  id String @id @default(cuid())
+
+  albumId String
+  album   Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  // --- a. 기본 정보 ---
+  name        String // 버전명
+  editionType EditionType? // 구분용 타입
+  sku         String? // 상품번호
+  isLimited   Boolean      @default(false) // 한정판 여부
+
+  // --- b. 비주얼 에셋 ---
+  coverImageUrl   String? // 해당 버전의 커버 이미지
+  packageImageUrl String? // 구성품 전체 이미지
+
+  // --- c. 구성품 정보 ---
+  // 구성품(JSON: {items: ["포토북 104p", "CD-R 1종", ...]})
+  components  Json?
+  description String? @db.Text // 버전별 상세 설명
+
+  // --- d. 가격 및 링크 ---
+  releasePrice Int? // 발매가 (정가 기준)
+  currency     Currency? // 통화
+  purchaseUrl  String? // 공식 판매처/예약 링크
+
+  // --- e. 멤버 버전 연결 ---
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([albumId])
+  @@index([memberId])
   @@index([name])
 }
 
-// 개별 곡 (한 앨범 안의 트랙 기준)
+// === 5. TRACK (수록곡) ===
 model Track {
   id      String @id @default(cuid())
   albumId String
   album   Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
 
-  trackNumber Int
-  title       String
-  durationSec Int? // 초 단위 길이
-  language    Language @default(KOREAN)
-  isTitle     Boolean  @default(false) // 타이틀곡 여부
-  isSingle    Boolean  @default(false) // 싱글 커트 여부 (이미 발매한 음반의 수록곡을 싱글로 재발매)
-  hasMv       Boolean  @default(false) // 공식 MV 유무
-  mvUrl       String? // MV 링크
-  audioUrl    String? // 음원 링크(스트리밍/티저 등)
-  note        String? // 버전 정보, 피처링 등
+  // --- a. 기본 정보 ---
+  trackNumber Int // 트랙 번호
+  title       String // 곡 제목
+  durationSec Int? // 재생 시간 (초)
+  genre       String? // 장르
+
+  // --- b. 분류 플래그 ---
+  isTitle      Boolean  @default(false) // 타이틀곡 여부
+  isSingle     Boolean  @default(false) // 싱글 커트 여부 (이미 발매한 음반의 수록곡을 싱글로 재발매)
+  isPreRelease Boolean  @default(false) // 선공개 곡 여부
+  hasMv        Boolean  @default(false) // 공식 MV 유무
+  language     Language @default(KOREAN)
+
+  // 곡 개별 발매일 (선공개 곡의 경우)
+  releaseDate DateTime?
+
+  // --- c. 비주얼 & 테마 ---
+  iconUrl    String? // 커스텀 아이콘 이미지 경로
+  themeColor String? // 곡 전용 테마색
+
+  // --- d. 미디어 링크 ---
+  mvUrl    String? // 공식 MV 링크
+  audioUrl String? // 음원 링크(스트리밍/티저 등)
+
+  note String? // 버전 정보, 피처링 등
 
   originalTrackId String?
   originalTrack   Track?  @relation("TrackOriginal", fields: [originalTrackId], references: [id], onDelete: SetNull)
   versions        Track[] @relation("TrackOriginal")
 
+  playlistTracks PlaylistTrack[]
   appearances    Appearance[]
   chartEntries   ChartEntry[]
   certifications Certification[]
@@ -373,54 +461,59 @@ model Track {
 
   @@unique([albumId, trackNumber])
   @@index([albumId])
-  @@index([trackNumber])
 }
 
-// 개별 곡 가사
+// === 6. TRACK LYRIC (가사) ===
 model TrackLyric {
   id String @id @default(cuid())
 
+  // --- a. 가사 데이터 ---
+  text       String  @db.Text // 줄글 가사 (전체 보기용)
+  lrcContent String? @db.Text // LRC 포맷 텍스트
+
+  // --- b. 분류 ---
+  language Language   @default(KOREAN)
+  script   ScriptType @default(NATIVE)
+
+  // --- c. 메타 데이터 ---
+  isOfficial Boolean @default(false) // 공식 가사 여부
+  copyright  String? // 저작권자
+  provider   String? // 공급자
+
   trackId String @unique
   track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
 
-  // 표기/버전 메타
-  language   Language   @default(KOREAN)
-  script     ScriptType @default(NATIVE)
-  versionTag String     @default("canonical")
-
-  isOfficial Boolean @default(false)
-  provider   String?
-  sourceUrl  String?
-  copyright  String?
-
-  // 실제 컨텐츠
-  text     String?
-  lrc      Json?
-  sections Json?
-
-  notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([trackId, language, script, versionTag])
+  @@unique([trackId, language, script])
   @@index([trackId, language])
 }
 
-// 응원법
+// === 7. CHEERING GUIDE (응원법) ===
 model CheeringGuide {
   id String @id @default(cuid())
 
-  trackId String @unique
-  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  // --- a. 기본 정보 ---
+  title      String? // 제목
+  isOfficial Boolean @default(false) // 공식 여부
 
-  isOfficial Boolean @default(false)
-  provider   String?
-  sourceUrl  String?
+  // --- b. 컨텐츠 ---
+  text     String? @db.Text // 응원법
+  imageUrl String? // 응원법 이미지 URL
+  videoUrl String? // 응원법 가이드 영상 URL
 
-  text  String?
+  // --- c. 구조화된 데이터 ---
+  // 타임코드나 파트별 구분이 필요한 경우 JSON으로 저장 (선택사항)
+  // 예: [ { "time": "00:15", "part": "NCT WISH!", "type": "shout" }, ... ]
   steps Json?
 
-  notes String?
+  // --- d. 메타 데이터 ---
+  provider  String? // 출처
+  sourceUrl String? // 원문 링크
+
+  trackId String @unique
+  track   Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -428,39 +521,61 @@ model CheeringGuide {
   @@index([trackId])
 }
 
-// 활동/이벤트 (타임라인 기본 단위)
+// === 8. EVENT (활동/스케줄) ===
 model Event {
-  id        String    @id @default(cuid())
-  type      EventType
-  // 단일일정 호환 필드(기존)
-  date      DateTime // 단일일정 start 용도로 사용
-  // 기간형 이벤트 지원
-  startDate DateTime?
-  endDate   DateTime?
+  id String @id @default(cuid())
 
-  title       String
-  description String?
+  // --- a. 기본 분류 및 일시 ---
+  type EventType // 활동 타입
 
-  location String? // "서울, KSPO DOME" 등
-  country  String? // "KR", "JP"
-  city     String? // "서울", "도쿄"
+  // 날짜 관리 (단일 일정 vs 기간 일정)
+  date      DateTime // 대표 날짜 (정렬 및 폴더 분류 기준)
+  startDate DateTime? // 기간 시작일
+  endDate   DateTime? // 기간 종료일
 
-  programName String? // 방송/프로그램/캠페인명
-  seriesId    String?
-  series      EventSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  // --- b. 이벤트 정보 ---
+  title       String // 스케줄명
+  description String? @db.Text // 상세 설명
 
-  url  String? // 공식 링크
-  tags String? // "데뷔", "COLOR 활동" 등 키워드
+  // 장소 정보
+  location String? // 장소명
+  country  String? // 국가
+  city     String? // 도시
 
+  // --- c. 비주얼 에셋 ---
+  mainImageUrl  String? // 파일 썸네일용
+  isHighlighted Boolean @default(false) // 중요 스케줄 강조
+
+  // --- d. 연결 링크 ---
+  relatedUrl     String? // 공식 공지/정보 링크
+  ticketUrl      String? // 예매/신청 페이지 링크
+  galleryAlbumId String? // 연결된 갤러리/앨범 ID
+
+  // --- e. 관계 ---
+  // 활동 시기
   eraId String?
   era   Era?    @relation(fields: [eraId], references: [id], onDelete: SetNull)
 
-  albums        EventOnAlbum[]
-  members       MemberOnEvent[]
+  // 시리즈
+  seriesId String?
+  series   EventSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+
+  // 관련 프로그램
+  programName String?
+  programId   String?
+  program     Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
+
+  // 참여 멤버 및 연결 데이터
+  albums  EventOnAlbum[]
+  members MemberOnEvent[]
+
+  // 아카이브 데이터
   appearances   Appearance[]
   externalLinks ExternalLink[]
   medias        Media[]
   contents      Content[]
+
+  digitalPhotoCard DigitalPhotoCard[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -473,14 +588,23 @@ model Event {
   @@index([seriesId])
 }
 
-// 이벤트 시리즈 (투어, 팬미팅, 팝업 등 묶음)
+// === 9. EVENT SERIES (이벤트 시리즈) ===
 model EventSeries {
-  id        String    @id @default(cuid())
-  name      String
-  type      EventType
-  organizer String?
-  notes     String?
+  id String @id @default(cuid())
 
+  // --- a. 기본 정보 ---
+  name String // 시리즈명
+  type EventType // 시리즈 성격 (투어, 팬미팅, 팝업스토어 등)
+
+  // --- b. 비주얼 에셋 ---
+  logoUrl   String? // 로고 이미지 (타이틀용)
+  posterUrl String? // 메인 포스터 이미지 (폴더 썸네일용)
+
+  // --- c. 상세 정보 ---
+  organizer   String? // 주최/주관
+  description String? @db.Text // 소개글
+
+  // --- d. 관계 ---
   events Event[]
 
   createdAt DateTime @default(now())
@@ -490,7 +614,8 @@ model EventSeries {
   @@index([name])
 }
 
-// 이벤트-앨범 N:M (활동 ↔ 음반 연결)
+// === 10. RELATION TABLES (연결 테이블) ===
+// === 이벤트-앨범 N:M (쇼케이스, 발매 기념 이벤트 등 연결) ===
 model EventOnAlbum {
   eventId String
   albumId String
@@ -502,11 +627,15 @@ model EventOnAlbum {
   @@index([albumId])
 }
 
-// 이벤트-멤버 N:M (방송/광고/화보 등 멤버별 출연 정보)
+// ===이벤트-멤버 N:M (출연 정보 상세) ===
 model MemberOnEvent {
   memberId String
   eventId  String
-  role     String? // "전원", "시온·리쿠", "시온, 재희" 등
+
+  // --- a. 상세 정보 ---
+  role     String? // 역할 (MC, 스페셜 게스트 등)
+  isAbsent Boolean @default(false) // 불참 여부
+  note     String? // 비고
 
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -515,21 +644,68 @@ model MemberOnEvent {
   @@index([eventId])
 }
 
+// === 11. ERA (활동 시기 / 테마) ===
+model Era {
+  id String @id @default(cuid())
+
+  // --- a. 폴더 및 분류 정보 ---
+  name        String // 폴더명
+  title       String? // 화면 표시 제목
+  description String? @db.Text // 시기 설명 (세계관 등)
+
+  // --- b. 시스템 테마 ---
+  isCurrent     Boolean @default(false)
+  themeColor    String?
+  backgroundUrl String? // 배경화면 배경 이미지
+  iconUrl       String? // 커스텀 폴더 아이콘
+  logoUrl       String? // 활동 로고
+
+  // --- c. 기간 ---
+  startDate DateTime
+  endDate   DateTime?
+
+  // --- d. 관계 ---
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mainAlbumId String? @unique
+  mainAlbum   Album?  @relation(fields: [mainAlbumId], references: [id])
+}
+
 // ==================================
 // PROGRAMS & APPEARANCES
 // ==================================
 
-// 프로그램
+// === 12. PROGRAM (방송 프로그램) ===
 model Program {
-  id      String      @id @default(cuid())
-  name    String
-  network String?
-  country String?
-  pType   ProgramType
-  notes   String?
+  id String @id @default(cuid())
 
-  appearances     Appearance[]
-  musicShowTrophy MusicShowTrophy[]
+  // --- a. 기본 정보 ---
+  name    String // 프로그램명
+  network String? // 방송사
+  country String? // 국가
+  pType   ProgramType // 프로그램 종류
+
+  // --- b. 편성 정보 (정기 스케줄용) ---
+  dayOfWeek String? // 방송 요일
+  airTime   String? // 방송 시간
+
+  // --- c. 비주얼 에셋 ---
+  logoUrl String? // 프로그램 공식 로고
+
+  // --- d. 상세 정보 ---
+  officialUrl String? // 공식 홈페이지/채널 링크
+  notes       String? // 비고
+
+  // --- e. 관계 ---
+  appearances     Appearance[] // 출연 회차들
+  musicShowTrophy MusicShowTrophy[] // 1위 기록들
+  events          Event[]
 
   externalLinks ExternalLink[]
   medias        Media[]
@@ -542,24 +718,36 @@ model Program {
   @@index([pType])
 }
 
+// === 13. APPEARANCES (방송 출연 상세) ===
 model Appearance {
-  id        String  @id @default(cuid())
+  id String @id @default(cuid())
+
+  // --- a. 출연 정보 ---
+  date    DateTime // 출연 날짜
+  title   String? // 출연 제목
+  episode String? // 회차 정보
+
+  // --- b. 분류 플래그 ---
+  isPerformance Boolean @default(false) // 무대/공연 여부 (무대 모아보기 필터용)
+  role          String? // 역할
+
+  // --- c. 관계 ---
   programId String
   program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
-  date    DateTime
-  episode String?
-  notes   String?
-
+  // 연결된 활동/곡 (어떤 활동기에 무슨 노래로 출연했는지)
   eventId String?
   event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   trackId String?
   track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
 
-  externalLinks ExternalLink[]
-  medias        Media[]        @relation("AppearanceMedia")
-  contents      Content[]      @relation("AppearanceContent")
+  // 자료 연결
+  externalLinks ExternalLink[] // 외부 영상
+  medias        Media[]        @relation("AppearanceMedia") // 현장 포토
+  contents      Content[]      @relation("AppearanceContent") // 공식 무대 영상
+
+  note String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -569,19 +757,24 @@ model Appearance {
   @@index([trackId])
 }
 
-// 음악방송 1위(트로피) 로그
+// === 14. MUSIC SHOW TROPHY (음방 1위) ===
 model MusicShowTrophy {
   id String @id @default(cuid())
 
+  // --- a. 수상 정보 ---
+  date  DateTime // 수상 날짜
+  score Int? // 총점
+
+  isTripleCrown Boolean @default(false) // 트리플 크라운 여부
+
+  // --- c. 관계 ---
   programId String
   program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
-  date    DateTime
-  trackId String? // 보통 곡 단위 1위
-  track   Track?   @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  trackId String? // 1위 곡
+  track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
 
-  isTripleCrown Boolean @default(false)
-  note          String?
+  note String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -594,31 +787,53 @@ model MusicShowTrophy {
 // CHARTS / CERTS / SALES
 // ==================================
 
-// 음원 차트
+// === 15. CHART (음원/음반 차트) ===
 model Chart {
-  id       String  @id @default(cuid())
-  name     String
-  provider String?
-  country  String?
-  notes    String?
+  id String @id @default(cuid())
+
+  // --- a. 차트 정보 ---
+  name     String // 차트명
+  provider String? // 제공사 (Melon, Oricon, Billboard 등)
+  country  String? // 국가
+
+  // --- b. 분류 ---
+  // 차트 주기 (DAILY, WEEKLY, MONTHLY, REALTIME, YEARLY)
+  periodType String @default("WEEKLY")
+
+  // --- c. 비주얼 에셋 ---
+  logoUrl   String? // 차트 공식 로고 이미지
+  colorCode String? // 차트 상징색
+
+  // --- d. 메타 데이터 ---
+  officialUrl String? // 차트 공식 홈페이지 링크
+  notes       String?
 
   entries ChartEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([name, provider])
+  @@unique([name, provider, periodType])
   @@index([name])
 }
 
-// 차트 진입
+// === 16. CHART ENTRY (차트 진입 기록) ===
 model ChartEntry {
-  id        String   @id @default(cuid())
-  chartId   String
-  chart     Chart    @relation(fields: [chartId], references: [id], onDelete: Cascade)
-  weekStart DateTime
-  position  Int
+  id String @id @default(cuid())
 
+  // --- a. 기록 데이터 ---
+  date DateTime // 기준일
+  rank Int // 순위
+
+  // 변동 폭
+  change Int? // 변동 순위
+  isNew  Boolean @default(false) // 진입 여부
+
+  // --- b. 관계 (차트) ---
+  chartId String
+  chart   Chart  @relation(fields: [chartId], references: [id], onDelete: Cascade)
+
+  // --- c. 관계 (곡/앨범) ---
   albumId String?
   album   Album?  @relation(fields: [albumId], references: [id], onDelete: Cascade)
 
@@ -628,19 +843,26 @@ model ChartEntry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([weekStart])
-  @@index([albumId])
+  @@index([date])
+  @@index([chartId])
   @@index([trackId])
 }
 
-// 수상 이력
+// === 17. CERTIFICATION (인증/수상) ===
 model Certification {
-  id    String    @id @default(cuid())
-  body  CertBody
-  level CertLevel
-  date  DateTime
-  units Int?
+  id String @id @default(cuid())
 
+  // --- a. 인증 정보 ---
+  body  CertBody // 인증 기관
+  level CertLevel // 등급
+
+  date  DateTime // 인증 획득일
+  units Int? // 인증 기준 판매량
+
+  // --- b. 비주얼 에셋 ---
+  badgeImageUrl String? // 인증 뱃지/상패 이미지 URL
+
+  // --- c. 관계 ---
   albumId String?
   album   Album?  @relation(fields: [albumId], references: [id], onDelete: Cascade)
 
@@ -650,43 +872,53 @@ model Certification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([body, level, date])
+  @@index([body, level])
   @@index([albumId])
-  @@index([trackId])
 }
 
-// 초동/일별 판매 로그(Hanteo 등)
+// === 18. ALBUM DAILY SALES (판매량 로그) ===
 model AlbumDailySales {
-  id      String @id @default(cuid())
+  id String @id @default(cuid())
+
+  // --- a. 판매 데이터 ---
+  date       DateTime // 날짜
+  units      Int // 당일 판매량
+  totalUnits Int? // 누적 판매량
+
+  provider String? // 집계처
+
+  // --- b. 메타 데이터 ---
+  daySequence Int? // 발매 N일차
+  note        String? // 비고
+
+  // --- c. 관계 ---
   albumId String
   album   Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
 
-  date  DateTime
-  units Int // 해당일 판매량
-  note  String? // "1일차", 마일스톤(80만 돌파) 등
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([albumId, date])
-  @@index([albumId, date])
+  @@unique([albumId, date, provider])
+  @@index([albumId])
 }
 
 // ==================================
 // PEOPLE & CREDITS
 // ==================================
 
-// 크레딧 주체(작사가/작곡가/편곡/프로듀서/감독 등)
+// === 19. CONTRIBUTOR (크레딧 주체) ===
 model Contributor {
-  id      String  @id @default(cuid())
-  name    String
-  alias   String?
-  country String?
-  note    String?
+  id String @id @default(cuid())
 
-  // 역링크
-  trackCredits  TrackCredit[]
-  albumCredits  AlbumCredit[]
+  // --- a. 기본 정보 ---
+  name  String // 이름
+  alias String? // 이명/활동명
+
+  description String? @db.Text // 소개글
+
+  // --- b. 관계 ---
+  trackCredits  TrackCredit[] // 참여곡
+  albumCredits  AlbumCredit[] // 참여 앨범
   externalLinks ExternalLink[]
 
   createdAt DateTime @default(now())
@@ -695,29 +927,41 @@ model Contributor {
   @@index([name])
 }
 
-// 트랙 크레딧
+// === 20. TRACK CREDIT (곡 크레딧 상세) ===
 model TrackCredit {
+  // --- a. 상세 정보 ---
+  CreditRole CreditRole // 역할
+  detail     String? // 세부 역할
+
+  order Int @default(0) // 표기 순서
+
+  // --- b. 관계 ---
   trackId       String
   contributorId String
-  role          CreditRole
 
   track       Track       @relation(fields: [trackId], references: [id], onDelete: Cascade)
   contributor Contributor @relation(fields: [contributorId], references: [id], onDelete: Cascade)
 
-  @@id([trackId, contributorId, role])
+  @@id([trackId, contributorId])
   @@index([contributorId])
 }
 
-// 앨범(디렉션/총괄 등) 크레딧
+// === 21. ALBUM CREDIT (앨범 크레딧 상세) ===
 model AlbumCredit {
+  // --- a. 상세 정보 ---
+  role   CreditRole // 역할
+  detail String? // 세부 역할
+
+  order Int @default(0) // 표기 순서
+
+  // --- b. 관계 ---
   albumId       String
   contributorId String
-  role          CreditRole
 
   album       Album       @relation(fields: [albumId], references: [id], onDelete: Cascade)
   contributor Contributor @relation(fields: [contributorId], references: [id], onDelete: Cascade)
 
-  @@id([albumId, contributorId, role])
+  @@id([albumId, contributorId])
   @@index([contributorId])
 }
 
@@ -725,60 +969,73 @@ model AlbumCredit {
 // CONTENTS (영상/게시물) & MEDIA (이미지/영상 파일)
 // ==================================
 
+// === 22. CONTENT (컨텐츠) ===
 // 컨텐츠(유튜브/위버스/숏폼/비하인드·티저 등 게시물 단위)
 model Content {
-  id          String          @id @default(cuid())
-  platform    ContentPlatform
-  cType       ContentType
-  title       String
-  url         String          @unique
-  channelName String?
-  publishedAt DateTime
-  description String?
+  id String @id @default(cuid())
 
-  // 연결점(선택)
+  // --- a. 기본 정보 ---
+  title    String // 제목
+  platform ContentPlatform // 플랫폼
+  cType    ContentType // 유형
+
+  url          String  @unique // 원본 링크
+  thumbnailUrl String? // 썸네일 이미지
+
+  channelName String? // 채널명
+  publishedAt DateTime // 업로드 일시
+  description String?  @db.Text // 영상 설명/더보기란 내용 등
+
+  // --- b. 기능용 플래그 ---
+  isHighlight Boolean @default(false)
+  tags        String? // 검색 태그
+
+  // --- c. 관계 ---
   groupId String?
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
+  // 앨범 관련
   albumId String?
   album   Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  // 활동/곡 관련
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   trackId String?
   track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
 
+  // 방송 관련
   programId String?
   program   Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
-
-  eventId String?
-  event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   appearanceId String?
   appearance   Appearance? @relation("AppearanceContent", fields: [appearanceId], references: [id], onDelete: SetNull)
 
-  // 출연 멤버
-  members MemberOnContent[]
+  // 출연 멤버 & 통계
+  members    MemberOnContent[]
+  videoStats VideoStat[]
 
-  // 부가
+  // 부가 정보
   externalLinks ExternalLink[]
   medias        Media[]
-  videoStats    VideoStat[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([platform, cType])
   @@index([albumId])
-  @@index([trackId])
-  @@index([programId])
   @@index([eventId])
-  @@index([appearanceId])
+  @@index([publishedAt])
 }
 
-// 컨텐츠-멤버 N:M
+// === 23. MEMBER ON CONTENT (출연 정보) ===
 model MemberOnContent {
   memberId  String
   contentId String
-  role      String? // 출연/게스트 등 텍스트 라벨
+
+  role String? // 역할
+  note String? // 비고
 
   member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
@@ -787,15 +1044,26 @@ model MemberOnContent {
   @@index([contentId])
 }
 
-// 미디어 파일(이미지/영상) 메타
+// === 24. MEDIA (미디어 파일 / 사진) ===
 model Media {
-  id          String    @id @default(cuid())
-  mType       MediaType
-  url         String
-  title       String?
-  description String?
+  id    String    @id @default(cuid())
+  mType MediaType
 
-  // 소유(선택 연결)
+  // --- a. 파일 정보 ---
+  url          String // 파일 주소
+  thumbnailUrl String? // 영상인 경우 썸네일, 이미지인 경우 저화질 버전
+
+  // 이미지 스펙
+  width    Int? // 이미지 가로 길이
+  height   Int? // 이미지 세로 길이
+  fileSize Int? // 파일 크기 (바이트)
+
+  // --- b. 메타 데이터 ---
+  title       String? // 파일명 또는제목
+  description String? // 설명
+  isMain      Boolean @default(false) // 대표 이미지(커버)로 쓸지 여부
+
+  // --- c. 소유 및 연결 ---
   groupId String?
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
@@ -824,23 +1092,21 @@ model Media {
   updatedAt DateTime @updatedAt
 
   @@index([albumId])
-  @@index([trackId])
-  @@index([programId])
   @@index([eventId])
   @@index([contentId])
-  @@index([appearanceId])
 }
 
-// 동영상 통계 스냅샷(조회수 등)
+// === 25. VIDEO STAT (조회수 통계) ===
 model VideoStat {
   id        String  @id @default(cuid())
   contentId String
   content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
-  snapshotAt   DateTime
-  viewCount    BigInt // 유튜브 MV 실시간 추이 등의 스냅샷
-  likeCount    BigInt?
-  commentCount BigInt?
+  snapshotAt DateTime // 기록 시점
+
+  viewCount    BigInt // 조회수
+  likeCount    BigInt? // 좋아요 수
+  commentCount BigInt? // 댓글 수
 
   createdAt DateTime @default(now())
 
@@ -852,14 +1118,22 @@ model VideoStat {
 // AWARDS (시상식/부문/수상)
 // ==================================
 
-// 시상 기관(조직)
+// === 26. AWARD ORGANIZATION (시상 기관/조직) ===
 model AwardOrganization {
-  id      String  @id @default(cuid())
-  name    String
-  country String?
-  notes   String?
+  id String @id @default(cuid())
 
+  // --- a. 기본 정보 ---
+  name         String // 정식 명칭
+  abbreviation String? // 약칭
+  country      String? // 주최 국가
+
+  // --- b. 비주얼 에셋 ---
+  logoUrl String? // 주최측 공식 로고 이미지
+
+  // --- c. 관계 ---
   events AwardEvent[]
+
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -867,19 +1141,27 @@ model AwardOrganization {
   @@index([name])
 }
 
-// 시상식(연도/회차 단위)
+// === 27. AWARD EVENT (시상식 회차) ===
 model AwardEvent {
   id             String            @id @default(cuid())
   organizationId String
   organization   AwardOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  name     String
-  heldAt   DateTime?
-  location String?
-  notes    String?
+  // --- a. 행사 정보 ---
+  name     String // 행사명
+  edition  String? // 회차
+  heldAt   DateTime? // 개최일
+  location String? // 장소
 
+  // --- b. 비주얼 에셋 ---
+  posterUrl String? // 해당 연도 메인 포스터 이미지
+  logoUrl   String? // 해당 연도 타이틀 로고
+
+  // --- c. 관계 ---
   categories AwardCategory[]
   wins       AwardWin[]      @relation("AwardEventWins")
+
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -888,16 +1170,22 @@ model AwardEvent {
   @@index([heldAt])
 }
 
-// 수상 카테고리(신인상/본상/베스트 퍼포먼스 등)
+// === 28. AWARD CATEGORY (수상 부문) ===
 model AwardCategory {
   id      String     @id @default(cuid())
   eventId String
   event   AwardEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  name  String
-  notes String?
+  // --- a. 부문 정보 ---
+  name String // 부문명
 
+  // 분류 (정렬 및 필터링용)
+  type String @default("OTHER")
+
+  // --- b. 관계 ---
   wins AwardWin[]
+
+  notes String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -906,17 +1194,23 @@ model AwardCategory {
   @@index([name])
 }
 
-// 수상 실적(그룹/트랙/앨범 단위)
+// === 29. AWARD WIN (수상 실적 상세) ===
 model AwardWin {
-  id         String        @id @default(cuid())
+  id String @id @default(cuid())
+
+  // --- a. 수상 내역 연결 ---
   categoryId String
   category   AwardCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   eventId String?
   event   AwardEvent? @relation("AwardEventWins", fields: [eventId], references: [id], onDelete: SetNull)
 
+  // --- b. 수상 대상 ---
   groupId String?
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  memberId String? // 개인, 유닛 수상인 경우
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
 
   albumId String?
   album   Album?  @relation("AlbumAwards", fields: [albumId], references: [id], onDelete: SetNull)
@@ -924,9 +1218,13 @@ model AwardWin {
   trackId String?
   track   Track?  @relation("TrackAwards", fields: [trackId], references: [id], onDelete: SetNull)
 
-  awardedAt DateTime?
-  isJoint   Boolean   @default(false) // 공동 수상
-  note      String?
+  // --- c. 비주얼 & 콘텐츠 ---
+  sceneImageUrl String? // 수상 장명 스틸컷
+  speechUrl     String? // 수상 소감 영상 링크
+
+  // --- d. 상세 정보 ---
+  isJoint Boolean @default(false) // 공동 수상 여부
+  note    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -942,15 +1240,24 @@ model AwardWin {
 // EXTERNAL LINKS
 // ==================================
 
-// 다양한 엔티티에 걸리는 외부 링크(공식·플랫폼·기사 등)
+// === 30. EXTERNAL LINK (외부 링크 / 바로가기) ===
 model ExternalLink {
-  id     String   @id @default(cuid())
-  type   LinkType
-  title  String?
-  url    String   @unique
-  locale String? // ko-KR, ja-JP 등
-  notes  String?
+  id String @id @default(cuid())
 
+  // --- a. 링크 정보 ---
+  type  LinkType // 플랫폼 타입
+  title String? // 링크 제목
+  url   String // URL 주소
+
+  description String? // 툴팁이나 부가 설명
+
+  // --- b. 비주얼 & 정렬 ---
+  iconUrl String? // 아이콘 URL
+  order   Int     @default(0) // 정렬 순서 (중요한 순으로)
+
+  isOfficial Boolean @default(true) // 공식 링크 여부
+
+  // --- c. 소유 및 연결 ---
   groupId String?
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
@@ -982,10 +1289,82 @@ model ExternalLink {
   updatedAt DateTime @updatedAt
 
   @@index([groupId])
-  @@index([memberId])
-  @@index([albumId])
-  @@index([trackId])
-  @@index([programId])
-  @@index([eventId])
-  @@index([contentId])
+  @@index([type])
+  @@index([order])
+}
+
+// ==================================
+// WIDGET
+// ==================================
+
+// === 31. [Members Quote 위젯] QUOTE ===
+model Quote {
+  id String @id @default(cuid())
+
+  content String
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// === 32. [Wish Jar 위젯] WISH ===
+model Wish {
+  id String @id @default(cuid())
+
+  content  String  @db.Text
+  nickname String?
+  password String? // 수정/삭제용 비밀번호 (선택사항)
+  color    String // 'pink' | 'blue' | 'yellow' | 'green' | 'purple' | 'red'
+
+  // 위치 정보
+  posX     Float?
+  posY     Float?
+  rotation Float?
+
+  createdAt DateTime @default(now())
+}
+
+// === 33. [PhotoCard 위젯] DIGITAL PHOTOCARD ===
+model DigitalPhotoCard {
+  id       String  @id @default(cuid())
+  name     String // 카드 이름
+  imageUrl String // 앞면
+  backUrl  String? // 뒷면 (싸인 등)
+  rarity   String  @default("COMMON") // COMMON, RARE, LEGENDARY (홀로그램 효과)
+
+  // --- a. 멤버 연결 ---
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  // --- b. 출처 분류 ---
+  sourceType PhotoCardSource @default(ALBUM)
+
+  albumId String?
+  album   Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+}
+
+// === 34. [Mini Player 위젯] PLAYLIST TRACK ===
+model PlaylistTrack {
+  id String @id @default(cuid())
+
+  title     String
+  artist    String @default("NCT WISH")
+  youtubeId String // 영상 ID
+
+  // 기존 Track과 연결
+  trackId String?
+  track   Track?  @relation(fields: [trackId], references: [id])
+
+  order    Int     @default(0) // 재생 순서
+  isActive Boolean @default(true) // 노출 여부
+
+  createdAt DateTime @default(now())
 }

@@ -7,15 +7,28 @@
 
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import StartMenu from '@/components/os/StartMenu';
-import { Button, Divider, Tooltip } from '../ui';
+import Image from 'next/image';
+import { StartMenu } from '@/components/os';
+import { Button, Divider, Tooltip } from '@/components/ui';
+import { useWindowStore } from '@/app/stores/useWindowStore';
+import { AuthError } from '@supabase/supabase-js';
 
 // [하위 컴포넌트] 시작 버튼
 function StartButton() {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // 바깥 클릭 시 메뉴 닫기
+    function handleClickOutside(event: MouseEvent) {
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="shrink-0 relative" ref={buttonRef}>
@@ -33,7 +46,7 @@ function StartButton() {
           ${isOpen ? 'bg-dither shadow-inset' : 'bg-gray-200'} // 열리면 눌린 상태
         `}
         onClick={() => setIsOpen(!isOpen)}
-        isActive={isOpen} // Button 컴포넌트의 isActive prop 활용 가능
+        isActive={isOpen}
       >
         <span className="text-brand-primary drop-shadow-md">★</span>
         <span className="hidden md:inline font-pixel pt-1">START</span>
@@ -47,13 +60,16 @@ function SystemClock() {
   const [time, setTime] = useState<string>('');
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateTime = () => {
       setTime(new Date().toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
       }));
-    }, 1000);
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -75,10 +91,10 @@ function SystemTray() {
   // 트레이 아이콘 데이터
   /** TODO: 아이콘 이미지 추가 */
 
-  // 🔊 볼륨 상태 관리
+  // 볼륨 상태 관리
   const [isMuted, setIsMuted] = useState(false);
 
-  // 📩 메일 상태
+  // 메일 상태
   /** TODO: 전역 상태로 관리 */
   const [hasNewMail, setHasNewMail] = useState(true);
 
@@ -89,7 +105,7 @@ function SystemTray() {
       select-none
     ">
 
-      {/* 1. 🛡️ Vaccine: 지루함 방지 시스템 */}
+      {/* Vaccine: 지루함 방지 시스템 */}
       <Tooltip content="Anti-Boredom 가동 중..." position="top">
         <div className="
           w-6 h-6 flex items-center justify-center 
@@ -99,7 +115,7 @@ function SystemTray() {
         </div>
       </Tooltip>
 
-      {/* 2. 📩 Mail: 새 소식 알림 */}
+      {/* Mail: 새 소식 알림 */}
       {/* 메일이 있을 때만 깜빡거리는 애니메이션 추가 */}
       <Tooltip content={hasNewMail ? "새로운 방명록이 도착했습니다!" : "새로운 메시지가 없습니다."}>
         <div
@@ -113,7 +129,7 @@ function SystemTray() {
         </div>
       </Tooltip>
 
-      {/* 3. 💚 Heart: 위츄 체력 상태 */}
+      {/* Heart: 위츄 체력 상태 */}
       <Tooltip content="WICHU HP: 100%">
         <div className="
           w-6 h-6 flex items-center justify-center 
@@ -125,14 +141,14 @@ function SystemTray() {
         </div>
       </Tooltip>
 
-      {/* 4. 📶 Network: 연결 상태 */}
+      {/* Network: 연결 상태 */}
       <Tooltip content="WISH World와 연결됨">
         <div className="w-6 h-6 flex items-center justify-center cursor-help">
           <span className="text-sm">📶</span>
         </div>
       </Tooltip>
 
-      {/* 5. 🔊 Volume: 음소거 토글 */}
+      {/* Volume: 음소거 토글 */}
       <Tooltip content={isMuted ? "음소거 켜짐" : "볼륨: 100%"}>
         <button
           onClick={() => setIsMuted(!isMuted)}
@@ -150,70 +166,75 @@ function SystemTray() {
 
 // [메인 컴포넌트] Taskbar 컴포넌트
 export default function Taskbar() {
-  const pathname = usePathname();
-  const router = useRouter();
+  // Store 구독: 열린 창 목록과 현재 활성 창 ID 가져오기
+  const { windows, activeWindowId, focusWindow, minimizeWindow } = useWindowStore();
 
-// 페이지 경로와 태스크바 이름을 매핑
-  const getPageTitle = (path: string) => {
-    switch (path) {
-      case '/': return 'My WISH (Desktop)';
-      case '/archive': return 'WISH Archive';
-      case '/releases': return 'Discography';
-      case '/gallery': return 'WISH Gallery';
-      case '/guestbook': return 'To. WISH';
-      default: return 'WISH OS Explorer';
+  // 탭 클릭 핸들러
+  const handleTabClick = (id: string, isMinimized: boolean) => {
+    if (activeWindowId === id && !isMinimized) {
+      minimizeWindow(id); // 활성 창이면 최소화
+    } else {
+      focusWindow(id); // 아니면 포커스
     }
   };
 
-  // 현재 활성화된 탭 정보
-  const currentTab = {
-    id: pathname,
-    title: getPageTitle(pathname),
-    icon: pathname === '/' ? '💻' : '📂', // 홈이면 컴퓨터, 아니면 폴더 아이콘
-  };
-
-  const activeTasks = [currentTab]; // 현재는 활성화된 탭이 하나뿐임
-
   return (
     <nav className="
-      fixed bottom-0 left-0 z-[--z-dock]
+      fixed bottom-0 left-0 z-[--z-taskbar]
       w-full h-[50px] px-1 pb-1
       flex items-center gap-2
       bg-gray-200
       border-t-2 border-white
       shadow-[0_-4px_10px_rgba(0,0,0,0.1)]
     ">
-      
+
       {/* 시작 버튼 영역 */}
       <StartButton />
 
       <div className="h-[36px] mx-1"><Divider orientation="vertical" /></div>
 
-      {/* 태스크 탭 영역 (현재 페이지 + 위젯) */}
+      {/* 태스크 탭 영역 (열린 창 목록 렌더링) */}
       <div className="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar px-1 h-full">
-        {activeTasks.map((task) => (
-          <button
-            key={task.id}
-            onClick={() => router.push(task.id)} // 클릭 시 해당 페이지로 이동 (이미 거기 있으면 새로고침 효과)
-            className={`
-              h-[38px] w-[160px] md:w-[200px] shrink-0
-              flex items-center gap-2 px-3
-              border border-black/50 rounded-sm
-              transition-all select-none
-              
-              /* 현재 페이지면 '눌린(Inset)' 상태, 아니면 '튀어나온(Outset)' 상태 */
-              ${pathname === task.id 
-                ? 'bg-gray-100 shadow-inset font-bold bg-dither text-black' 
-                : 'bg-gray-200 shadow-outset active:shadow-inset text-gray-800'
-              }
-            `}
-          >
-            <span className="text-lg">{task.icon}</span>
-            <span className="font-pixel text-sm pt-1 truncate flex-1 text-left">
-              {task.title}
-            </span>
-          </button>
-        ))}
+        {windows.map((win) => {
+          // 활성 상태 조건: 현재 ID와 일치하고, 최소화 상태가 아닌 경우
+          const isActive = activeWindowId === win.id && !win.isMinimized;
+
+          return (
+            <button
+              key={win.id}
+              onClick={() => handleTabClick(win.id, win.isMinimized)}
+              className={`
+                h-[38px] w-[160px] md:w-[200px] shrink-0
+                flex items-center gap-2 px-3
+                border border-black/50 rounded-sm
+                transition-all select-none
+
+                /* 상태에 따른 스타일 분기 */
+                ${isActive
+                  ? 'bg-gray-100 shadow-inset font-bold bg-dither text-black translate-y-[1px]' // 활성: 눌린 상태
+                  : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-800' // 비활성: 튀어나온 상태
+                }
+              `}
+            >
+              {/* 아이콘 + 제목 */}
+              {win.icon.startsWith('/') ? (
+                <Image
+                  src={win.icon}
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 object-contain"
+                />
+              ) : (
+                <span className="text-lg">{win.icon}</span>
+              )}
+
+              <span className="font-pixel text-sm pt-1 truncate flex-1 text-left">
+                {win.title}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="hidden md:block h-[36px] mx-1"><Divider orientation="vertical" /></div>
@@ -224,6 +245,6 @@ export default function Taskbar() {
         <SystemClock />
       </div>
 
-    </nav>
+    </nav >
   );
 }

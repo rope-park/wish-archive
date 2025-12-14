@@ -12,17 +12,19 @@
     "db:fresh": "prisma migrate reset --force && prisma db seed"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "6.19.1",
     "@supabase/supabase-js": "^2.83.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.23.24",
     "lucide-react": "^0.554.0",
-    "next": "16.0.1",
-    "prisma": "^6.19.0",
+    "next": "^16.0.8",
     "react": "19.2.0",
+    "react-datepicker": "^8.10.0",
     "react-dom": "19.2.0",
+    "react-draggable": "^4.5.0",
+    "react-player": "^3.4.0",
     "tailwind-merge": "^3.4.0",
-    "three": "^0.181.2"
+    "three": "^0.181.2",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
@@ -30,9 +32,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.22",
+    "baseline-browser-mapping": "^2.9.6",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
+    "framer-motion": "^12.23.25",
     "postcss": "^8.5.6",
+    "prisma": "6.19.1",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.20.6",
     "typescript": "^5"

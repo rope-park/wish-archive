@@ -1,9 +1,11 @@
 // prisma/seeds/01-members.ts
 import type { PrismaClient } from '@prisma/client'
+import { logger, ProgressTracker } from './utils'
 
 /**
  * NCT WISH 멤버 시드
  */
+// TODO: 실제 멤버 프로필 이미지/아이콘/캐릭터 이미지 경로 업데이트 필요
 export async function seedMembers(prisma: PrismaClient, groupId: string) {
   const members = [
     {
@@ -11,131 +13,377 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
       name: '오시온',
       nameHanja: '吳是溫',
       nameEn: 'SION',
+
       birthDate: new Date('2002-05-11'),
       nationality: '대한민국',
       hometown: '전라남도 목포시',
-      positions: '리더, 댄서, 보컬',
+
+      positions: '리더, 리드보컬, 리드댄서',
+      mbti: 'INTJ',
       emoji: '🌷',
-      ownNumber: 1,
+      ownNumber: '01',
       bloodType: 'O',
+
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      profileImageUrl: null,
-      note: null,
+
+      // 비주얼 에셋
+      colorCode: '#9B419B', // PURPLE
+      characterUrl: '',
+      iconUrl: '',
+      profileImageUrl: '',
+      
+      description: `NCT WISH의 리더이자 맏형. 전라남도 목포 출신으로 NCT의 한국인 멤버 중 유일한 비수도권 출신이다 (재희와 함께). SM ROOKIES 출신으로 라스타트 이전부터 데뷔가 확정되어 있었다.
+
+**비주얼**: SM 남자 아이돌 비주얼 계보를 잇는 멤버. 갸름한 얼굴형, 높은 콧대, 큰 눈, 긴 속눈썹이 특징이다. 잘생긴 외모로 목포에서 여러 학교 학생들에게 이미 유명했었으며, 시온이 다니지도 않는 학원에서 학생들에게 시온과 친한 사이냐며 물어봤을 정도.
+
+**성격**: 다정하고 위트있는 성격으로 '첫사랑', '남자친구' 이미지를 가지고 있다. 맏형임에도 멤버들에게 애교를 부리거나 장난치는 모습이 자주 보이는 '초딩스러운' 면모도 있다. 료는 "가족 관계도를 만든다면 시온은 엄마"라고 표현했다.
+
+**리더십**: 리쿠는 "고민을 시온에게 잘 털어놓는다"고 하며, 사쿠야는 시온을 "본인이 생각하는 리더의 이상형"이라고 표현했다. 한국 활동 시 외국 멤버들이 스스로 말할 수 있도록 도와주고, 재희가 정리해주는 팀워크를 보인다.
+
+**실력**: 
+- 보컬: 리드보컬로서 안정적인 가창력
+- 댄스: 날렵한 스텝과 파워풀한 스타일. 보아가 "파워풀하고 강약중강약을 정확히 줘서 눈에 잘 보였다"고 평가
+- 팔다리가 길고 동작 범위가 큰 편
+
+**취미/특기**: 
+- 축구 게임 FIFA (유우시와 자주 함께 플레이, FC 바이에른 뮌헨/바르셀로나/AC 밀란 선호)
+- 롤모델: NCT 태용, 텐, EXO 카이
+- 최애 EXO 멤버: 카이, 도영
+- 초등학교 시절 중국 베이징과 상하이에서 한 달간 중국어 학습 경험
+- NCT 내에서 발 사이즈가 가장 작음
+- 물건을 잘 잃어버리는 편 (특히 호텔방에 자주 두고 옴)
+
+**별명**: 오숀(OCEAN), 숀자님, 당시온, 소수저, 목포 왕자, 오숀사마, 오리더, 오방글, 오띨롱, 아뜰리에
+
+**케미**: 유우시와 SMROOKIES 시절부터 함께했으며, 재희와는 PC방에서 FIFA 게임을 즐긴다 (재희가 1번 이기고 나머지는 모두 시온 승리).
+
+**기타**: 
+- 연습생 기간: SMROOKIES 루키즈 출신 (비교적 긴 연습생 기간)
+- 1인칭: 일본어 사용 시 "보쿠(ぼく)"
+- 목포 사투리를 사용하여 일본인 멤버들에게도 영향을 줌`,
     },
     {
       stageName: '리쿠',
       name: '마에다 리쿠',
-      nameHanja: '前田陸',
+      nameHanja: '前田 陸',
       nameEn: 'RIKU',
+
       birthDate: new Date('2003-06-28'),
       nationality: '일본',
       hometown: '후쿠이현',
-      positions: '래퍼, 댄서',
+
+      positions: '메인래퍼, 리드댄서',
+      mbti: 'ISFP',
       emoji: '🐿️',
-      ownNumber: 3,
+      ownNumber: '03',
       bloodType: 'AB',
+
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      profileImageUrl: null,
-      note: null,
+      
+      colorCode: '#E14766', // RED
+      characterUrl: '',
+      iconUrl: '',
+      profileImageUrl: '',
+
+      description: `NCT WISH의 메인래퍼. 후쿠이현 출신으로 라스타트에서 가장 높은 평균 순위(1-2-2-1)로 데뷔한 멤버.
+
+**가족**: 전 모닝구 무스메 멤버 타카하시 아이(Takahashi Ai)의 사촌 동생으로 화제가 되었다. 둘째 누나는 댄서이며 리쿠의 롤모델이라고 밝힌 바 있다.
+
+**외모**: 귀여운 외모와 달리 무대 위에서는 파워풀한 랩과 카리스마를 보여준다. 볼살이 특징적이며 "푸딩"이라는 별명이 있다 (고개를 흔들 때 볼살이 푸딩처럼 흔들림).
+
+**성격**: 
+- 원래 생각이 많고 고민을 많이 하는 편이었으나, 멤버들과 팬들 덕분에 자신감을 쌓음
+- 낯을 가리지만 팬들 앞에서는 애교를 많이 부리려 노력
+- 끈기 있고 열심히 연습하는 성격 (사쿠야가 "연습 때 제일 늦게까지 연습한다"고 언급)
+- 위시 멤버들 중 료와 함께 츳코미 포지션
+
+**리더십**: 일본 활동 시 팀을 주도하는 경향이 있다. 한국 멤버들이 스스로 말을 완성하도록 유우시가 도와주고 리쿠가 정리해주는 역할.
+
+**취미/특기**:
+- 애니메이션과 영화 감상
+- 하이큐!! 팬 (최애: 카게야마 토비오, 오이카와 토오루)
+- 배구부 출신 (학창 시절 등번호 3번)
+- 빵을 매우 좋아해 나중에 빵집을 하고 싶을 정도 (사쿠야와 빵 캐릭터 경쟁)
+- 롤모델: 둘째 누나, NCT 마크
+- 가사 쓰기 시작
+
+**별명**:
+- 쿠리 (밤), 리쿠짱, 마리쿠, 보바쿠리, 깜고, 쿠로네코, 쿠냥이, 후쿠이의 보물, 루루, 애햄이, 
+
+**케미**: 
+- 료를 최애 멤버로 꼽음 (송버드 앨범으로 료 키링 제작해 가방에 부착)
+- 료와 함께 "충전즈" (안고 있으면 에너지 충전되는 느낌)
+
+**기타**:
+- 연습생 기간: 약 1년
+- 학창시절 피부가 많이 탔었으나 아이돌 되기로 한 후 집에만 있어서 피부 복구
+- 건강상 이유로 2024년 10월 22일부터 2025년 2월 3일까지 활동 중단 (휴식기)
+- 후쿠이 시내 거의 모든 신사에 NCT WISH 팬들이 건 에마(소원 나무판)가 있을 정도로 고향에서 유명`,
     },
     {
       stageName: '유우시',
       name: '토쿠노 유우시',
       nameHanja: '得能 勇志',
       nameEn: 'YUSHI',
+
       birthDate: new Date('2004-04-05'),
       nationality: '일본',
       hometown: '도쿄도 고토구',
-      positions: '메인댄서, 보컬',
+
+      positions: '메인댄서, 리드보컬',
+      mbti: 'ISFJ',
       emoji: '⭐',
-      ownNumber: 45,
+      ownNumber: '45',
       bloodType: 'A',
+
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      profileImageUrl: null,
-      note: null,
+      
+      colorCode: '#93D6F9', // BLUE
+      characterUrl: '',
+      iconUrl: '',
+      profileImageUrl: '',
+
+      description: `NCT WISH의 올라운더. 메인댄서이자 리드보컬로 안정적인 라이브와 수준급 보컬을 자랑하는 육각형 멤버. 일본 스타더스트 프로모션 소속 보이그룹 'EDAMAME BEANS' 출신.
+
+**배경**: SM ROOKIES 출신으로 긴 연습생 기간을 거친 '성장 서사'의 주인공. SM 입사 후 처음으로 한국어를 배웠으며, 한국에 오래 있었던 만큼 한국인 멤버들의 오류를 고쳐줄 정도로 유창한 한국어 구사 (그룹 내 유일한 표준 한국어 화자라는 우스갯소리도).
+
+**성격**: 
+- 낯을 심하게 가림. 긴장도 많이 하고 부끄러움이 많은 편
+- 재희와 료가 "데뷔 후 가장 많이 바뀐 멤버"로 꼽음 (처음엔 마음을 안 열었으나 지금은 분위기 메이커)
+- 예측하기 어려운 면 - 조용하다가도 기분 좋으면 춤추며 노래 흥얼거림
+- 무덤덤해보이지만 섬세하고, 포커페이스에 능하지만 감정 변화가 투명하게 드러남
+
+**실력**:
+- 댄스: 메인댄서로서 뛰어난 퍼포먼스 실력
+- 보컬: 리드보컬로 안정적인 라이브. 보아가 "곡별로 자신이 보여줄 수 있는 매력을 잘 어필하며 감동을 주는 보컬"이라 평가
+- 려욱: "보면 볼수록 궁금해지는 블랙홀급 매력"
+- 해찬: "팀의 색깔을 만들어 줄 유니크한 보컬"
+- 랩도 잘해서 리쿠의 랩 파트를 대신 맡기도 함
+
+**취미/특기**:
+- 선물 센스가 굉장히 좋음 (데뷔 1주년에 멤버들에게 샤넬 립밤, 각 멤버 개성에 맞는 생일선물)
+- EXO 팬 (EXO-L) - 성덕이 됨
+- 라면을 매우 좋아함 (연습생 시절 불닭볶음면 2주간 매일)
+- 롤모델: 소희 (베텔기우스를 부르는 모습을 보고 싶다고 언급)
+- 반려견 유루와 토이로 중 토이로와 더 친함
+
+**별명**: 우시, 샤이보이, 댄싱네코, 윳냥이, 치즈냥, 어깨귀신, 떵쿠노, 유우짱, 윳띠, 도쿄 도련님, 미미치, 애기1호, 대장만두, 왹우시, 온싱이
+
+**케미**:
+- 시온과 SMROOKIES 시절부터 함께 (시온이 입사했을 때 유우시는 연습생 중 막내였고 지금 키의 3분의 2)
+- 료, 리쿠와 함께 "사랑많두즈" / "료리시" / "만두즈"
+
+**기타**:
+- 연습생 기간: SMROOKIES 루키즈 출신 (긴 연습생 기간)
+- 시온이 입사했을 때는 아주 귀여운 막내 이미지
+- 연습생 중 간사이 출신 친구가 있어 간사이벤 구사 가능
+- 말 수가 적은 편
+- 핑크 블러드 (료와 함께)`,
     },
     {
       stageName: '재희',
       name: '김대영',
       nameHanja: '金垈永',
       nameEn: 'JAEHEE',
+
       birthDate: new Date('2005-06-21'),
       nationality: '대한민국',
       hometown: '대구광역시 달서구 장기동',
+
       positions: '메인보컬',
+      mbti: 'ESFP',
       emoji: '🌳',
-      ownNumber: 13,
+      ownNumber: '13',
       bloodType: 'O',
+
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      profileImageUrl: null,
-      note: null,
+
+      colorCode: '#38A96A', // GREEN
+      characterUrl: '',
+      iconUrl: '',
+      profileImageUrl: '',
+
+      description: `NCT WISH의 메인보컬. 대구 출신으로 NCT의 한국인 멤버 중 유일한 비수도권 출신이다 (시온과 함께).
+
+**배경**: 서바이벌 중간(4화)에 합류한 '히든 카드'. 3개월이라는 초단기 연습생 기간에도 불구하고 압도적인 가창력으로 메인보컬 자리를 차지했다. 본명인 김대영 대신 예명 '재희'를 사용.
+
+**보컬**: 
+- 고음과 falsetto가 장기
+- 노래할 때가 가장 행복하다고 언급
+- 좋아하는 가사: "오늘은 걸어도 내일은 뛰어가리" - 박효신 'Home'
+- 좋아하는 NCT 곡: AY-YO
+- 아이돌이 되고 싶었던 계기: 회사에 온 지 1개월 때 NCT 127의 AY-YO가 발매되었는데 뮤비의 재현이 너무 좋았음
+
+**성격**:
+- 활발하고 밝은 성격
+- 한국 활동 시 시온이 도와주고 재희가 말을 정리해주는 역할
+- 가족 관계도를 만든다면 골든 리트리버 (료는 말티즈)
+
+**취미/특기**:
+- 노래, 피아노 연주, 독서
+- 리쿠를 위해 '너의 이름은' OST 피아노 연주 (둘 다 좋아하는 영화)
+- 그림 잘 그림 (유우시가 생일선물로 그림도구 세트 선물)
+
+**별명**: 댕, 김재희, 명창강아지, 메기남, 3개월 주면 엔시티 하는 애, 똥강아지, 댕아지, 째히, 김그니까, 댕파루파, 큰댕,
+
+**케미**:
+- 료와 6명이 한 숙소에 살던 시절 룸메이트 (매일 자기 전 사랑한다고 말해줌)
+- 료가 힘들었을 때 침대에 "형 너무 걱정하지마요"라는 포스트잇을 붙여준 에피소드
+- 시온과 PC방에서 FIFA (재희가 1번 이기고 나머지는 모두 시온 승리)
+
+**기타**:
+- 연습생 기간: 3개월 (SM 아이돌 그룹 중 가장 짧은 편)
+- 대구 사투리 사용 (일본인 멤버들에게도 영향)
+- 키: 180cm 이상 (그룹 내에서 큰 편)
+- 현재 숙소: 리쿠, 유우시와 함께`,
     },
     {
       stageName: '료',
       name: '히로세 료',
       nameHanja: '廣瀬 遼',
       nameEn: 'RYO',
+
       birthDate: new Date('2007-08-04'),
       nationality: '일본',
       hometown: '교토부',
-      positions: '보컬, 댄서',
+
+      positions: '서브보컬',
+      mbti: 'INTP-T',
       emoji: '🦭',
-      ownNumber: 21,
+      ownNumber: '21',
       bloodType: 'A',
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      profileImageUrl: null,
-      note: null,
+
+      colorCode: '#FADD4E', // YELLOW
+      characterUrl: '',
+      iconUrl: '',
+      profileImageUrl: '',
+
+      description: `NCT WISH의 서브보컬이자 '성공한 덕후(성덕)'. NCT 콘서트 관람 중 현장 캐스팅된 기적 같은 스토리의 주인공.
+
+**배경**: 
+- 원래 최종 데뷔 조에 없었으나, 마지막 미션에서의 눈부신 성장과 팀에 필요한 활기찬 에너지를 인정받아 파이널에서 기적적으로 합류
+- NCTzen (NCT 팬)으로 활동하다가 멤버가 됨 - 진정한 성덕
+- EXO의 세훈 팬 (최애는 카이)
+
+**성격**:
+- 본인을 '행복(happiness)'이라는 한 단어로 표현
+- 활발하고 에너지 넘치는 성격
+- 가족 관계도를 만든다면 말티즈 (재희는 골든 리트리버)
+- 위시 멤버들 중 료와 리쿠가 츳코미 포지션
+
+**취미/특기**:
+- 영화 감상, 그림 그리기
+- 좋아하는 물건: 휴대폰, 태어날 때부터 함께한 인형
+- 아이돌이 아니었다면 우주비행사가 되고 싶었음
+- 자연과 바다 view가 있는 곳에서 살고 싶음
+
+**별명**: 말티즈, 료티즈, 천재 말티즈, 진성도프, 료즈니, 료둥이, 료깅이, 율율, 율이, 작댕, 치치
+**케미**:
+- 사쿠야와 베스트프렌드
+- 리쿠의 최애 멤버 (리쿠가 료가 귀여워서 안으면 힐링된다고 언급)
+- 리쿠, 유우시와 함께 "충전즈", "사랑많두즈", "료리시"
+- 재희와 6명이 한 숙소 시절 룸메이트
+
+**기타**:
+- 연습생 기간: 약 1년
+- 교토 사투리 사용
+- 핑크 블러드 (유우시와 함께)
+- 현재 숙소: 시온, 사쿠야와 함께`,
     },
     {
       stageName: '사쿠야',
       name: '후지나가 사쿠야',
       nameHanja: '藤永 咲哉',
       nameEn: 'SAKUYA',
+
       birthDate: new Date('2007-11-18'),
       nationality: '일본',
-      hometown: '이시카와현',
-      positions: '래퍼',
+      hometown: '이시카와현 (출생) / 사이타마현 (출신)',
+
+      positions: '리드래퍼, 서브보컬, 막내',
+      mbti: 'ENFP',
       emoji: '🥐',
-      ownNumber: 39,
+      ownNumber: '39',
       bloodType: 'AB',
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      profileImageUrl: null,
-      note: null,
+
+      colorCode: '#E669A4', // PINK
+      characterUrl: '',
+      iconUrl: '',
+      profileImageUrl: '',
+
+      description: `NCT WISH의 막내이자 리드래퍼. 중저음의 보이스로 랩을 소화하는 반전 매력의 소유자.
+
+**배경**: 
+- 만 16세에 데뷔 (2007년생)
+- 동영상 오디션으로 입사 (대면 오디션 X, 집에서 어머니 앞에서 자기소개 촬영하다 웃겨서 NG 자주)
+- 부모님이 K-POP을 좋아해서 함께 보던 아티스트들을 동경하게 되어 아이돌 꿈꿈
+
+**성격**:
+- 호기심이 많고 엉뚱한 매력 ('4차원 막내')
+- '알 수 없는 봉오리(Unknown bud)'로 자신을 표현
+- 멤버들이 좋아하는 것을 잘 기억하기 위해 메모장에 적어둠
+- 선물하는 것을 좋아함 (귀걸이나 키링 같은 아기자기한 물건 모으고 직접 만들기도)
+
+**실력**:
+- 래퍼: 리드래퍼로 중저음의 보이스가 특징
+- 댄스: 춤 외우는 게 빠른 편 (릴레이 춤 게임에서 리쿠와 공동 1등)
+- 볼 리프팅: 초등학생 때 2천개까지 해봄
+
+**취미/특기**:
+- 친구들과 쇼핑, 사진 찍기, 축구
+- 빵 순례 (빵을 매우 좋아함 - 리쿠와 빵 캐릭터 경쟁)
+- 선물 주기, 마트 가기
+- 취향: 빵집 냄새, 고무타이어 냄새, 불꽃놀이 화약 냄새, 초 끄고 난 냄새 좋아함
+
+**별명**: 사쿠, 사쿠쨩, 쿠야, 사쿠빵, 빵쿠야, 사쿠판다, 샄훈아, 베티, 애기2호, 주댕치, 바삭이
+
+**케미**:
+- 료와 베스트프렌드
+- 시온, 리쿠를 "엄마아빠"라고 표현 (본인은 아들)
+- ZEROBASEONE 한유진과 친분 (막강즈 무대 함께)
+- &TEAM 하루아와 친해짐 (챌린지 후 쇼핑하다 마주쳐서 연락처 교환)
+
+**기타**:
+- 연습생 기간: 약 1년
+- 라스타트 성적: 5위-3위-5위-2위
+- 매운맛에 굉장히 약함
+- 다도 학원 다님 (5번만 나간 게 발각됨)
+- 가장 아끼는 물건: 소중한 편지, 판다 인형 '판판', 료 어머니가 준 오마모리 키링
+- 꿈: 마트에서 놀기, 하루 종일 빵만 먹기, 친구들이랑 100시간 놀기
+- 2024년 만우절에 NCT WISH 공식 SNS 점령 (데뷔 전부터 준비한 폴더)
+- 목포/대구 사투리 영향 받음 (전라도+경상도 사투리 섞임)
+- 현재 숙소: 시온, 료와 함께`,
     },
   ]
 
   const createdMembers = []
+  const progress = new ProgressTracker('Seeding Members', members.length)
 
   for (const memberData of members) {
-    const existing = await prisma.member.findFirst({
+    const member = await prisma.member.upsert({
       where: {
-        groupId: groupId,
-        stageName: memberData.stageName,
+        groupId_stageName: {
+          groupId: groupId,
+          stageName: memberData.stageName,
+        },
       },
+      update: memberData,
+      create: { ...memberData, groupId },
     })
 
-    let member
-    if (existing) {
-      member = await prisma.member.update({
-        where: { id: existing.id },
-        data: memberData,
-      })
-      console.log(`  ✓ Updated: ${member.stageName}`)
-    } else {
-      member = await prisma.member.create({
-        data: { ...memberData, groupId },
-      })
-      console.log(`  ✓ Created: ${member.stageName}`)
-    }
     createdMembers.push(member)
+    progress.increment()
   }
 
-  console.log(`✓ Members seeded: ${createdMembers.length} members`)
+  progress.complete()
+  logger.success(`Members seeded: ${createdMembers.length} members`)
   return createdMembers
 }

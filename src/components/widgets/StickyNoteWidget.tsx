@@ -4,8 +4,8 @@
  * - 더블 클릭 시 편집 모드로 전환
  * - 편집 모드에서 포커스 자동 설정 및 커서 위치 조정
  * - 색상 옵션 제공
- * - 우측 하단 접힌 효과 추가
  */
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -43,14 +43,13 @@ export default function StickyNoteWidget({
   };
 
   // 색상 테마 매핑
-  /** TODO: 색상 수정 필요 */
   const colorStyles = {
-    pink:   'bg-[#FFD1DC] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]', 
+    pink:   'bg-[#F5CAD4] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]', 
     yellow: 'bg-[#FFF9C4] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    blue:   'bg-[#B2EBF2] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    green:  'bg-[#C8E6C9] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    purple: 'bg-[#E1BEE7] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    red:    'bg-[#FFCDD2] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
+    blue:   'bg-[#B9E6FD] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
+    green:  'bg-[#8FD0AC] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
+    purple: 'bg-[#E9B0EF] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
+    red:    'bg-[#FFB7B2] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
   };
 
   return (
@@ -59,10 +58,10 @@ export default function StickyNoteWidget({
       {/* 테이프 (Tape) - 상단에 붙은 느낌 */}
       {/* 본체보다 z-index를 높여서 위를 덮도록 배치 */}
       <div className="
-        absolute -top-3 left-[50%] -translate-x-1/2 z-10
-        w-[60px] h-8
-        bg-white/40 backdrop-blur-[1px]
-        shadow-sm
+        absolute -top-3 left-1/2 -translate-x-1/2 z-20
+        w-[70px] h-8
+        bg-white/40 backdrop-blur-sm
+        shadow-[0_1px_2px_rgba(0,0,0,0.1)]
         rotate-[-2deg]
         pointer-events-none
       " />
@@ -72,7 +71,9 @@ export default function StickyNoteWidget({
         className={`
           w-full h-full p-6 pt-10
           ${colorStyles[color]}
-          transition-colors duration-200
+          shadow-[2px_4px_8px_rgba(0,0,0,0.1)]
+          transition-transform duration-200
+          hover:scale-[1.02]
         `}
         onDoubleClick={() => setIsEditing(true)} // 더블 클릭 시 편집 모드
       >
@@ -84,10 +85,12 @@ export default function StickyNoteWidget({
             onChange={(e) => setText(e.target.value)}
             onBlur={handleBlur}
             className="
+              no-drag
               w-full h-full
               bg-transparent border-none outline-none resize-none
               font-hand text-gray-800 text-lg leading-relaxed
-              placeholder:text-gray-400
+              placeholder:text-gray-400/70
+              custom-scrollbar
             "
             placeholder="Write your wish..."
           />
@@ -97,23 +100,12 @@ export default function StickyNoteWidget({
             w-full h-full 
             font-hand text-gray-900 text-lg leading-relaxed 
             break-words whitespace-pre-wrap cursor-text
+            opacity-90
           ">
             {text}
           </div>
         )}
-      </div>
-
-      {/* (선택사항) 우측 하단 접힌 효과 */}
-      <div className="
-        absolute bottom-0 right-0 
-        w-0 h-0 
-        border-t-[20px] border-t-transparent
-        border-l-[20px] border-l-black/10
-        border-b-[0px] border-b-transparent
-        border-r-[0px] border-r-transparent
-        pointer-events-none
-      " />
-      
+      </div>      
     </div>
   );
 }

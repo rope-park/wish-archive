@@ -3,7 +3,6 @@
  * 
  * - 폴라로이드 사진 느낌의 위젯
  * - 사진, 손글씨 멘트, 테이프 장식 포함
- * - 드래그 앤 드롭 라이브러리와 연동 가능
  * - hover 시 확대 효과 포함
  */
 
@@ -23,7 +22,7 @@ interface PolaroidPhotoProps {
 }
 
 export default function PolaroidPhoto({
-  src,
+  src = '/images/widgets/PolaroidPhoto/wishpolaroid_temp.jpg',
   alt = 'Polaroid Photo',
   caption = '',
   rotate = 0,
@@ -55,13 +54,12 @@ export default function PolaroidPhoto({
         ...style,
       }}
     >
-      {/* 1. 사진 영역 (Inset Effect) */}
+      {/* 사진 영역 (Inset Effect) */}
       <div className="
         relative w-full aspect-square shrink-0
         bg-gray-200
         border border-gray-300
         
-        /* ⭐️ 핵심: 사진이 종이 안으로 파묻힌 느낌 */
         shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1)]
         overflow-hidden
       ">
@@ -74,23 +72,22 @@ export default function PolaroidPhoto({
           draggable={false} // 드래그 방지 (위젯 이동과 충돌 방지)
         />
         
-        {/* 사진 위 은은한 광택 (Old Photo Feeling) */}
+        {/* 사진 위 은은한 광택 */}
         <div className="absolute inset-0 bg-gradient-to-tr from-black/5 to-transparent pointer-events-none" />
       </div>
 
-      {/* 2. 캡션 영역 (손글씨) */}
+      {/* 캡션 영역 (손글씨) */}
       {caption && (
         <div className="
           mt-3 w-full
           font-hand text-gray-800 text-center text-lg leading-tight
-          /* 캡션도 살짝 삐뚤게 써야 제맛 */
           -rotate-1
         ">
           {caption}
         </div>
       )}
 
-      {/* 3. 테이프 장식 (Option) */}
+      {/* 테이프 장식 (Option) */}
       {tape && (
         <>
           {/* 왼쪽 상단 테이프 */}

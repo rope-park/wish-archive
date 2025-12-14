@@ -1,79 +1,180 @@
 /**
- * PhotoCardWidget 컴포넌트
+ * PhotoCard 컴포넌트
  * 
  * - 포토카드 랜덤 뽑기 위젯
+ * - 클릭 시 카드 뒤집기
+ * - 더블 클릭 시 랜덤 이미지 교체
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 // 포토카드 데이터 타입
 interface PhotoCard {
   id: string;
+  member: string;
+  album?: string;
+  color: string;
   src: string;
-  member: string; // 접근성(alt) 및 분류용
 }
 
-/* TODO: 실제 멤버 포토카드 이미지로 교체 필요 */
-/* TODO: 스키마 변경을 통한 이미지 경로 데이터 추가 */
-const PHOTOCARD_DATA: PhotoCard[] = [
-  { id: '1', member: 'Sakuya', src: '/images/widgets/PhotoCard/Sakuya_poppop_photocard.jpg' },
-];
+const DEFAULT_CARD: PhotoCard = {
+  id: 'default',
+  member: 'NCT WISH',
+  src: 'Welcome!',
+  color: '#BBE309',
+};
 
 export default function PhotoCardWidget() {
-  const [currentCard, setCurrentCard] = useState<PhotoCard>(PHOTOCARD_DATA[0]);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [currentCard, setCurrentCard] = useState<PhotoCard>(DEFAULT_CARD);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // API 호출 함수
+  const fetchRandomPhotoCard = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/widgets/photocards/random');
+
+      if (!res.ok) throw new Error('Failed to fetch photocard');
+
+      const data: PhotoCard = await res.json();
+      setCurrentCard(data);
+    } catch (error) {
+      console.error('Error fetching photocard:', error);
+      setCurrentCard(DEFAULT_CARD);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 마운트 시 플래그 설정 (클라이언트 전용 효과)
+  useEffect(() => {
+    // ESLint 경고 방지
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+    fetchRandomPhotoCard();
+
+    return () => {
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    };
+  }, []);
+
+  // 카드 뒤집기 핸들러
+  const handleFlip = () => {
+    setIsFlipped((prev) => !prev);
+  };
 
   // 랜덤 뽑기 핸들러
   const handleDraw = () => {
-    if (isAnimating) return; // 애니메이션 중 중복 클릭 방지
+    setIsFlipped(false);
 
-    setIsAnimating(true);
-    
-    // 0.3초 뒤(애니메이션 중간)에 이미지 교체
     setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * PHOTOCARD_DATA.length);
-      setCurrentCard(PHOTOCARD_DATA[randomIndex]);
-      setIsAnimating(false);
+      fetchRandomPhotoCard().then(() => {
+        setIsFlipped(true);
+      });
     }, 300);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (clickTimeoutRef.current) {
+      // 더블 클릭 감지
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      handleDraw();
+    } else {
+      // 싱글 클릭 감지
+      clickTimeoutRef.current = setTimeout(() => {
+        handleFlip();
+        clickTimeoutRef.current = null;
+      }, 200);
+    }
+  };
+
+  if (!isMounted) return null; // 서버 사이드 렌더링 방지
+
   return (
-    <div 
-      className="group relative cursor-pointer"
-      onClick={handleDraw}
+    <div
+      className="group relative cursor-pointer perspective-1000"
+      onClick={handleClick}
     >
-      {/* 탑로더/슬리브 컨테이너 */}
-      <div className="
-        w-60 h-[340px] p-5
-        bg-white/20 backdrop-blur-[5px]
+      {/* 탑로더/슬리브 디자인 */}
+      <div className={`
+        w-52 h-[300px] p-4
+        bg-white/30 backdrop-blur-sm
         rounded-xl
-        
-        /* --- 입체감 & 테두리 --- */
-        shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.80),0px_4px_10px_rgba(0,0,0,0.1)]
-        outline outline-1 outline-offset-[-1px] outline-[#bfdef0]/30
+        shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.5),0px_4px_10px_rgba(0,0,0,0.1)]
         border border-white/40
-        
-        flex justify-center items-center
-        transition-transform duration-300 ease-out
+        transition-all duration-300 ease-out
         hover:-translate-y-2 hover:rotate-1 hover:shadow-xl
-      ">
-        
-        {/* 포토카드 이미지 */}
-        <div className={`
-          relative w-full h-full rounded-lg overflow-hidden shadow-md
-          transition-all duration-300
-          ${isAnimating ? 'scale-90 opacity-50 blur-sm' : 'scale-100 opacity-100 blur-0'}
-        `}>
-          <Image 
-            src={currentCard.src}
-            alt={`${currentCard.member} Photocard`}
-            fill
-            className="object-cover"
-            draggable={false}
-          />
+        transform-style-3d
+        ${isFlipped ? 'rotate-y-180' : ''}
+      `}>
+
+        {/* [뒷면] (Back) */}
+        <div className="
+          absolute inset-4 backface-hidden
+          bg-brand-retro-blue rounded-lg shadow-md border-2 border-white
+          flex flex-col items-center justify-center gap-2
+          overflow-hidden
+        ">
+          <div className="absolute inset-0 bg-dither opacity-30" />
+          <div className={`z-10 bg-white/20 p-3 rounded-full backdrop-blur-sm ${isLoading ? 'animate-spin' : 'animate-pulse'}`}>
+            <span className="text-3xl filter drop-shadow-md">
+              {isLoading ? '⏳' : '⭐'}
+            </span>
+          </div>
+          <div className="z-10 text-center text-white/90 font-pixel">
+            <p className="text-xs tracking-widest mb-1">NCT WISH</p>
+            <p className="text-[9px] opacity-70">
+              {isLoading ? 'Drawing...' : 'Double Click to Draw'}
+            </p>
+          </div>
+        </div>
+
+        {/* [앞면] (Front) */}
+        <div className="
+          absolute inset-4 backface-hidden rotate-y-180
+          bg-white rounded-lg shadow-md border-2 border-white 
+          flex flex-col overflow-hidden
+        ">
+          {/* 이미지 영역 */}
+          <div
+            className="flex-1 w-full flex items-center justify-center relative"
+            style={{ backgroundColor: currentCard.color }}
+          >
+            {/* 실제 이미지 (유효한 경로일 때만 렌더링) */}
+            {currentCard.src && (currentCard.src.startsWith('/') || currentCard.src.startsWith('http')) && (
+              <Image 
+                src={currentCard.src} 
+                alt={currentCard.member} 
+                fill 
+                className="object-cover"
+                draggable={false} 
+              /> 
+            )}
+
+            {/* 텍스트 플레이스홀더 (이미지 없거나 유효하지 않을 때) */}
+            {(!currentCard.src || (!currentCard.src.startsWith('/') && !currentCard.src.startsWith('http'))) && (
+              <span className="font-pixel text-white text-3xl font-bold drop-shadow-md tracking-wider">
+                {currentCard.src || currentCard.member}
+              </span>
+            )}
+
+            {/* 홀로그램 효과 */}
+            <div className="
+              absolute inset-0 opacity-30 pointer-events-none
+              bg-gradient-to-tr from-transparent via-white/60 to-transparent
+              bg-[length:200%_200%] animate-shimmer
+            " />
+          </div>
 
           {/* 홀로그램 오버레이 효과 (희귀 카드 느낌) */}
           <div className="
@@ -82,28 +183,38 @@ export default function PhotoCardWidget() {
             bg-[length:200%_200%] animate-shimmer
             pointer-events-none
           " />
-          
-          {/* 하단 멤버 이름 라벨 (선택 사항) */}
-          <div className="absolute bottom-2 left-0 w-full text-center">
-             <span className="
-               px-2 py-1 rounded-full bg-black/50 text-white 
-               font-pixel text-xs backdrop-blur-sm
-             ">
-               {currentCard.member}
-             </span>
+
+          {/* 하단 정보 (이름 & 출처) */}
+          <div className="h-9 bg-[#1a1a1a] flex items-center justify-between px-3 shrink-0">
+            <span className="font-pixel text-xs text-white tracking-widest">
+              {currentCard.member}
+            </span>
+            {/* 출처 라벨 (앨범명 or 이벤트명) */}
+            <span className="
+              text-[9px] text-[#bbe309] font-pixel 
+              border border-[#bbe309]/50 px-1.5 py-0.5 rounded-sm
+              max-w-[100px] truncate
+            ">
+              {currentCard.src}
+            </span>
           </div>
         </div>
 
       </div>
 
-      {/* '클릭해서 포토카드 뽑기' 힌트 (호버 시 표시) */}
+      {/* 힌트 메시지 */}
       <div className="
-        absolute -bottom-8 left-1/2 -translate-x-1/2
-        opacity-0 group-hover:opacity-100 transition-opacity
-        bg-gray-800 text-white text-xs font-pixel px-2 py-1 rounded
-        whitespace-nowrap pointer-events-none
+        absolute -bottom-10 left-1/2 -translate-x-1/2
+        opacity-0 group-hover:opacity-100 transition-opacity duration-300
+        pointer-events-none z-50
       ">
-        클릭해서 포토카드 뽑기
+        <div className="
+          bg-gray-900/90 text-white text-[10px] font-pixel 
+          px-2 py-1 rounded shadow-md whitespace-nowrap
+          backdrop-blur-sm
+        ">
+         한 번 클릭: 카드 뒤집기 / 더블 클릭: 랜덤 뽑기
+        </div>
       </div>
     </div>
   );

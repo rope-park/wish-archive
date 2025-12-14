@@ -1,6 +1,15 @@
+/**
+ * DraggableWidget 컴포넌트
+ * 
+ * - 특정 영역을 잡고 끌 수 있는 드래그 가능 위젯
+ * - react-draggable 라이브러리 사용
+ * - 부모 영역 내에서만 이동 가능
+ * - 클릭 시 최상위로 올라오도록 지원
+ */
+
 'use client';
 
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 
 interface DraggableWidgetProps {
@@ -18,10 +27,20 @@ export default function DraggableWidget({
   zIndex = 1,
   onFocus,
   className = '',
-  dragHandle, // 예: '.window-header' (이게 없으면 전체가 드래그 영역)
+  dragHandle,
 }: DraggableWidgetProps) {
-  const nodeRef = useRef<HTMLDivElement>(null); // Strict Mode 오류 방지용 Ref
+  const nodeRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 마운트 시점에만 드래그 가능하도록 설정 (서버사이드 렌더링 이슈 방지)
+  useEffect(() => {
+    // ESLint 경고 무시 주석
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <Draggable
@@ -29,6 +48,7 @@ export default function DraggableWidget({
       defaultPosition={defaultPosition}
       handle={dragHandle} // 특정 핸들만 잡고 끌 수 있게 설정
       bounds="parent"     // 부모(바탕화면) 밖으로 못 나가게 제한
+      cancel='.no-drag'   // 이 클래스명이 붙은 요소는 드래그 방지
       onStart={() => {
         setIsDragging(true);
         onFocus?.(); // 드래그 시작하면 맨 앞으로
@@ -36,17 +56,18 @@ export default function DraggableWidget({
       onStop={() => {
         setIsDragging(false);
       }}
+      onMouseDown={onFocus}
     >
       <div
         ref={nodeRef}
         className={`
           absolute inline-block
-          ${isDragging ? 'cursor-grabbing z-[9999]' : 'cursor-grab'} 
-          /* 드래그 중엔 잠깐 최상위로, 평소엔 지정된 zIndex */
+          ${dragHandle ? '' : (isDragging ? 'cursor-grabbing' : 'cursor-grab')}
           ${className}
         `}
-        style={{ zIndex }}
-        onMouseDown={onFocus} // 클릭만 해도 맨 앞으로
+        style={{
+          zIndex: isDragging ? 9999 : zIndex
+        }}
       >
         {children}
       </div>

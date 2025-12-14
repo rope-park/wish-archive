@@ -3,6 +3,7 @@
  * 
  * - 멤버 캐릭터와 어록을 인터랙티브하게 보여줌
  */
+
 'use client';
 
 import { useState } from 'react';
@@ -128,7 +129,10 @@ export default function MembersQuoteWidget() {
               key="question"
               initial={{ scale: 0 }}
               animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ 
+                scale: { type: "spring", stiffness: 300 },
+                rotate: { duration: 0.6, ease: "easeInOut" }
+              }}
               className="
                 text-[64px] font-pixel text-gray-300 
                 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.2)]
@@ -172,13 +176,25 @@ export default function MembersQuoteWidget() {
         `} />
 
         {/* 캐릭터 이미지 */}
-        <Image
-          src={member.image}
-          alt={member.name}
-          fill
-          className="object-contain drop-shadow-lg transition-transform group-hover:-translate-y-2"
-          draggable={false}
-        />
+        {member.image ? (
+          <Image
+            src={member.image}
+            alt={member.name}
+            fill
+            className="object-contain drop-shadow-lg transition-transform group-hover:-translate-y-2"
+            draggable={false}
+          />
+        ) : (
+          <div className="
+            absolute inset-0 flex items-center justify-center
+            bg-gradient-to-br from-gray-100 to-gray-200
+            rounded-full border-2 border-dashed border-gray-300
+          ">
+            <span className="font-pixel text-3xl text-gray-400">
+              {member.name[0]}
+            </span>
+          </div>
+        )}
         
         {/* 클릭 유도 힌트 (호버 시 표시) */}
         <span className="

@@ -7,29 +7,64 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
+
+interface DDayData {
+  date: string | Date;
+  label: string;
+}
 
 interface DdayCounterProps {
-  targetDate?: string; // 목표 날짜 (YYYY-MM-DD)
-  label?: string;      // 라벨 (예: Debut)
-  className?: string;  // 위치 조정용
+  targetDate?: string | Date  // 목표 날짜 (YYYY-MM-DD)
+  label?: string;             // 라벨 (예: Debut)
+  className?: string;
 }
 
 export default function DdayCounterWidget({
-  targetDate = '2024-02-21', // NCT WISH 데뷔일 (기본값)
-  label = 'Debut',
+  targetDate,
+  label,
   className = '',
 }: DdayCounterProps) {
+  const [data, setData] = useState<DDayData | null>(null);
   const [dDayString, setDDayString] = useState<string>('');
-  const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // 1. 데이터 로드 (Props 우선 -> 없으면 API에서 불러오기)
   useEffect(() => {
     // ESLint 경고 무시 주석
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true);
+    const initData = async () => {
+      setIsLoading(true);
+
+      if (targetDate && label) {
+        // Props로 받은 경우
+        setData({ date: targetDate, label });
+        setIsLoading(false);
+      } else {
+        // API에서 불러오기
+        try {
+          const res = await fetch('/api/widgets/dday');
+          if (!res.ok) throw new Error('Network response was not ok');
+          const fetchedData = await res.json();
+          setData(fetchedData);
+        } catch (error) {
+          console.error('Error fetching D-Day data:', error);
+          setData({ date: '2024-02-21', label: 'Debut' }); // 기본값
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initData();
+  }, [targetDate, label]);
+
+  // 2. D-Day 계산
+  useEffect(() => {
+    if (!data?.date) return;
 
     const calculateDDay = () => {
-      const target = new Date(targetDate);
+      const target = new Date(data.date);
       const today = new Date();
 
       // 시간차 제거
@@ -40,17 +75,17 @@ export default function DdayCounterWidget({
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
       // 포맷팅
-      if (diffDays === 0) return '-Day';
-      if (diffDays > 0) return `+${diffDays}`;
-      return `${diffDays}`; // 음수이므로 '-' 포함됨
+      if (diffDays === 0) return 'D-Day';
+      if (diffDays > 0) return `D+${diffDays}`;
+      return `D${diffDays}`; // 음수이므로 '-' 포함됨
     };
 
     setDDayString(calculateDDay());
-  }, [targetDate]);
+  }, [data]);
 
   return (
     <div className={`relative w-40 h-[70px] select-none ${className}`}>
-      
+
       {/* 외관 (회색 플라스틱 케이스) */}
       <div className="
         absolute inset-0 
@@ -66,7 +101,7 @@ export default function DdayCounterWidget({
         bg-[#1A1A1A] rounded-full 
         outline-2 outline-gray-400
         overflow-hidden
-        shadow-inner
+        flex items-center justify-center
       ">
         {/* 스크린 내부의 어두운 배경 (깊이감) */}
         <div className="
@@ -78,19 +113,23 @@ export default function DdayCounterWidget({
         " />
 
         {/* 텍스트 (네온 효과) */}
-        <div className="
-          absolute inset-0 flex items-center justify-center pt-0.5
-          font-pixel text-sm text-[#BBE309]
-          drop-shadow-[0_0_3px_rgba(187,227,9,0.6)] tracking-widest
-          z-10
-        ">
-          {isMounted ? (
-            <>
-              <span className="mr-1.5 opacity-80 text-[10px]">{label}</span>
-              <span className="font-bold">D{dDayString}</span>
-            </>
+        <div className="relative z-10 flex flex-col items-center justify-center leading-none">
+          {isLoading ? (
+            // 로딩 상태
+            <span className="font-pixel text-[10px] text-gray-500 animate-pulse">CALCULATING...</span>
           ) : (
-            <span className="animate-pulse text-[10px] opacity-50">...</span>
+            // 결과 표시
+            <>
+              <span className="font-pixel text-[8px] text-[#BBE309] opacity-80 mb-1 tracking-wider uppercase">
+                {data?.label}
+              </span>
+              <span className="
+                font-pixel text-lg text-[#BBE309] font-bold tracking-widest
+                drop-shadow-[0_0_5px_rgba(187,227,9,0.5)]
+              ">
+                {dDayString}
+              </span>
+            </>
           )}
         </div>
 
@@ -105,8 +144,8 @@ export default function DdayCounterWidget({
       {/* 하단 버튼 장식 */}
       <div className="absolute top-[59px] left-[59px] flex gap-[9px]">
         {[1, 2, 3].map((i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="
               w-2 h-2 rounded-full 
               bg-[#99F490] /* Wichu Green */
@@ -116,7 +155,10 @@ export default function DdayCounterWidget({
           />
         ))}
       </div>
-      
+
+      {/* 상단 그라데이션 효과 */}
+      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl pointer-events-none" />
+
     </div >
   );
 }

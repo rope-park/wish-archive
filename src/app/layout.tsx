@@ -1,24 +1,66 @@
 /**
- * Root 레이아웃 컴포넌트
- * 
- * 전체 애플리케이션의 공통 레이아웃 정의
- * taskbar 포함
+ * Root Layout (WISH OS Shell)
+ * * - 폰트 로드 및 변수 설정
+ * - 전역 배경화면 (Gradient + Noise)
+ * - 전역 태스크바 (Taskbar) 고정
+ * - 메타데이터 설정
  */
-import type { Metadata } from "next";
-import Taskbar from "@/components/common/Taskbar";
-import FloatingDecorations from "@/components/common/FloatingDecorations";
-import "./styles/globals.css"
 
-/**
- * 메타데이터 설정
- */
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import { Taskbar } from "@/components/os"
+import "./styles/globals.css";
+
+// ----------------------------------------------------------------------
+// 1. 로컬 폰트 설정
+// ----------------------------------------------------------------------
+// 픽셀 폰트 (제목, UI 요소)
+const neodunggeunmo = localFont({
+  src: './fonts/NeoDunggeunmoPro-Regular.ttf',
+  display: 'swap',
+  variable: '--font-pixel',
+});
+
+// 고딕 폰트 (본문, 가독성 필요 시)
+const pyeongjin = localFont({
+  src: [
+    { path: './fonts/PyeojinGothic-Light.ttf', weight: '300', style: 'normal' },
+    { path: './fonts/PyeojinGothic-Regular.ttf', weight: '400', style: 'normal' },
+    { path: './fonts/PyeojinGothic-Medium.ttf', weight: '500', style: 'normal' },
+    { path: './fonts/PyeojinGothic-SemiBold.ttf', weight: '600', style: 'normal' },
+    { path: './fonts/PyeojinGothic-Bold.ttf', weight: '700', style: 'normal' },
+  ],
+  display: 'swap',
+  variable: '--font-gothic',
+});
+
+// 손글씨 폰트 (메모장, 폴라로이드)
+const ssshinbi = localFont({
+  src: './fonts/SSShinb7Regular.ttf',
+  display: 'swap',
+  variable: '--font-handwriting',
+});
+
+// 코드 폰트 (터미널 등)
+const d2coding = localFont({
+  src: './fonts/D2Coding.ttf',
+  display: 'swap',
+  variable: '--font-code',
+});
+
+// ----------------------------------------------------------------------
+// 2. 메타데이터 설정
+// ----------------------------------------------------------------------
 export const metadata: Metadata = {
   title: {
     default: "Wish for Our Wish",
-    template: "%s · Wish for Our Wish"
+    template: "%s · WISH OS"
   },
-  description: "NCT WISH 팬메이드 아카이브",
-  keywords: ["NCT WISH", "NCT", "K-pop", "엔시티", "엔시티 위시", "아카이브", "타임라인", "음반", "멤버", "archive"],
+  description: "NCT WISH Fan-made Archive & OS",
+  keywords: ["NCT WISH", "NCT", "엔시티 위시", "아카이브", "WISH OS"],
+  icons: {
+    icon: '/favicon.ico', 
+  },
   openGraph: {
     title: "Wish for Our Wish",
     description: "NCT WISH Fan-made Archive",
@@ -27,33 +69,32 @@ export const metadata: Metadata = {
   },
 };
 
+// ----------------------------------------------------------------------
+// 3. Root Layout 컴포넌트
+// ----------------------------------------------------------------------
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* TODO: 폰트 변경/추가 필요 */}
-        <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Bitcount+Prop+Double:wght@100..900&family=Bungee&family=Dela+Gothic+One&family=Freckle+Face&family=Jersey+10&family=Jua&family=Just+Me+Again+Down+Here&family=Kavivanar&family=Press+Start+2P&family=Racing+Sans+One&family=Rubik+Bubbles&family=Shrikhand&family=Special+Gothic+Expanded+One&family=Sriracha&display=swap" rel="stylesheet" />
-      </head>
+    <html 
+      lang="ko" 
+      // 폰트 변수들을 최상위에 주입
+      className={`${neodunggeunmo.variable} ${pyeongjin.variable} ${ssshinbi.variable} ${d2coding.variable}`}
+    >
+      <body className="relative w-screen h-screen overflow-hidden select-none bg-[#bfdef0]">
+        
+        {/* [A] 전역 배경화면 레이어 (Z-Index: -20) */}
+        {/* layout에 두어야 페이지 이동 시에도 배경이 깜빡이지 않음 */}
+        <div className="fixed inset-0 -z-20 bg-gradient-to-br from-[#E0F7FA] via-[#bfdef0] to-[#A7C7E7]" />
+        
+        {/* [B] 노이즈 텍스처 레이어 (Z-Index: -10) */}
+        <div className="fixed inset-0 -z-10 opacity-30 bg-noise-texture mix-blend-overlay pointer-events-none" />
 
-      <body className="relative overflow-hidden w-screen h-screen">
-        {/* 배경화면 레이어 (맨 뒤) */}
-        <div className="fixed inset-0 -z-20 bg-linear-to-br from-[#BEE9F9] via-[#E0C3FC] to-[#FFD1DC]">
-          {/* TODO: 배경 이미지 또는 애니메이션 추가 가능 */}
-        </div>
-
-        {/* 떠다니는 장식들 (배경 바로 앞) */}
-        <div className="fixed inset-0 -z-10">
-          <FloatingDecorations />
-        </div>
-
-        {/* 메인 콘텐츠 영역 */}
-        <main className="w-full h-full pb-16 overflow-y-auto overflow-x-hidden p-4 md:p-8">
+        {/* [C] 메인 콘텐츠 영역 */}
+        {/* 하단 Taskbar 높이(50px)만큼 패딩을 주어 가려짐 방지 */}
+        <main className="w-full h-full pb-[50px] relative z-[--z-desktop]">
           {children}
         </main>
 
-        {/* 작업 표시줄 (맨 앞, 고정) */}
+        {/* [D] 전역 태스크바 (항상 최상위 고정) */}
         <Taskbar />
 
       </body>

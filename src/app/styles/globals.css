@@ -1,247 +1,171 @@
 @import url('https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Jersey+10&family=Jua&family=Just+Me+Again+Down+Here&family=Kavivanar&family=Press+Start+2P&family=Rubik+Bubbles&family=Shrikhand&display=swap');
 @import "tailwindcss";
 
-/* z-index 관리용 전역 스타일 */
+/* -------------------------------------------------------------------------- */
+/* 1. 전역 변수 설정 (Theme System)                                          */
+/* -------------------------------------------------------------------------- */
 :root {
-  --z-backdrop: -10;
-  --z-desktop: 0;
-  --z-window: 10;
-  --z-dock: 50;
-  --z-modal: 100;
-  --z-cursor: 9999;
+  /* --- Z-Index 계층 구조 (OS 시스템 핵심) --- */
+  --z-desktop: 0;      /* 바탕화면 아이콘 */
+  --z-window: 10;      /* 열린 창들 (기본) */
+  --z-window-active: 50; /* 현재 활성화된 창 */
+  --z-dock: 100;       /* 하단 태스크바 (항상 위에) */
+  --z-modal: 999;      /* 경고창, 시작메뉴 */
+  --z-cursor: 9999;    /* 커스텀 커서 (최상위) */
+
+  /* --- 브랜드 컬러 변수 --- */
+  --color-win-gray: #c0c0c0;
+  --color-win-gray-dark: #808080;
+  --color-win-gray-light: #ffffff;
+  --color-win-blue: #000080;
 }
 
-body {
-  font-family: 'Bagel Fat One', 'Jua', 'Pretendard', sans-serif;
-  background-color: #FDF9F3;
-  color: #333333;
+/* -------------------------------------------------------------------------- */
+/* 2. 기본 태그 스타일 (Reset & Base)                                        */
+/* -------------------------------------------------------------------------- */
+@layer base {
+  body {
+    @apply bg-[#bfdef0] text-black overflow-hidden;
+    font-family: var(--font-pixel), var(--font-gothic), sans-serif;
+    
+    /* 텍스트 드래그 선택 방지 - input/textarea는 제외 */
+    user-select: none;
+    -webkit-user-select: none;
+  }
 
-  /* 화면 고정 및 스크롤 방지 */
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
+  /* 입력창에서는 텍스트 선택 허용 */
+  input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
 
-  /* TODO: 배경화면 이미지 추가*/
-  background-size: 20px 20px;
-  background-position: top left;
-
-  /* 커스텀 커서 적용 */
-  /* TODO: 커스텀 커서 이미지 파일 추가 */
-  /* cursor: url('/cursor.png'), auto; */
+  /* 이미지 드래그 방지 (유령 이미지 안 생기게) */
+  img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    pointer-events: none; /* 클릭 통과 (필요시 컴포넌트에서 auto로 덮어쓰기) */
+  }
 }
 
-/* 텍스트 선택 색상 (테마 컬러 적용) */
-::selection {
-  background-color: #BFFF00;
-  color: #ffffff;
-}
-
-/* 이미지/텍스트 드래그 방지 */
-img {
-  -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -o-user-drag: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* 커스텀 스크롤바 (창 내부 스크롤용) */
+/* -------------------------------------------------------------------------- */
+/* 3. 커스텀 스크롤바                                   */
+/* -------------------------------------------------------------------------- */
+/* 웹킷 브라우저 (Chrome, Safari)용 레트로 스크롤바 */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
 }
+
+/* 스크롤바 배경 (트랙) */
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: #e0e0e0; /* 연한 회색 */
+  background-image: 
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff), 
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff);
+  background-size: 2px 2px;
+  background-position: 0 0, 1px 1px; /* 디더링 패턴 */
 }
+
+/* 스크롤바 막대 (썸) - 튀어나온 3D 버튼 효과 */
 ::-webkit-scrollbar-thumb {
-  background: #BFFF00;
-  border-radius: 5px;
-  border: 2px solid #f1f1f1;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a8e600;
+  background-color: #c0c0c0;
+  border: 1px solid #fff;
+  border-right-color: #404040;
+  border-bottom-color: #404040;
+  box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
 }
 
+::-webkit-scrollbar-corner {
+  background: #c0c0c0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. 유틸리티 클래스 (Reusables)                                            */
+/* -------------------------------------------------------------------------- */
 @layer utilities {
-  /* 젤리 유리 프레임 */
-  .jelly-frame {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(16px);
-    border: 5px solid #BFFF00;
-    border-radius: 2.5rem;
-    box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-  }
   
-  .jelly-frame::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 50%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
-    pointer-events: none;
-  }
-  
-  /* 폴라로이드 카드 스타일 */
-  .polaroid-card {
-    background: white;
-    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
-    padding: 12px;
-    padding-bottom: 32px;
-    position: relative;
-    transition: all 0.2s ease-out;
-  }
-  
-  .polaroid-card:hover {
-    transform: scale(1.05);
-    z-index: 20;
-  }
-  
-  /* 마스킹 테이프 */
-  .tape {
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%) rotate(-2deg);
-    width: 80px;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 2px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Era 카드 젤리 박스 */
-  .era-card {
-    backdrop-filter: blur(16px);
-    border: 4px solid #333333;
-    border-radius: 2rem;
-    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-  }
-  
-  .era-card:hover {
-    transform: scale(1.05);
-  }
-  
-  .era-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 50%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
-    pointer-events: none;
-  }
-  
-  /* 픽셀 버튼 스타일 */
-  .pixel-btn {
-    font-family: "Press Start 2P", "Courier New", monospace;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    border: 2px solid #333333;
-    border-radius: 9999px;
-    box-shadow: 4px 4px 0px 0px #333333;
-    transition: all 0.1s ease;
-    cursor: pointer;
-  }
-  
-  .pixel-btn:hover {
-    box-shadow: 2px 2px 0px 0px #333333;
-    transform: translate(2px, 2px);
-  }
-  
-  .pixel-btn:active {
-    box-shadow: 0px 0px 0px 0px #333333;
-    transform: translate(4px, 4px);
+  /* [Shadow] Outset: 튀어나온 입체감 (윈도우 창, 버튼) */
+  .shadow-outset {
+    box-shadow: 
+      inset 1px 1px 0px 0px #ffffff,
+      inset -1px -1px 0px 0px #808080,
+      1px 1px 0px 0px #000000;
   }
 
-  .window-open {
-    animation: window-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  /* [Shadow] Inset: 푹 파인 입체감 (입력창, 상태표시줄) */
+  .shadow-inset {
+    box-shadow: 
+      inset 1px 1px 0px 0px #808080,
+      inset -1px -1px 0px 0px #ffffff,
+      1px 1px 0px 0px #ffffff;
   }
 
-  @keyframes window-pop {
-    from {
-      transform: scale(0.8) translateY(20px);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
+  /* [Shadow] Retro Hard: 그림자가 퍼지지 않고 딱딱하게 떨어짐 */
+  .shadow-retro-hard {
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.2);
+  }
+
+  /* [Texture] Dither: 체크무늬 패턴 (비활성 버튼, 배경 등) */
+  .bg-dither {
+    background-image: 
+      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), 
+      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+    background-size: 2px 2px;
+    background-position: 0 0, 1px 1px;
+    opacity: 0.1;
+  }
+
+  /* [Effect] Scanline: CRT 모니터 효과 */
+  .bg-scanline {
+    background: linear-gradient(
+      to bottom,
+      rgba(255,255,255,0),
+      rgba(255,255,255,0) 50%,
+      rgba(0,0,0,0.1) 50%,
+      rgba(0,0,0,0.1)
+    );
+    background-size: 100% 4px;
+  }
+
+  /* [Layout] 커스텀 스크롤바 강제 적용 클래스 */
+  .custom-scrollbar {
+    scrollbar-width: auto;
+    scrollbar-color: #c0c0c0 #e0e0e0;
   }
 }
 
-@layer components {
-  .wish-container {
-    max-width: 80rem;
-    margin: 0 auto;
-    padding: 1rem;
-  }
-  
-  @media (min-width: 640px) {
-    .wish-container {
-      padding: 1.5rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .wish-container {
-      padding: 2rem;
-    }
-  }
+/* -------------------------------------------------------------------------- */
+/* 5. 애니메이션 키프레임                                                    */
+/* -------------------------------------------------------------------------- */
 
-  /* 페이지 전환 */
-  .page-transition {
-    animation: fadeInUp 0.5s ease-out;
-  }
+/* 팝업 등장 */
+@keyframes pop-in {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+.animate-pop-in {
+  animation: pop-in 0.15s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
 
-  /* 로딩중 스피너 */
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #BFFF00;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+/* 흐르는 텍스트 (MP3 플레이어용) */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+.animate-marquee {
+  animation: marquee 10s linear infinite;
+}
 
-  /* 부드러운 hover 효과 */
-  .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
+/* 홀로그램 반짝임 (포토카드용) */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
-  .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
-  }
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
 }

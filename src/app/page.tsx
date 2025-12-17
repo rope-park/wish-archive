@@ -13,16 +13,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
+import { Modal } from '@/components/ui';
 
 // --- 컴포넌트 Imports ---
 import { DesktopIcon } from '@/components/os';
 import WindowRenderer from '@/components/os/WindowRenderer';
 
 // --- 위젯 Imports ---
-import { DDayCounterWidget, Draggable, MembersQuoteWidget, MiniPlayerWidget, PhotoCardWidget, PolaroidPhotoWidget, StickyNoteWidget, WichuTamagotchiWidget, WishJarWidget } from '@/components/widgets';
-import DraggableWidget from '@/components/widgets/DraggableWidget';
+import { DDayCounterWidget, DraggableWidget, MembersQuoteWidget, MiniPlayerWidget, PhotoCardWidget, PolaroidPhotoWidget, StickyNoteWidget, WichuTamagotchiWidget, WishJarWidget } from '@/components/widgets';
 
 // 설정 데이터 (추후 src/config/desktop.ts 등으로 분리 가능)
 // 바탕화면 아이콘 설정
@@ -44,41 +44,47 @@ const DESKTOP_ICONS: DesktopIconConfig[] = [
   { id: 'trash', type: 'RECYCLE_BIN' as AppType, title: 'Recycle Bin', iconSrc: '/icons/desktop/recyclebin.png' },
 ];
 
-// 위젯 설정 (초기 위치 및 컴포넌트 매핑)
-const WIDGETS = [
+// 위젯 설정 (백분율 기반 초기 위치)
+interface WidgetConfig {
+  id: string;
+  positionPercent: { x: number; y: number }; // 화면 크기 대비 백분율 (0~100)
+  component: React.ReactNode;
+}
+
+const WIDGET_CONFIGS: WidgetConfig[] = [
   {
     id: 'dday',
-    defaultPos: { x: 1150, y: 40 },
+    positionPercent: { x: 75, y: 6 },
     component: <DDayCounterWidget targetDate="2024-02-21" label="Debut" />,
   },
   {
     id: 'photocard',
-    defaultPos: { x: 450, y: 50 },
+    positionPercent: { x: 30, y: 8 },
     component: <PhotoCardWidget />,
   },
   {
     id: 'sticky_note',
-    defaultPos: { x: 1200, y: 180 },
+    positionPercent: { x: 78, y: 25 },
     component: <StickyNoteWidget initialText="Welcome to WISH OS! 🍀" color="pink" />,
   },
   {
     id: 'polaroid',
-    defaultPos: { x: 300, y: 450 },
+    positionPercent: { x: 18, y: 60 },
     component: <PolaroidPhotoWidget src="/images/widgets/PolaroidPhoto/wishpolaroid_temp.jpg" />,
   },
   {
     id: 'tamagotchi',
-    defaultPos: { x: 1050, y: 400 },
+    positionPercent: { x: 68, y: 55 },
     component: <WichuTamagotchiWidget />,
   },
   {
     id: 'quote',
-    defaultPos: { x: 700, y: 550 },
+    positionPercent: { x: 45, y: 75 },
     component: <MembersQuoteWidget />,
   },
   {
     id: 'miniplayer',
-    defaultPos: { x: 50, y: 600 },
+    positionPercent: { x: 3, y: 80 },
     component: <MiniPlayerWidget />,
   }
 ];
@@ -86,8 +92,57 @@ const WIDGETS = [
 export default function Home() {
   // 🖱️ 아이콘 선택 상태 관리
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  // 모달 상태 관리
+  const [modalOpen, setModalOpen] = useState(false);
+  // 동적 위젯 위치 계산
+  const [widgetPositions, setWidgetPositions] = useState<{ [key: string]: { x: number; y: number } }>({});
+  // 동적 위젯 크기 계산
+  const [widgetScale, setWidgetScale] = useState<number>(1);
   // 창 열기 함수 가져오기
   const { openWindow } = useWindowStore();
+
+  // 화면 크기에 따른 위젯 위치 및 크기 계산
+  useEffect(() => {
+    const calculatePositions = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const taskbarHeight = 50; // Taskbar 높이
+      const availableHeight = viewportHeight - taskbarHeight; // 사용 가능한 높이
+      
+      // 화면 크기에 따른 scale 계산
+      // 모바일: 0.4~0.5, 태블릿: 0.5~0.7, 데스크탑: 0.7~1.0
+      let scale = 1;
+      if (viewportWidth < 768) {
+        // 모바일 (320px ~ 767px)
+        scale = Math.max(0.35, Math.min(0.5, viewportWidth / 1600));
+      } else if (viewportWidth < 1024) {
+        // 태블릿 (768px ~ 1023px)
+        scale = Math.max(0.5, viewportWidth / 1800);
+      } else {
+        // 데스크탑 (1024px+)
+        scale = Math.max(0.6, viewportWidth / 1920);
+      }
+      setWidgetScale(scale);
+      
+      const newPositions: { [key: string]: { x: number; y: number } } = {};
+      
+      WIDGET_CONFIGS.forEach(widget => {
+        // 백분율을 픽셀로 변환 (전체 화면 높이 기준)
+        newPositions[widget.id] = {
+          x: Math.round((viewportWidth * widget.positionPercent.x) / 100),
+          y: Math.round((viewportHeight * widget.positionPercent.y) / 100),
+        };
+      });
+      
+      setWidgetPositions(newPositions);
+    };
+
+    calculatePositions();
+    
+    // 화면 크기 변경 시 재계산
+    window.addEventListener('resize', calculatePositions);
+    return () => window.removeEventListener('resize', calculatePositions);
+  }, []);
 
   // 바탕화면 빈 곳 클릭 시 아이콘 선택 해제
   const handleBackgroundClick = (e: React.MouseEvent) => {
@@ -107,7 +162,7 @@ export default function Home() {
   const handleIconDoubleClick = (icon: DesktopIconConfig) => {
     // 특수 아이콘 처리 (예: 휴지통)
     if (icon.id === 'trash') {
-      alert("추억은 버릴 수 없어요!");
+      setModalOpen(true);
       return;
     }
 
@@ -127,18 +182,33 @@ export default function Home() {
     >
 
       {/* =================================================================================
-          1. 윈도우 렌더러 (열린 창들을 그려줌)
+          0. 윈도우 렌더러 (열린 창들을 그려줌)
           - z-inex 관리는 store 내부에서 처리되므로 신경 쓸 필요 없음
       ================================================================================= */}
       <WindowRenderer />
 
       {/* =================================================================================
+          1. Modal (에러 메시지 등)
+      ================================================================================= */}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        variant="error"
+        title="Error"
+        message="추억은 버릴 수 없어요!"
+      />
+
+      {/* =================================================================================
           2. 데스크탑 아이콘 그리드
       ================================================================================= */}
       <div className="
-        absolute top-4 left-4 bottom-16 w-[200px]
-        flex flex-col flex-wrap gap-y-6 gap-x-2 content-start
+        absolute top-4 left-4 bottom-16
+        w-full sm:w-[280px] md:w-[200px]
+        max-w-[calc(100vw-2rem)]
+        flex flex-row sm:flex-col flex-wrap gap-4 sm:gap-y-6 sm:gap-x-2 content-start
         z-[--z-desktop] pointer-events-none
+        overflow-y-auto sm:overflow-visible
+        px-2 sm:px-0
       ">
         <div className="pointer-events-auto contents">
           {DESKTOP_ICONS.map((icon) => (
@@ -156,16 +226,19 @@ export default function Home() {
 
 
       {/* =================================================================================
-          3. 바탕화면 위젯들 (드래그 가능)
+          3. 바탕화면 위젯들 (드래그 가능) - 모든 화면 크기에서 표시
       ================================================================================= */}
-      {WIDGETS.map((widget) => (
-        <DraggableWidget
-          key={widget.id}
-          defaultPosition={widget.defaultPos}
-        >
-          {widget.component}
-        </DraggableWidget>
-      ))}
+      <div className="absolute inset-0 bottom-[50px] pointer-events-none">
+        {WIDGET_CONFIGS.map((widget) => (
+          <DraggableWidget
+            key={widget.id}
+            defaultPosition={widgetPositions[widget.id] || { x: 0, y: 0 }}
+            scale={widgetScale}
+          >
+            {widget.component}
+          </DraggableWidget>
+        ))}
+      </div>
 
     </main>
   );

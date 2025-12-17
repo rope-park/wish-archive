@@ -6,12 +6,18 @@
 /* -------------------------------------------------------------------------- */
 :root {
   /* --- Z-Index 계층 구조 (OS 시스템 핵심) --- */
-  --z-desktop: 0;      /* 바탕화면 아이콘 */
-  --z-window: 10;      /* 열린 창들 (기본) */
-  --z-window-active: 50; /* 현재 활성화된 창 */
-  --z-dock: 100;       /* 하단 태스크바 (항상 위에) */
-  --z-modal: 999;      /* 경고창, 시작메뉴 */
-  --z-cursor: 9999;    /* 커스텀 커서 (최상위) */
+  --z-desktop: 0;
+  /* 바탕화면 아이콘 */
+  --z-window: 10;
+  /* 열린 창들 (기본) */
+  --z-window-active: 50;
+  /* 현재 활성화된 창 */
+  --z-taskbar: 100;
+  /* 하단 태스크바 (항상 위에) */
+  --z-modal: 999;
+  /* 경고창, 시작메뉴 */
+  --z-cursor: 9999;
+  /* 커스텀 커서 (최상위) */
 
   /* --- 브랜드 컬러 변수 --- */
   --color-win-gray: #c0c0c0;
@@ -24,17 +30,31 @@
 /* 2. 기본 태그 스타일 (Reset & Base)                                        */
 /* -------------------------------------------------------------------------- */
 @layer base {
+  html {
+    font-size: 14px;
+
+    @media (min-width: 768px) {
+      font-size: 16px;
+    }
+  }
+
   body {
     @apply bg-[#bfdef0] text-black overflow-hidden;
     font-family: var(--font-pixel), var(--font-gothic), sans-serif;
-    
+
+    /* 모바일/데스크톱 대응 뷰포트 높이 */
+    height: 100vh;
+    height: 100dvh; /* 동적 뷰포트 높이 (모바일 주소창 제외) */
+
     /* 텍스트 드래그 선택 방지 - input/textarea는 제외 */
     user-select: none;
     -webkit-user-select: none;
+    touch-action: manipulation;
   }
 
   /* 입력창에서는 텍스트 선택 허용 */
-  input, textarea {
+  input,
+  textarea {
     user-select: text;
     -webkit-user-select: text;
   }
@@ -45,7 +65,8 @@
     -khtml-user-drag: none;
     -moz-user-drag: none;
     -o-user-drag: none;
-    pointer-events: none; /* 클릭 통과 (필요시 컴포넌트에서 auto로 덮어쓰기) */
+    pointer-events: none;
+    /* 클릭 통과 (필요시 컴포넌트에서 auto로 덮어쓰기) */
   }
 }
 
@@ -60,12 +81,14 @@
 
 /* 스크롤바 배경 (트랙) */
 ::-webkit-scrollbar-track {
-  background: #e0e0e0; /* 연한 회색 */
-  background-image: 
-    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff), 
+  background: #e0e0e0;
+  /* 연한 회색 */
+  background-image:
+    linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff),
     linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%, #fff);
   background-size: 2px 2px;
-  background-position: 0 0, 1px 1px; /* 디더링 패턴 */
+  background-position: 0 0, 1px 1px;
+  /* 디더링 패턴 */
 }
 
 /* 스크롤바 막대 (썸) - 튀어나온 3D 버튼 효과 */
@@ -85,10 +108,10 @@
 /* 4. 유틸리티 클래스 (Reusables)                                            */
 /* -------------------------------------------------------------------------- */
 @layer utilities {
-  
+
   /* [Shadow] Outset: 튀어나온 입체감 (윈도우 창, 버튼) */
   .shadow-outset {
-    box-shadow: 
+    box-shadow:
       inset 1px 1px 0px 0px #ffffff,
       inset -1px -1px 0px 0px #808080,
       1px 1px 0px 0px #000000;
@@ -96,7 +119,7 @@
 
   /* [Shadow] Inset: 푹 파인 입체감 (입력창, 상태표시줄) */
   .shadow-inset {
-    box-shadow: 
+    box-shadow:
       inset 1px 1px 0px 0px #808080,
       inset -1px -1px 0px 0px #ffffff,
       1px 1px 0px 0px #ffffff;
@@ -109,8 +132,8 @@
 
   /* [Texture] Dither: 체크무늬 패턴 (비활성 버튼, 배경 등) */
   .bg-dither {
-    background-image: 
-      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), 
+    background-image:
+      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
       linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
     background-size: 2px 2px;
     background-position: 0 0, 1px 1px;
@@ -119,13 +142,11 @@
 
   /* [Effect] Scanline: CRT 모니터 효과 */
   .bg-scanline {
-    background: linear-gradient(
-      to bottom,
-      rgba(255,255,255,0),
-      rgba(255,255,255,0) 50%,
-      rgba(0,0,0,0.1) 50%,
-      rgba(0,0,0,0.1)
-    );
+    background: linear-gradient(to bottom,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.1));
     background-size: 100% 4px;
   }
 
@@ -133,6 +154,23 @@
   .custom-scrollbar {
     scrollbar-width: auto;
     scrollbar-color: #c0c0c0 #e0e0e0;
+  }
+
+  /* [Layout] 스크롤바 숨김 (모바일 리스트용) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* [Layout] 모바일 안전 영역 (아이폰 노치/하단바 대응) */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -142,8 +180,15 @@
 
 /* 팝업 등장 */
 @keyframes pop-in {
-  0% { transform: scale(0.9); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .animate-pop-in {
@@ -152,8 +197,13 @@
 
 /* 흐르는 텍스트 (MP3 플레이어용) */
 @keyframes marquee {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 .animate-marquee {
@@ -162,8 +212,13 @@
 
 /* 홀로그램 반짝임 (포토카드용) */
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .animate-shimmer {

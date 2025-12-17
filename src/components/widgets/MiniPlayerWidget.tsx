@@ -1,15 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// ReactPlayer는 클라이언트 사이드에서만 로드
-
-const ReactPlayer = dynamic(
-  () => import('react-player'),
-  { ssr: false }// eslint-disable-next-line @typescript-eslint/no-explicit-any
-) as any;
 
 // 플레이리스트 아이템 타입
 interface PlaylistItem {
@@ -28,27 +20,44 @@ export default function MiniPlayer() {
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [playerKey, setPlayerKey] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const playerRef = useRef<any>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // API에서 플레이리스트 로드
   useEffect(() => {
     const loadPlaylist = async () => {
       try {
         console.log('🎵 Fetching playlist...');
-        const res = await fetch('/api/widgets/tracks');
-        if (!res.ok) throw new Error('Failed to fetch playlist');
+        const res = await fetch('/api/widgets/tracks', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.warn('⚠️ API returned error:', res.status, errorText);
+          throw new Error(`API error: ${res.status}`);
+        }
 
         const data: PlaylistItem[] = await res.json();
+        
+        if (!data || data.length === 0) {
+          console.warn('⚠️ No tracks returned from API, using fallback');
+          throw new Error('Empty playlist');
+        }
+        
         console.log('✅ Playlist loaded:', data.length, 'tracks');
-        console.log('First track:', data[0]);
         setPlaylist(data);
       } catch (error) {
-        console.error('❌ Error loading playlist:', error);
+        console.warn('⚠️ Using fallback playlist:', error instanceof Error ? error.message : 'Unknown error');
         // 폴백 데이터
         const fallbackData = [
           { id: 'hvQZs3k6Ytk', trackId: 'fallback-1', title: 'WISH (Korean Ver.)', album: 'WISH', themeColor: '#BFFF00' },
           { id: '2XqVNFBtVo4', trackId: 'fallback-2', title: 'Songbird', album: 'Songbird', themeColor: '#8EE3F5' },
+          { id: 'Pqm6KO2y2pw', trackId: 'fallback-3', title: 'Dunk Shot', album: 'Dunk Shot', themeColor: '#FF6B6B' },
         ];
-        console.log('Using fallback data:', fallbackData);
         setPlaylist(fallbackData);
       } finally {
         setIsLoading(false);
@@ -60,37 +69,117 @@ export default function MiniPlayer() {
 
   const currentSong = playlist[currentIndex];
 
+  // 곡이 변경되면 3초 후 강제로 ready 상태로 전환 (로딩 커버 제거)
   useEffect(() => {
-    console.log('💿 Current song:', currentSong);
-    console.log('🎬 Is playing:', isPlaying);
-    console.log('✅ Is ready:', isReady);
-  }, [currentSong, isPlaying, isReady]);
+    if (currentSong) {
+      setIsReady(false);
+      const timeout = setTimeout(() => {
+        setIsReady(true);
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentSong]);
 
   // ▶ 재생/일시정지 토글
   const togglePlay = () => {
-    if (!isReady || !currentSong) return;
-    setIsPlaying(!isPlaying);
+    if (!isReady || !currentSong || !playerRef.current) return;
+    if (typeof playerRef.current.playVideo !== 'function') return;
+    
+    if (isPlaying) {
+      playerRef.current.pauseVideo();
+      setIsPlaying(false);
+    } else {
+      playerRef.current.playVideo();
+      setIsPlaying(true);
+    }
   };
 
-  // 🎲 랜덤 곡 변경
-  const changeRandomSong = () => {
+  // ⏮️ 이전 곡 재생
+  const playPreviousSong = () => {
     if (playlist.length === 0) return;
 
-    let nextIndex;
-    do {
-      nextIndex = Math.floor(Math.random() * playlist.length);
-    } while (nextIndex === currentIndex && playlist.length > 1);
+    const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length; // 첫 곡에서 마지막 곡으로
 
-    setCurrentIndex(nextIndex);
     setIsPlaying(false);
     setIsReady(false);
-    setPlayerKey(prev => prev + 1); // 플레이어 리셋
+    
+    setTimeout(() => {
+      setCurrentIndex(prevIndex);
+      setPlayerKey(prev => prev + 1);
+    }, 100);
   };
+
+  // ⏭️ 다음 곡 재생 (순차)
+  const playNextSong = () => {
+    if (playlist.length === 0) return;
+
+    const nextIndex = (currentIndex + 1) % playlist.length; // 마지막 곡 후 첫 곡으로
+
+    setIsPlaying(false);
+    setIsReady(false);
+    
+    setTimeout(() => {
+      setCurrentIndex(nextIndex);
+      setPlayerKey(prev => prev + 1);
+    }, 100);
+  };
+
+  // YouTube Player API 초기화
+  useEffect(() => {
+    if (!currentSong) return;
+
+    // YouTube IFrame API 로드
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!(window as any).YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    // API 준비 완료 시 플레이어 생성
+    const initPlayer = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (iframeRef.current && (window as any).YT) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        new (window as any).YT.Player(iframeRef.current, {
+          events: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onReady: (event: any) => {
+              playerRef.current = event.target;
+              setIsReady(true);
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onStateChange: (event: any) => {
+              // 0 = 종료, 자동으로 다음 곡 재생
+              if (event.data === 0) {
+                playNextSong();
+              }
+            },
+          },
+        });
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).YT && (window as any).YT.Player) {
+      initPlayer();
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSong, playerKey]);
 
   // 곡 변경 시 자동 재생
   useEffect(() => {
-    if (isReady && currentSong) {
-      setIsPlaying(true);
+    if (isReady && currentSong && playerRef.current) {
+      if (typeof playerRef.current.playVideo === 'function') {
+        setTimeout(() => {
+          playerRef.current.playVideo();
+          setIsPlaying(true);
+        }, 500);
+      }
     }
   }, [isReady, currentSong]);
 
@@ -134,9 +223,9 @@ export default function MiniPlayer() {
                 MUSIC
               </button>
 
-              {/* 왼쪽 버튼 (이전/랜덤) */}
+              {/* 왼쪽 버튼 (이전곡) */}
               <button
-                onClick={changeRandomSong}
+                onClick={playPreviousSong}
                 disabled={isLoading || playlist.length === 0}
                 className="
                   absolute left-0 top-1/2 -translate-y-1/2
@@ -148,9 +237,9 @@ export default function MiniPlayer() {
                 ⏮
               </button>
 
-              {/* 오른쪽 버튼 (다음/랜덤) */}
+              {/* 오른쪽 버튼 (다음곡) */}
               <button
-                onClick={changeRandomSong}
+                onClick={playNextSong}
                 disabled={isLoading || playlist.length === 0}
                 className="
                   absolute right-0 top-1/2 -translate-y-1/2
@@ -205,47 +294,36 @@ export default function MiniPlayer() {
           overflow-hidden
         ">
           {/* 스크린 베젤 효과 */}
-          <div className="absolute inset-0 rounded-lg border-2 border-white/5 pointer-events-none" />
+          <div className="absolute inset-0 rounded-lg border-2 border-white/5 pointer-events-none z-20" />
 
-          {/* 유튜브 플레이어 */}
+          {/* 유튜브 플레이어 - YouTube Player API */}
           {currentSong && (
-            <div className="absolute inset-0 pointer-events-none scale-[1.1]">
-              <ReactPlayer
-                key={playerKey}
-                url={`https://www.youtube.com/watch?v=${currentSong.id}`}
-                playing={isPlaying && isReady}
-                width="100%"
-                height="100%"
-                controls={false}
-                light={false}
-                onReady={() => {
-                  console.log('✅ Player ready for:', currentSong.title);
-                  setIsReady(true);
-                }}
-                onEnded={changeRandomSong}
-                onError={() => {
-                  console.error('❌ Player error occurred');
-                  setIsReady(false);
-                }}
-              />
-            </div>
+            <iframe
+              ref={iframeRef}
+              key={playerKey}
+              id={`youtube-player-${playerKey}`}
+              src={`https://www.youtube.com/embed/${currentSong.id}?enablejsapi=1&controls=0&showinfo=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&playsinline=1&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
+              className="absolute inset-0 w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           )}
 
           {/* 로딩 커버 */}
-          {(isLoading || !isReady || !currentSong) && (
-            <div className="absolute inset-0 bg-black flex items-center justify-center">
+          {isLoading && (
+            <div className="absolute inset-0 bg-black flex items-center justify-center z-10">
               <span className="font-pixel text-[8px] text-brand-wichu-green animate-pulse">
-                {isLoading ? 'LOADING...' : !currentSong ? 'NO TRACK' : 'BUFFERING...'}
+                LOADING...
               </span>
             </div>
           )}
 
           {/* 스캔라인 효과 */}
-          <div className="absolute inset-0 bg-scanline opacity-10 pointer-events-none" />
+          <div className="absolute inset-0 bg-scanline opacity-10 pointer-events-none z-30" />
 
           {/* 현재 곡 정보 오버레이 */}
           {currentSong && (
-            <div className="absolute bottom-0 left-0 w-full h-5 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-[2px] flex items-center overflow-hidden px-2">
+            <div className="absolute bottom-0 left-0 w-full h-5 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-[2px] flex items-center overflow-hidden px-2 z-40 pointer-events-none">
               <div className="whitespace-nowrap font-pixel text-[8px] text-white animate-marquee">
                 ♪ {currentSong.title} - {currentSong.album}
               </div>

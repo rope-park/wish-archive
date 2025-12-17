@@ -7,10 +7,11 @@
  * - 확인/취소 버튼 지원 (사용자가 닫거나 버튼 눌러야 사라짐)
  * - 사용자 집중도 높음 (모달 이외 다른 부분 클릭 불가)
  */
+
 'use client';
 
 import { useEffect, ReactNode } from 'react';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui';
 
 export interface ModalProps {
   isOpen: boolean;            // 열림 여부
@@ -79,14 +80,15 @@ export default function Modal({
 
   return (
     // [1] 배경 오버레이 (Dimmed)
-    <div className="fixed inset-0 z-[--z-modal] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-pop-in">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-pop-in">
       
       {/* [2] 모달 윈도우 본체 */}
       <div 
         className="
-          w-[320px] md:w-[360px] flex flex-col
+          w-[90vw] max-w-[320px] md:max-w-[360px] flex flex-col
           bg-gray-200 rounded-none
           shadow-outset outline outline-1 outline-black
+          mx-4
         "
         onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫힘 방지
       >

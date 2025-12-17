@@ -35,16 +35,34 @@ export async function GET() {
 
     console.log(`✅ Found ${tracks.length} tracks`);
 
+    // 데이터가 없으면 fallback 반환
+    if (!tracks || tracks.length === 0) {
+      console.warn('⚠️ No tracks found in database, returning fallback data');
+      return NextResponse.json([
+        { id: 'hvQZs3k6Ytk', trackId: 'fallback-1', title: 'WISH (Korean Ver.)', album: 'WISH', themeColor: '#BFFF00' },
+        { id: '2XqVNFBtVo4', trackId: 'fallback-2', title: 'Songbird', album: 'Songbird', themeColor: '#8EE3F5' },
+        { id: '4vgac97VlCE', trackId: 'fallback-3', title: 'Dunk Shot', album: 'Dunk Shot', themeColor: '#FF6B6B' },
+      ]);
+    }
+
     // YouTube URL에서 video ID 추출
     const playlist = tracks
       .map((track) => {
         let videoId = '';
         
         if (track.mvUrl) {
-          // youtu.be/VIDEO_ID 또는 youtube.com/watch?v=VIDEO_ID 형식 지원
-          const match = track.mvUrl.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/);
+          console.log(`🔍 Track: "${track.title}" | URL: ${track.mvUrl}`);
+          
+          // 다양한 YouTube URL 형식 지원:
+          // - https://youtu.be/VIDEO_ID
+          // - https://youtube.com/watch?v=VIDEO_ID
+          // - https://www.youtube.com/watch?v=VIDEO_ID&feature=share
+          // - https://m.youtube.com/watch?v=VIDEO_ID
+          // - https://www.youtube.com/embed/VIDEO_ID
+          const match = track.mvUrl.match(/(?:youtu\.be\/|(?:www\.|m\.)?youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/);
           if (match) {
             videoId = match[1];
+            console.log(`   ✅ Extracted ID: ${videoId}`);
           } else {
             console.warn(`⚠️ Failed to extract ID from: ${track.mvUrl}`);
           }
@@ -92,9 +110,13 @@ export async function GET() {
     return NextResponse.json(playlist);
   } catch (error) {
     console.error('❌ API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch tracks', details: String(error) },
-      { status: 500 }
-    );
+    
+    // 데이터베이스 연결 실패 시 fallback 반환
+    console.warn('⚠️ Database error, returning fallback data');
+    return NextResponse.json([
+      { id: 'hvQZs3k6Ytk', trackId: 'fallback-1', title: 'WISH (Korean Ver.)', album: 'WISH', themeColor: '#BFFF00' },
+      { id: '2XqVNFBtVo4', trackId: 'fallback-2', title: 'Songbird', album: 'Songbird', themeColor: '#8EE3F5' },
+      { id: '4vgac97VlCE', trackId: 'fallback-3', title: 'Dunk Shot', album: 'Dunk Shot', themeColor: '#FF6B6B' },
+    ]);
   }
 }

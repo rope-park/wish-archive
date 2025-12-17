@@ -1,3 +1,11 @@
+/**
+ * WindowRenderer 컴포넌트
+ * 
+ * - 열린 윈도우 스토어를 구독하여 각 윈도우에 해당하는 앱 컴포넌트 렌더링
+ * - 각 앱 타입에 따라 적절한 컴포넌트를 매핑하여 렌더링
+ * - 윈도우 프레임 컴포넌트로 감싸서 창 관리 기능 제공
+ */
+
 'use client';
 
 import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
@@ -13,11 +21,11 @@ import {
     StickyNoteWidget,
     WichuTamagotchiWidget,
     WishJarWidget
-} from '@/components/widgets';
+} from '../widgets';
 
 function PlaceholderApp({ type }: { type: string }) {
   return (
-    <div className="w-full h-full min-w-[300px] min-h-[200px] flex flex-col items-center justify-center bg-white p-8 text-center gap-4">
+    <div className="w-full h-full min-w-[300px] min-h-[200px] flex flex-col items-center justify-center bg-white p-2 text-center gap-4">
       <div className="text-4xl">🚧</div>
       <div>
         <h3 className="font-pixel text-lg font-bold mb-2">{type}</h3>
@@ -28,7 +36,7 @@ function PlaceholderApp({ type }: { type: string }) {
 }
 
 export default function WindowRenderer() {
-    const { windows, activeWindowId, closeWindow, minimizeWindow, focusWindow, maximizeWindow } = useWindowStore();
+    const { windows, closeWindow, minimizeWindow, maximizeWindow } = useWindowStore();
 
     // 앱 타입에 따른 컴포넌트 매핑
     const renderAppContent = (type: AppType) => {
@@ -50,32 +58,16 @@ export default function WindowRenderer() {
     return (
         <>
             {windows.map((win) => (
-                <div
+                <WindowFrame
                     key={win.id}
-                    style={{
-                        display: win.isMinimized ? 'none' : 'block', // 최소화 시 숨김
-                        zIndex: win.zIndex, // 활성화 순서(레이어) 적용
-                        position: win.isMaximized ? 'fixed' : 'absolute',
-                        width: win.isMaximized ? '100%' : 'auto',
-                        height: win.isMaximized ? '100%' : 'auto',
-                        left: win.isMaximized ? 0 : (win.defaultPosition?.x ?? 100),
-                        top: win.isMaximized ? 0 : (win.defaultPosition?.y ?? 50),
-                    }}
-                    // 창 자체를 클릭하면 맨 앞으로 가져오기 (Focus)
-                    onMouseDown={() => focusWindow(win.id)}
+                    id={win.id}
+                    title={win.title}
+                    iconSrc={win.icon}
+                    initialSize={win.size}
+                    initialPosition={win.position}
                 >
-                    <WindowFrame
-                        title={win.title}
-                        iconSrc={win.icon}
-                        isActive={activeWindowId === win.id}
-                        isMaximized={win.isMaximized}
-                        onClose={() => closeWindow(win.id)}
-                        onMinimize={() => minimizeWindow(win.id)}
-                        onMaximize={() => maximizeWindow(win.id)}
-                    >
-                        {renderAppContent(win.appType)}
-                    </WindowFrame>
-                </div>
+                    {renderAppContent(win.appType)}
+                </WindowFrame>
             ))}
         </>
     );

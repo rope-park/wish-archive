@@ -9,10 +9,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { StartMenu } from '@/components/os';
-import { Button, Divider, Tooltip } from '@/components/ui';
+import { StartMenu } from '../os';
+import { Button, Divider, Tooltip } from '../ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
-import { AuthError } from '@supabase/supabase-js';
 
 // [하위 컴포넌트] 시작 버튼
 function StartButton() {
@@ -167,7 +166,7 @@ function SystemTray() {
 // [메인 컴포넌트] Taskbar 컴포넌트
 export default function Taskbar() {
   // Store 구독: 열린 창 목록과 현재 활성 창 ID 가져오기
-  const { windows, activeWindowId, focusWindow, minimizeWindow } = useWindowStore();
+  const { windows, activeWindowId, focusWindow, minimizeWindow, maximizeWindow } = useWindowStore();
 
   // 탭 클릭 핸들러
   const handleTabClick = (id: string, isMinimized: boolean) => {
@@ -180,7 +179,7 @@ export default function Taskbar() {
 
   return (
     <nav className="
-      fixed bottom-0 left-0 z-[--z-taskbar]
+      fixed bottom-0 left-0 z-[100]
       w-full h-[50px] px-1 pb-1
       flex items-center gap-2
       bg-gray-200
@@ -198,21 +197,25 @@ export default function Taskbar() {
         {windows.map((win) => {
           // 활성 상태 조건: 현재 ID와 일치하고, 최소화 상태가 아닌 경우
           const isActive = activeWindowId === win.id && !win.isMinimized;
+          const isFocused = activeWindowId === win.id; // 포커스 여부 (최소화 상태 무관)
 
           return (
             <button
               key={win.id}
               onClick={() => handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-[38px] w-[160px] md:w-[200px] shrink-0
-                flex items-center gap-2 px-3
-                border border-black/50 rounded-sm
+                h-[38px] flex-1
+                min-w-[40px] max-w-[200px]
+                flex items-center justify-center gap-2 px-2
+                border rounded-sm
                 transition-all select-none
 
                 /* 상태에 따른 스타일 분기 */
                 ${isActive
-                  ? 'bg-gray-100 shadow-inset font-bold bg-dither text-black translate-y-[1px]' // 활성: 눌린 상태
-                  : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-800' // 비활성: 튀어나온 상태
+                  ? 'bg-white shadow-inset font-bold translate-y-[1px] border-gray-400' // 활성: 눌린 상태, 흰색 배경
+                  : isFocused 
+                    ? 'bg-gray-300 shadow-outset border-gray-500 hover:bg-gray-200' // 포커스(최소화): 회색, 약간 어두운 테두리
+                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-400' // 비활성: 기본 상태
                 }
               `}
             >
@@ -223,13 +226,13 @@ export default function Taskbar() {
                   alt=""
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="w-5 h-5 object-contain shrink-0"
                 />
               ) : (
-                <span className="text-lg">{win.icon}</span>
+                <span className="text-lg shrink-0">{win.icon}</span>
               )}
 
-              <span className="font-pixel text-sm pt-1 truncate flex-1 text-left">
+              <span className="font-pixel text-sm pt-1 truncate flex-1 text-left min-w-0 hidden [@media(min-width:100px)]:inline">
                 {win.title}
               </span>
             </button>

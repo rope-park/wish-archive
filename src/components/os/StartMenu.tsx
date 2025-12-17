@@ -9,7 +9,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Card, Divider } from '../ui';
+import { Card, Divider, Modal } from '../ui';
 
 // TODO: 테마 모드 타입 정의 (추후 구현 예정)
 type ThemeMode = 'classic' | 'dark' | 'wish';
@@ -23,6 +23,7 @@ interface StartMenuProps {
 export default function StartMenu({ onClose, isOpen }: StartMenuProps) {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [shutdownModalOpen, setShutdownModalOpen] = useState(false);
   
   // 테마 상태 관리 (TODO: 전역 상태/Context로 교체 필요)
   //const [theme, setTheme] = useState<ThemeMode>('classic');
@@ -43,6 +44,42 @@ export default function StartMenu({ onClose, isOpen }: StartMenuProps) {
   const handleNavigate = (path: string) => {
     router.push(path);
     onClose();
+  };
+
+  // Shutdown 확인 함수
+  const handleShutdownConfirm = () => {
+    setShutdownModalOpen(false);
+    onClose();
+    
+    // 브라우저 탭 닫기 시도
+    window.close();
+    
+    // window.close()가 작동하지 않는 경우를 위한 fallback
+    // (사용자가 직접 연 탭은 스크립트로 닫을 수 없음)
+    setTimeout(() => {
+      // 종료 화면 표시 (검은 화면 + 메시지)
+      document.body.innerHTML = `
+        <div style="
+          position: fixed;
+          inset: 0;
+          background: #000;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-family: 'DungGeunMo', monospace;
+          z-index: 9999;
+        ">
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🍀</div>
+            <div style="font-size: 24px; margin-bottom: 10px;">WISH OS 98</div>
+            <div style="font-size: 14px; opacity: 0.7;">시스템이 안전하게 종료되었습니다.</div>
+            <div style="font-size: 12px; opacity: 0.5; margin-top: 20px;">이제 브라우저 탭을 닫으셔도 됩니다.</div>
+          </div>
+        </div>
+      `;
+    }, 100);
   };
 
   // TODO: 테마 변경 핸들러 (추후 구현 예정)
@@ -71,7 +108,7 @@ export default function StartMenu({ onClose, isOpen }: StartMenuProps) {
   return (
     <div 
       ref={menuRef}
-      className="fixed bottom-[52px] left-1 z-[--z-modal] origin-bottom-left animate-pop-in"
+      className="fixed bottom-[52px] left-1 z-[999] origin-bottom-left animate-pop-in"
     >
       <Card 
         variant="window" 
@@ -138,14 +175,24 @@ export default function StartMenu({ onClose, isOpen }: StartMenuProps) {
             <StartMenuItem 
               icon="🔌" 
               label="Shut Down..." 
-              onClick={() => {
-                if(confirm('시스템을 종료하시겠습니까?')) handleNavigate('/');
-              }} 
+              onClick={() => setShutdownModalOpen(true)}
             />
           </div>
 
         </div>
       </Card>
+
+      {/* Shutdown 확인 Modal */}
+      <Modal
+        isOpen={shutdownModalOpen}
+        onClose={() => setShutdownModalOpen(false)}
+        title="Shut Down"
+        variant="question"
+        message="시스템을 종료하시겠습니까?"
+        onConfirm={handleShutdownConfirm}
+        confirmText="종료"
+        cancelText="취소"
+      />
     </div>
   );
 }

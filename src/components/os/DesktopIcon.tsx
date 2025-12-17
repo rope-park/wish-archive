@@ -50,13 +50,13 @@ export default function DesktopIcon({
       onDoubleClick={onDoubleClick}
       className={`
         group flex flex-col items-center justify-start gap-1
-        w-[72px] cursor-pointer select-none
+        w-[60px] sm:w-[72px] cursor-pointer select-none
         ${className}
       `}
     >
       {/* 아이콘 이미지 영역 */}
       <div className={`
-        relative w-12 h-12 
+        relative w-10 h-10 sm:w-12 sm:h-12
         ${isSelected ? 'brightness-75' : 'brightness-100'}
       `}>
         <Image
@@ -71,7 +71,7 @@ export default function DesktopIcon({
       {/* 텍스트 라벨 영역 */}
       <div className={`
         px-1 py-[1px]
-        text-center font-pixel text-sm leading-tight tracking-tight
+        text-center font-pixel text-xs sm:text-sm leading-tight tracking-tight
         break-words line-clamp-2 max-w-full
         
         /* --- 상태별 스타일 --- */

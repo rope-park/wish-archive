@@ -8,179 +8,252 @@
 
 'use client';
 
-import { ReactNode } from 'react';
-import { Button } from '@/components/ui';
+import { ReactNode, useEffect, useState } from 'react';
+import { Rnd } from 'react-rnd';
+import { useWindowStore } from '@/app/stores/useWindowStore';
+import { motion } from 'framer-motion';
 
-export interface WindowFrameProps {
+interface WindowFrameProps {
+  id: string;           // 윈도우 고유 ID
   title: string;        // 창 제목
-  iconSrc?: string;        // 창 아이콘 (이모지 또는 이미지 등)
+  iconSrc?: string;     // 창 아이콘 (이모지 또는 이미지 등)
   children: ReactNode;  // 창 내부 컨텐츠
-  className?: string;   // 추가 커스텀 클래스
-  isActive: boolean;   // 활성화 여부 (포커스 상태)
-  isMaximized?: boolean; // 최대화 여부
-
-  onClose: () => void; // 닫기 핸들러
-  onMinimize: () => void; // 최소화 핸들러
-  onMaximize: () => void; // 최대화 핸들러
-
+  className?: string;   // 추가 클래스명
+  initialSize?: { width: number; height: number }; // 초기 크기
+  initialPosition?: { x: number; y: number }; // 초기 위치
 }
 
 export default function WindowFrame({
+  id,
   title,
   iconSrc = '',
   children,
   className = '',
-  isActive,
-  isMaximized = false,
-  onClose,
-  onMinimize,
-  onMaximize,
+  initialSize = { width: 600, height: 400 },
+  initialPosition = { x: 50, y: 50 },
 }: WindowFrameProps) {
+  const { windows, activeWindowId, closeWindow, focusWindow, minimizeWindow, maximizeWindow, updateWindowPosition, updateWindowSize } = useWindowStore();
+  const windowState = windows.find(w => w.id === id);
+  const isFocused = activeWindowId === id;
 
-  // 닫기 핸들러
-  const handleClose = (e: React.MouseEvent) => {
-    e.stopPropagation();  // 버튼 클릭 시 이벤트 버블링(창 포커스) 방지
-    onClose();
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 1. 반응형 처리 (모바일 여부 감지)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  if (!isMounted || !windowState || windowState.isMinimized) return null; // SSR 문제 방지
+
+  // 2. [모바일 뷰] 최대화 상태로 고정
+  if (isMobile) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-[50] flex flex-col bg-[#c0c0c0] pb-[50px]"
+        onClick={() => focusWindow(id)}
+      >
+        {/* 모바일 헤더 */}
+        <div className="
+          h-10 shrink-0
+          bg-linear-to-r from-[#ff2e93] to-[#ff8fab]
+          flex items-center justify-between px-3
+          border-b-2 border-white border-t-2 border-t-white/50
+          shadow-md
+        ">
+          <div className="flex items-center gap-2">
+            {iconSrc && <img src={iconSrc} alt="" className="w-5 h-5 object-contain filter drop-shadow-sm" />}
+            <span className="text-white font-bold font-pixel text-sm truncate max-w-[200px] drop-shadow-md">
+              {title}.exe
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} />
+            <WindowControlBtn type="close" onClick={() => closeWindow(id)} />
+          </div>
+        </div>
+
+        {/* 모바일 컨텐츠 */}
+        <div className="flex-1 overflow-auto bg-white custom-scrollbar">
+          {children}
+        </div>
+
+        {/* 모바일 상태바 */}
+        <div className="
+          h-6 px-2 shrink-0
+          flex justify-between items-center
+          bg-[#e0e0e0]
+          border-t-2 border-gray-400
+          shadow-inset
+          text-[10px] font-pixel text-gray-600 select-none
+        ">
+          <span className="truncate">Connected to WISH World...</span>
+          <div className="flex gap-2">
+            <span>Mem: 128MB</span>
+            <span className="text-green-600 font-bold">Online</span>
+          </div>
+        </div>
+      </motion.div>
+    );
   }
 
-  const handleMinimize = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onMinimize();
-  }
-
-  const handleMaximize = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onMaximize();
-  }
-
+  // 3. [데스크탑 뷰] 드래그 윈도우 (Desktop Window)
   return (
-    // [1] 윈도우 프레임 본체
-    <div className={`
-        relative flex flex-col
-        /* 최대화 상태면 꽉 채우고, 아니면 기본 크기 */
-        ${isMaximized ? 'w-full h-full' : 'w-full max-w-5xl h-[80vh] md:h-auto md:min-h-[600px]'}
-        
-        /* --- 배경 및 질감 (Glassmorphism + Noise) --- */
-        bg-white/80 backdrop-blur-md
-        
-        /* --- 테두리 및 그림자 (3D 입체감) --- */
-        rounded-sm
-        border border-white/50
-        outline outline-1 outline-black
-        shadow-outset
-        
-        ${className}
-      `}>
+    <Rnd
+      // 최대화 상태일 때는 위치(0,0)와 크기(100%) 고정, 아니면 store의 값 사용
+      size={windowState.isMaximized
+        ? { width: '100%', height: '100%' }
+        : windowState.size
+      }
+      position={windowState.isMaximized
+        ? { x: 0, y: 0 }
+        : windowState.position
+      }
 
-      {/* [2] 헤더 (Title Bar) - 드래그 핸들 역할 */}
-      <div className={`
-        h-8 pl-3 pr-2 py-1 shrink-0
-        flex items-center justify-between
-        
-        /* 활성 상태일 때 핑크색, 비활성일 때 회색 */
-        ${isActive ? 'bg-linear-to-r from-[#ff2e93]/80 to-[#ff2e93]' : 'bg-gray-400'}
-        border-b border-white/50
-        
-        select-none cursor-default
-      `}>
-        {/* 좌측: 아이콘 + 제목 */}
-        <div className="flex items-center gap-2 text-white drop-shadow-md">
-          {iconSrc && (
-            iconSrc.startsWith('/')
-              ? <img src={iconSrc} alt="" className="w-4 h-4 object-contain" />
-              : <span className="text-sm filter drop-shadow-sm">{iconSrc}</span>
-          )}
+      minWidth={320}
+      minHeight={200}
+      bounds="parent"
 
-          <span className="font-pixel text-sm pt-1 tracking-wide truncate max-w-[200px] md:max-w-md">
+      disableDragging={windowState.isMaximized}
+      enableResizing={!windowState.isMaximized}
+
+      onDragStart={() => focusWindow(id)}
+      onDragStop={(e, d) => {
+        updateWindowPosition(id, { x: d.x, y: d.y });
+      }}
+
+      onResizeStart={() => focusWindow(id)}
+      onResizeStop={(e, direction, ref, delta, position) => {
+        updateWindowSize(id, {
+          width: parseInt(ref.style.width),
+          height: parseInt(ref.style.height),
+        });
+        updateWindowPosition(id, position);
+      }}
+
+      onMouseDown={() => focusWindow(id)}
+
+      style={{ 
+        zIndex: windowState.zIndex,
+        display: 'flex',  // Rnd의 기본 inline-block을 flex로 오버라이드
+      }}
+
+      className={`
+        flex-col bg-[#c0c0c0] 
+        border-2 border-[#dfdfdf] border-r-black border-b-black
+        shadow-[4px_4px_10px_rgba(0,0,0,0.3)]
+      `}
+      dragHandleClassName="window-header"
+    >
+      {/* 데스크탑 헤더 */}
+      <div
+        onDoubleClick={() => maximizeWindow(id)} // 더블클릭 시 최대화 토글
+        className={`
+          window-header h-8 px-2 shrink-0
+          flex items-center justify-between 
+          cursor-default select-none border-b-2 border-[#808080]
+          ${isFocused
+            ? 'bg-linear-to-r from-[#ff2e93] to-[#ff8fab]'
+            : 'bg-gray-400'}
+        `}
+      >
+        <div className="flex items-center gap-2">
+          {iconSrc && <img src={iconSrc} alt="" className="w-4 h-4 object-contain filter drop-shadow-sm" />}
+          <span className="text-white font-bold font-pixel text-sm tracking-wide drop-shadow-sm">
             {title}.exe
           </span>
         </div>
 
-        {/* 우측: 컨트롤 버튼 그룹 */}
-        <div className="flex gap-1">
-          <WindowControlBtn type="minimize" onClick={handleMinimize} />
-          <WindowControlBtn type="maximize" onClick={handleMaximize} isMaximized={isMaximized} />
-          <WindowControlBtn type="close" onClick={handleClose} />
+        {/* 윈도우 컨트롤 버튼 그룹 */}
+        <div className="flex gap-1" onMouseDown={(e) => e.stopPropagation()}>
+          <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} />
+          <WindowControlBtn
+            type={windowState.isMaximized ? "restore" : "maximize"}
+            onClick={() => maximizeWindow(id)}
+          />
+          <WindowControlBtn type="close" onClick={() => closeWindow(id)} />
         </div>
       </div>
 
-      {/* [4] 툴바/메뉴바 영역 (옵션 - 필요시 여기에 MenuBar 추가) */}
+      {/* 툴바/메뉴바 영역 (옵션 - 필요시 여기에 MenuBar 추가) */}
       {/* <div className="h-7 bg-gray-200 border-b border-white shadow-inset">...</div> */}
 
-      {/* [3] 컨텐츠 영역 (Body) */}
-      <div className="
-          flex-1 m-1 p-4 md:p-6
-          
-          /* --- 본문 스타일: 반투명 흰색 + 푹 파인 효과 --- */
-          bg-white/60 
-          shadow-inset 
-          border border-gray-400
-          
-          /* 스크롤 처리 */
-          overflow-y-auto custom-scrollbar
-        ">
+      {/* 컨텐츠 영역 (Body) - 흰색 배경으로 꽉 채우기 */}
+      <div className="flex-1 overflow-auto custom-scrollbar bg-white">
         {children}
       </div>
 
-      {/* [4] 상태바 (Status Bar) */}
+      {/* 상태바 (Status Bar) - 창의 맨 아래에 고정 */}
       <div className="
-          h-6 mx-1 mb-1 px-2
-          flex justify-between items-center shrink-0
-          
-          bg-gray-200 
-          shadow-inset
-          text-[10px] font-pixel text-gray-600
-        ">
+        h-6 px-2 shrink-0
+        flex justify-between items-center
+        bg-[#e0e0e0]
+        border-t-2 border-gray-400
+        shadow-inset
+        text-[10px] font-pixel text-gray-600 select-none
+      ">
         <span className="truncate">Connected to WISH World...</span>
         <div className="flex gap-2">
           <span>Mem: 128MB</span>
-          <span>Online</span>
+          <span className="text-green-600 font-bold">Online</span>
         </div>
       </div>
-
-    </div>
+    </Rnd >
   );
 }
+
+
 
 // 윈도우 컨트롤 버튼 컴포넌트
 function WindowControlBtn({
   type,
   onClick,
-  isMaximized
 }: {
-  type: 'minimize' | 'maximize' | 'close';
-  onClick?: (e: React.MouseEvent) => void;
-  isMaximized?: boolean;
+  type: 'minimize' | 'maximize' | 'restore' | 'close';
+  onClick: () => void;
 }) {
   // 버튼 타입별 라벨 및 스타일
   const isClose = type === 'close';
 
   let label = '';
-  if (type === 'close') label = 'X';
-  else if (type === 'minimize') label = '_';
-  else if (type === 'maximize') label = isMaximized ? '❐' : '□';
+  switch (type) {
+    case 'minimize': label = '_'; break;
+    case 'maximize': label = '□'; break;
+    case 'restore': label = '❐'; break; // 복구 아이콘
+    case 'close': label = '✕'; break;
+  }
 
   return (
     <button
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
       className={`
-        w-[18px] h-[18px] flex items-center justify-center
-        
-        /* --- 버튼 기본 스타일 --- */
-        bg-white/20 
+        w-5 h-5 md:w-6 md:h-6 
+        flex items-center justify-center
+        bg-white/20 shadow-outset
         border border-white
         shadow-outset active:shadow-inset active:translate-y-[1px]
-        
-        /* --- 폰트 및 색상 --- */
-        font-pixel text-[10px] text-white leading-none
-        
-        /* --- 호버 효과 --- */
         transition-colors
-        ${isClose ? 'hover:bg-red-500' : 'hover:bg-white/40'}
+        font-pixel text-[10px] text-white leading-none
+        ${isClose ? 'hover:bg-red-500/80' : 'hover:bg-white/80'}
       `}
       aria-label={type}
     >
-      <span className={type === 'minimize' ? '-mt-[6px]': '-mt-[1px]'}>
+      <span className={`
+        font-bold text-black leading-none
+        ${type === 'minimize' ? 'mb-2 text-[10px]' : 'text-[10px] md:text-xs'}
+        ${type === 'restore' ? 'text-[8px] md:text-[10px]' : ''}
+      `}>
         {label}
       </span>
     </button>

@@ -6,7 +6,7 @@
 
 export { default as DDayCounterWidget } from './DDayCounterWidget';
 
-export { default as Draggable } from './DraggableWidget';
+export { default as DraggableWidget } from './DraggableWidget';
 
 export { default as MembersQuoteWidget } from './MembersQuoteWidget';
 

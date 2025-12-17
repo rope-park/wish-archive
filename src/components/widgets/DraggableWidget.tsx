@@ -15,23 +15,33 @@ import Draggable from 'react-draggable';
 interface DraggableWidgetProps {
   children: ReactNode;
   defaultPosition?: { x: number; y: number }; // 초기 위치
+  defaultRotation?: number;                   // 초기 회전 각도 (degrees)
+  scale?: number;                             // 크기 비율 (0.5 ~ 1.5 등)
   zIndex?: number;                            // 현재 층위
   onFocus?: () => void;                       // 클릭 시 맨 앞으로 가져오는 함수
   className?: string;
   dragHandle?: string;                        // 특정 부분만 잡고 끌게 할 때 (CSS 클래스명)
+  enableRotation?: boolean;                   // 회전 기능 활성화 여부
 }
 
 export default function DraggableWidget({
   children,
   defaultPosition = { x: 0, y: 0 },
+  defaultRotation = 0,
+  scale = 1,
   zIndex = 1,
   onFocus,
   className = '',
   dragHandle,
+  enableRotation = true,
 }: DraggableWidgetProps) {
-  const nodeRef = useRef<HTMLDivElement>(null);
+  const nodeRef = useRef<HTMLElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [rotation, setRotation] = useState(defaultRotation);
+  const [isRotating, setIsRotating] = useState(false);
+  const [position, setPosition] = useState(defaultPosition);
+  const rotationStartRef = useRef({ angle: 0, mouseAngle: 0 });
 
   // 마운트 시점에만 드래그 가능하도록 설정 (서버사이드 렌더링 이슈 방지)
   useEffect(() => {
@@ -40,36 +50,131 @@ export default function DraggableWidget({
     setIsMounted(true);
   }, []);
 
+  // defaultPosition이 변경되면 position 업데이트 (반응형 대응)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPosition(defaultPosition);
+  }, [defaultPosition.x, defaultPosition.y]);
+
+  // 회전 기능: 회전 핸들 드래그
+  useEffect(() => {
+    if (!isMounted || !enableRotation) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isRotating || !nodeRef.current) return;
+
+      console.log('Mouse moving during rotation'); // 디버그
+
+      const rect = nodeRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      // 마우스와 중심점 사이의 각도 계산
+      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+      const deltaAngle = angle - rotationStartRef.current.mouseAngle;
+      
+      const newRotation = rotationStartRef.current.angle + deltaAngle;
+      console.log('New rotation:', newRotation); // 디버그
+      setRotation(newRotation);
+    };
+
+    const handleMouseUp = () => {
+      setIsRotating(false);
+    };
+
+    if (isRotating) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isRotating, isMounted, enableRotation]);
+
+  const handleRotateStart = (e: React.MouseEvent) => {
+    console.log('Rotation handle clicked!'); // 디버그
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!nodeRef.current) return;
+    
+    const rect = nodeRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const mouseAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+    
+    rotationStartRef.current = { angle: rotation, mouseAngle };
+    setIsRotating(true);
+    console.log('Rotation started, isRotating:', true); // 디버그
+    onFocus?.();
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    onFocus?.();
+  };
+
   if (!isMounted) return null;
 
   return (
     <Draggable
-      nodeRef={nodeRef}
-      defaultPosition={defaultPosition}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      nodeRef={nodeRef as any}
+      position={position}
       handle={dragHandle} // 특정 핸들만 잡고 끌 수 있게 설정
       bounds="parent"     // 부모(바탕화면) 밖으로 못 나가게 제한
-      cancel='.no-drag'   // 이 클래스명이 붙은 요소는 드래그 방지
+      cancel='.no-drag, .rotate-handle'   // 이 클래스명이 붙은 요소는 드래그 방지
+      disabled={isRotating} // 회전 중일 때는 드래그 비활성화
       onStart={() => {
         setIsDragging(true);
         onFocus?.(); // 드래그 시작하면 맨 앞으로
       }}
+      onDrag={(e, data) => {
+        setPosition({ x: data.x, y: data.y });
+      }}
       onStop={() => {
         setIsDragging(false);
       }}
-      onMouseDown={onFocus}
     >
       <div
-        ref={nodeRef}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ref={nodeRef as any}
         className={`
-          absolute inline-block
-          ${dragHandle ? '' : (isDragging ? 'cursor-grabbing' : 'cursor-grab')}
+          absolute flex
+          origin-center
+          group
+          pointer-events-auto
+          ${dragHandle ? '' : (isDragging ? 'cursor-grabbing' : isRotating ? 'cursor-crosshair' : 'cursor-grab')}
           ${className}
         `}
         style={{
-          zIndex: isDragging ? 9999 : zIndex
+          zIndex: isDragging || isRotating ? 9999 : zIndex,
+          transform: `scale(${scale})`,
         }}
+        onMouseDown={handleMouseDown}
       >
-        {children}
+        {/* 회전 핸들 - 우측 상단 (호버 시에만 표시) - 회전되지 않도록 밖에 배치 */}
+        {enableRotation && (
+          <div
+            className="rotate-handle absolute -top-3 -right-3 w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded-full cursor-grab active:cursor-grabbing shadow-lg flex items-center justify-center text-white text-xs font-bold z-50 opacity-0 group-hover:opacity-100 transition-opacity"
+            onMouseDown={handleRotateStart}
+            title="Drag to rotate"
+          >
+            ↻
+          </div>
+        )}
+        
+        <div style={{ 
+          transform: `rotate(${rotation}deg)`,
+          transition: isRotating ? 'none' : 'transform 0.1s ease-out',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+        }}>
+          {children}
+        </div>
       </div>
     </Draggable>
   );

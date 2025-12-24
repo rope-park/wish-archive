@@ -1,6 +1,6 @@
 // prisma/seeds/11-music-show.ts
 import type { PrismaClient } from '@prisma/client'
-import { logger } from './utils'
+import { logger, ProgressTracker } from './utils'
 
 /**
  * 음악방송 1위 트로피 시드

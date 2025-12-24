@@ -2,358 +2,219 @@
 import type { PrismaClient } from '@prisma/client'
 import { logger, ProgressTracker } from './utils'
 
+// 타입 정의 업데이트
+interface AppearanceConfig {
+  date: string;
+  title: string;
+  time?: string;
+  note?: string;
+  isWin?: boolean;
+  role?: string;
+  isPerformance?: boolean;
+  members?: string[];
+}
+
+interface ProgramSchedule {
+  programKey: string;
+  appearances: (AppearanceConfig | string)[];
+}
+
+interface PromotionCampaign {
+  trackKeyword: string;
+  schedules: ProgramSchedule[];
+}
+
 /**
  * 방송 출연 기록 시드
+ * - 스케줄 기록 (타임라인용)
  */
 export async function seedAppearances(prisma: PrismaClient) {
-  // 프로그램 조회
-  const mcountdown = await prisma.program.findFirst({
-    where: { name: 'M COUNTDOWN' },
-  })
-  const musicBank = await prisma.program.findFirst({
-    where: { name: 'Music Bank' },
-  })
-  const musicCore = await prisma.program.findFirst({
-    where: { name: 'Show! Music Core' },
-  })
-  const inkigayo = await prisma.program.findFirst({
-    where: { name: 'SBS 인기가요' },
-  })
-  const theShow = await prisma.program.findFirst({
-    where: { name: 'The Show' },
-  })
+  // 사전 데이터 조회
+  const allPrograms = await prisma.program.findMany();
+  const allTracks = await prisma.track.findMany();
+  const allMembers = await prisma.member.findMany();
 
-  // 트랙 조회
-  const wishTrack = await prisma.track.findFirst({
-    where: { title: { contains: 'WISH (Korean' } },
-  })
-  const steadyTrack = await prisma.track.findFirst({
-    where: { title: 'Steady' },
-  })
-  const poppopTrack = await prisma.track.findFirst({
-    where: { title: 'poppop' },
-  })
-  const colorTrack = await prisma.track.findFirst({
-    where: { title: 'COLOR' },
-  })
+  // 맵핑 헬퍼
+  const programMap = new Map<string, string>();
+  allPrograms.forEach((program) => {
+    programMap.set(program.name, program.id);
+    if (program.name.includes('M COUNTDOWN')) programMap.set('MCD', program.id);
+    if (program.name.includes('Music Bank')) programMap.set('MUBANK', program.id);
+    if (program.name.includes('Music Core')) programMap.set('MCORE', program.id);
+    if (program.name.includes('Inkigayo')) programMap.set('INKIGAYO', program.id);
+    if (program.name.includes('The Show')) programMap.set('THESHOW', program.id);
+    if (program.name.includes('Show Champion')) programMap.set('SHOWCHAMP', program.id);
+  });
 
-  if (!mcountdown || !musicBank || !musicCore || !inkigayo || !theShow) {
-    logger.error('프로그램 데이터를 찾을 수 없습니다. Appearances 시드를 건너뜁니다.')
-    return []
+  const getTrackId = (keyword: string) => {
+    const track = allTracks.find(t => t.title.includes(keyword));
+    return track ? track.id : null;
+  };
+
+  const getMemberIds = (names?: string[]) => {
+    if (!names || names.length === 0) return allMembers.map(m => m.id);
+    return allMembers
+      .filter(m => (m.stageName && names.includes(m.stageName)) || (m.nameEn && names.includes(m.nameEn)))
+      .map(m => m.id);
   }
 
-  const appearances = [
-    // ==================== WISH 활동 ====================
-    // M COUNTDOWN
-    ...(mcountdown && wishTrack
-      ? [
-          {
-            programId: mcountdown.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-02-29'),
-            title: 'WISH 데뷔 무대',
-            isPerformance: true,
-            note: '데뷔 첫 무대',
-          },
-          {
-            programId: mcountdown.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-03-07'),
-            title: 'WISH',
-            isPerformance: true,
-          },
-          {
-            programId: mcountdown.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-03-14'),
-            title: 'WISH',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // Music Bank
-    ...(musicBank && wishTrack
-      ? [
-          {
-            programId: musicBank.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-03-01'),
-            title: 'WISH 데뷔 무대',
-            isPerformance: true,
-          },
-          {
-            programId: musicBank.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-03-08'),
-            title: 'WISH',
-            isPerformance: true,
-          },
-          {
-            programId: musicBank.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-03-15'),
-            title: 'WISH',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // The Show 첫 1위
-    ...(theShow && wishTrack
-      ? [
-          {
-            programId: theShow.id,
-            trackId: wishTrack.id,
-            date: new Date('2024-03-12'),
-            title: 'WISH - 첫 1위',
-            isPerformance: true,
-            note: '데뷔 20일 만에 첫 1위',
-          },
-        ]
-      : []),
-
-    // ==================== Steady 활동 ====================
-    // M COUNTDOWN
-    ...(mcountdown && steadyTrack
-      ? [
-          {
-            programId: mcountdown.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-09-26'),
-            title: 'Steady 컴백 무대',
-            isPerformance: true,
-            note: '1st 미니앨범 컴백',
-          },
-          {
-            programId: mcountdown.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-10-03'),
-            title: 'Steady',
-            isPerformance: true,
-          },
-          {
-            programId: mcountdown.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-10-10'),
-            title: 'Steady',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // Music Bank
-    ...(musicBank && steadyTrack
-      ? [
-          {
-            programId: musicBank.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-09-27'),
-            title: 'Steady 컴백',
-            isPerformance: true,
-          },
-          {
-            programId: musicBank.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-10-04'),
-            title: 'Steady - 첫 지상파 1위',
-            isPerformance: true,
-            note: '10월 4일 (1004=천사) 첫 지상파 1위',
-          },
-          {
-            programId: musicBank.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-10-11'),
-            title: 'Steady',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // Music Core
-    ...(musicCore && steadyTrack
-      ? [
-          {
-            programId: musicCore.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-09-28'),
-            title: 'Steady 컴백',
-            isPerformance: true,
-          },
-          {
-            programId: musicCore.id,
-            trackId: steadyTrack.id,
-            date: new Date('2024-10-05'),
-            title: 'Steady',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // ==================== poppop 활동 ====================
-    // M COUNTDOWN
-    ...(mcountdown && poppopTrack
-      ? [
-          {
-            programId: mcountdown.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-17'),
-            title: 'poppop 컴백 무대',
-            isPerformance: true,
-            note: '2nd 미니앨범 컴백',
-          },
-          {
-            programId: mcountdown.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-24'),
-            title: 'poppop - 첫 엠카 1위',
-            isPerformance: true,
-            note: '데뷔 후 첫 M COUNTDOWN 1위',
-          },
-          {
-            programId: mcountdown.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-05-01'),
-            title: 'poppop',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // Music Bank
-    ...(musicBank && poppopTrack
-      ? [
-          {
-            programId: musicBank.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-18'),
-            title: 'poppop 컴백',
-            isPerformance: true,
-          },
-          {
-            programId: musicBank.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-25'),
-            title: 'poppop - 1위',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // Music Core
-    ...(musicCore && poppopTrack
-      ? [
-          {
-            programId: musicCore.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-19'),
-            title: 'poppop 컴백',
-            isPerformance: true,
-          },
-          {
-            programId: musicCore.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-26'),
-            title: 'poppop - 첫 음중 1위',
-            isPerformance: true,
-            note: '데뷔 후 첫 Show Music Core 1위',
-          },
-        ]
-      : []),
-
-    // Inkigayo
-    ...(inkigayo && poppopTrack
-      ? [
-          {
-            programId: inkigayo.id,
-            trackId: poppopTrack.id,
-            date: new Date('2025-04-20'),
-            title: 'poppop 컴백 (시온 스페셜 MC)',
-            isPerformance: true,
-            role: 'Special MC (시온)',
-            note: '시온 스페셜 MC 출연',
-          },
-        ]
-      : []),
-
-    // ==================== COLOR 활동 ====================
-    // M COUNTDOWN
-    ...(mcountdown && colorTrack
-      ? [
-          {
-            programId: mcountdown.id,
-            trackId: colorTrack.id,
-            date: new Date('2025-09-05'),
-            title: 'COLOR 컴백 무대',
-            isPerformance: true,
-            note: '3rd 미니앨범 컴백',
-          },
-          {
-            programId: mcountdown.id,
-            trackId: colorTrack.id,
-            date: new Date('2025-09-12'),
-            title: 'COLOR',
-            isPerformance: true,
-          },
-        ]
-      : []),
-
-    // Music Bank
-    ...(musicBank && colorTrack
-      ? [
-          {
-            programId: musicBank.id,
-            trackId: colorTrack.id,
-            date: new Date('2025-09-06'),
-            title: 'COLOR 컴백',
-            isPerformance: true,
-          },
-        ]
-      : []),
-  ]
-
-  const createdAppearances = []
-  const progress = new ProgressTracker('Appearances seeding', appearances.length)
-
-  for (const appearanceData of appearances) {
-    try {
-      const appearance = await prisma.appearance.upsert({
-        where: {
-          id: `${appearanceData.programId}-${appearanceData.date.toISOString()}-${appearanceData.trackId}`,
+  const campaigns: PromotionCampaign[] = [
+    {
+      trackKeyword: 'WISH (Korean',
+      schedules: [
+        {
+          programKey: 'MCD',
+          appearances: [
+            { date: '2024-02-29', title: 'WISH 데뷔 무대', note: '데뷔' }, // 직접 입력
+            { date: '2024-03-07', title: 'WISH' },
+            { date: '2024-03-14', title: 'WISH' }
+          ]
         },
-        update: appearanceData,
-        create: appearanceData,
-      })
-
-      createdAppearances.push(appearance)
-      progress.increment()
-    } catch (error) {
-      const existing = await prisma.appearance.findFirst({
-        where: {
-          programId: appearanceData.programId,
-          date: appearanceData.date,
-          trackId: appearanceData.trackId,
+        {
+          programKey: 'MUBANK',
+          appearances: [
+            { date: '2024-03-01', title: 'WISH 공중파 데뷔' },
+            { date: '2024-03-08', title: 'WISH' }
+          ]
         },
-      })
+        {
+          programKey: 'THESHOW',
+          appearances: [
+            { date: '2024-03-12', title: 'WISH - 더쇼 1위', note: '데뷔 첫 1위', isWin: true }
+          ]
+        },
+      ]
+    },
+    {
+      trackKeyword: 'Steady',
+      schedules: [
+        {
+          programKey: 'MCD',
+          appearances: [
+            { date: '2024-09-26', title: 'Steady 컴백 무대' },
+            { date: '2024-10-03', title: 'Steady' }
+          ]
+        },
+        {
+          programKey: 'MUBANK',
+          appearances: [
+            { date: '2024-09-27', title: 'Steady 컴백' },
+            { date: '2024-10-04', title: 'Steady - 뮤직뱅크 1위', note: '지상파 첫 1위', isWin: true }
+          ]
+        },
+      ]
+    },
+    {
+      trackKeyword: 'poppop',
+      schedules: [
+        {
+          programKey: 'MCD',
+          appearances: [
+            { date: '2025-04-17', title: 'poppop 컴백 스페셜' },
+            { date: '2025-04-24', title: 'poppop - 엠카 1위', isWin: true }
+          ]
+        },
+        {
+          programKey: 'INKIGAYO',
+          appearances: [
+            // [개별 활동] 시온 스페셜 MC
+            {
+              date: '2025-04-20',
+              title: '시온 스페셜 MC', // 이렇게 개별 타이틀 지정
+              role: 'Special MC',
+              members: ['시온'],
+              isPerformance: false
+            },
+            // [단체 활동] 같은 날 무대
+            {
+              date: '2025-04-20',
+              title: 'poppop 컴백 무대'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      trackKeyword: 'COLOR',
+      schedules: [
+        {
+          programKey: 'MCD',
+          appearances: [
+            { date: '2025-09-05', title: 'COLOR 컴백 무대' }
+          ]
+        }
+      ]
+    }
+  ];
 
-      if (existing) {
-        await prisma.appearance.update({
-          where: { id: existing.id },
-          data: appearanceData,
-        })
-        createdAppearances.push(existing)
-      } else {
-        const newAppearance = await prisma.appearance.create({
-          data: appearanceData,
-        })
-        createdAppearances.push(newAppearance)
+  const totalItems = campaigns.reduce((acc, camp) =>
+    acc + camp.schedules.reduce((sAcc, sch) => sAcc + sch.appearances.length, 0), 0);
+
+  const createdAppearances = [];
+  const progress = new ProgressTracker('Appearances seeding', totalItems);
+
+
+
+  for (const campaign of campaigns) {
+    const trackId = getTrackId(campaign.trackKeyword);
+    if (!trackId) {
+      logger.warning(`Track not found for keyword: ${campaign.trackKeyword}`);
+      continue;
+    }
+
+    for (const schedule of campaign.schedules) {
+      const programId = programMap.get(schedule.programKey);
+      if (!programId) {
+        logger.warning(`Program not found for key: ${schedule.programKey}`);
+        continue;
       }
 
-      progress.increment()
+      for (const item of schedule.appearances) {
+        const config: AppearanceConfig = typeof item === 'string' ? { date: item, title: campaign.trackKeyword } : item;
+        const finalTitle = config.title || campaign.trackKeyword;
+        const isoDate = new Date(`${config.date}T${config.time || '09:00:00'}Z`);
+
+        const targetMemberIds = getMemberIds(config.members);
+
+        const appearanceData = {
+          programId,
+          trackId,
+          date: isoDate,
+          title: finalTitle,
+          isPerformance: config.isPerformance !== false,
+          role: config.role || null,
+          note: config.note || null,
+        };
+
+        const uniqueId = `${programId}_${trackId}_${config.date}_${config.role || 'group'}`;
+
+        try {
+          const result = await prisma.appearance.upsert({
+            where: { id: uniqueId },
+            update: {
+              ...appearanceData,
+              members: {
+                set: targetMemberIds.map(id => ({ id })),
+              }
+            },
+            create: {
+              ...appearanceData,
+              id: uniqueId,
+              members: {
+                connect: targetMemberIds.map(id => ({ id })),
+              }
+            },
+          });
+          createdAppearances.push(result);
+        } catch (error) {
+          logger.error(`Failed to upsert appearance for ${uniqueId}: ${error}`);
+        }
+        progress.increment();
+      }
     }
   }
 
-  progress.complete()
-  logger.success(`Appearances seeded: ${createdAppearances.length} appearances`)
-  return createdAppearances
+  progress.complete();
+  logger.success(`Appearances seeded: ${createdAppearances.length} appearances`);
+  return createdAppearances;
 }

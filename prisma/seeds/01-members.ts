@@ -1,6 +1,6 @@
 // prisma/seeds/01-members.ts
 import type { PrismaClient } from '@prisma/client'
-import { logger, ProgressTracker } from './utils'
+import { logger, ProgressTracker, upsertRecord } from './utils'
 
 /**
  * NCT WISH 멤버 시드
@@ -28,11 +28,11 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
       isActive: true,
 
       // 비주얼 에셋
-      colorCode: '#9B419B', // PURPLE
-      characterUrl: '',
-      iconUrl: '',
-      profileImageUrl: '',
-      
+      colorCode: '#E9B0EF', // PURPLE
+      profileImageUrl: '/content/members/sion/profile.png',
+      characterUrl: '/content/members/sion/character.png',
+      iconUrl: '/content/members/sion/icon.png',
+
       description: `NCT WISH의 리더이자 맏형. 전라남도 목포 출신으로 NCT의 한국인 멤버 중 유일한 비수도권 출신이다 (재희와 함께). SM ROOKIES 출신으로 라스타트 이전부터 데뷔가 확정되어 있었다.
 
 **비주얼**: SM 남자 아이돌 비주얼 계보를 잇는 멤버. 갸름한 얼굴형, 높은 콧대, 큰 눈, 긴 속눈썹이 특징이다. 잘생긴 외모로 목포에서 여러 학교 학생들에게 이미 유명했었으며, 시온이 다니지도 않는 학원에서 학생들에게 시온과 친한 사이냐며 물어봤을 정도.
@@ -81,17 +81,17 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
 
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      
-      colorCode: '#E14766', // RED
-      characterUrl: '',
-      iconUrl: '',
-      profileImageUrl: '',
+
+      colorCode: '#FFB7B2', // RED
+      profileImageUrl: '/content/members/riku/profile.jpg',
+      iconUrl: '/content/members/riku/icon.png',
+      characterUrl: '/content/members/riku/character.png',
 
       description: `NCT WISH의 메인래퍼. 후쿠이현 출신으로 라스타트에서 가장 높은 평균 순위(1-2-2-1)로 데뷔한 멤버.
 
 **가족**: 전 모닝구 무스메 멤버 타카하시 아이(Takahashi Ai)의 사촌 동생으로 화제가 되었다. 둘째 누나는 댄서이며 리쿠의 롤모델이라고 밝힌 바 있다.
 
-**외모**: 귀여운 외모와 달리 무대 위에서는 파워풀한 랩과 카리스마를 보여준다. 볼살이 특징적이며 "푸딩"이라는 별명이 있다 (고개를 흔들 때 볼살이 푸딩처럼 흔들림).
+**외모**: 귀여운 외모와 달리 무대 위에서는 파워풀한 랩과 카리스마를 보여준다.
 
 **성격**: 
 - 원래 생각이 많고 고민을 많이 하는 편이었으나, 멤버들과 팬들 덕분에 자신감을 쌓음
@@ -140,11 +140,11 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
 
       joinDate: new Date('2024-02-21'),
       isActive: true,
-      
-      colorCode: '#93D6F9', // BLUE
-      characterUrl: '',
-      iconUrl: '',
-      profileImageUrl: '',
+
+      colorCode: '#B9E6FD', // BLUE
+      profileImageUrl: '/content/members/yushi/profile.jpg',
+      iconUrl: '/content/members/yushi/icon.png',
+      characterUrl: '/content/members/yushi/character.png',
 
       description: `NCT WISH의 올라운더. 메인댄서이자 리드보컬로 안정적인 라이브와 수준급 보컬을 자랑하는 육각형 멤버. 일본 스타더스트 프로모션 소속 보이그룹 'EDAMAME BEANS' 출신.
 
@@ -159,15 +159,13 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
 **실력**:
 - 댄스: 메인댄서로서 뛰어난 퍼포먼스 실력
 - 보컬: 리드보컬로 안정적인 라이브. 보아가 "곡별로 자신이 보여줄 수 있는 매력을 잘 어필하며 감동을 주는 보컬"이라 평가
-- 려욱: "보면 볼수록 궁금해지는 블랙홀급 매력"
-- 해찬: "팀의 색깔을 만들어 줄 유니크한 보컬"
 - 랩도 잘해서 리쿠의 랩 파트를 대신 맡기도 함
 
 **취미/특기**:
 - 선물 센스가 굉장히 좋음 (데뷔 1주년에 멤버들에게 샤넬 립밤, 각 멤버 개성에 맞는 생일선물)
 - EXO 팬 (EXO-L) - 성덕이 됨
 - 라면을 매우 좋아함 (연습생 시절 불닭볶음면 2주간 매일)
-- 롤모델: 소희 (베텔기우스를 부르는 모습을 보고 싶다고 언급)
+- 롤모델: EXO 카이
 - 반려견 유루와 토이로 중 토이로와 더 친함
 
 **별명**: 우시, 샤이보이, 댄싱네코, 윳냥이, 치즈냥, 어깨귀신, 떵쿠노, 유우짱, 윳띠, 도쿄 도련님, 미미치, 애기1호, 대장만두, 왹우시, 온싱이
@@ -202,12 +200,12 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
       joinDate: new Date('2024-02-21'),
       isActive: true,
 
-      colorCode: '#38A96A', // GREEN
-      characterUrl: '',
-      iconUrl: '',
-      profileImageUrl: '',
+      colorCode: '#8FD0AC', // GREEN
+      profileImageUrl: '/content/members/jaehee/profile.jpg',
+      iconUrl: '/content/members/jaehee/icon.png',
+      characterUrl: '/content/members/jaehee/character.png',
 
-      description: `NCT WISH의 메인보컬. 대구 출신으로 NCT의 한국인 멤버 중 유일한 비수도권 출신이다 (시온과 함께).
+      description: `NCT WISH의 메인보컬. 대구 출신으로 NCT의 한국인 멤버 중 딱 2명 있는 비수도권 멤버 중 하나이다.(시온과 함께)
 
 **배경**: 서바이벌 중간(4화)에 합류한 '히든 카드'. 3개월이라는 초단기 연습생 기간에도 불구하고 압도적인 가창력으로 메인보컬 자리를 차지했다. 본명인 김대영 대신 예명 '재희'를 사용.
 
@@ -238,7 +236,7 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
 **기타**:
 - 연습생 기간: 3개월 (SM 아이돌 그룹 중 가장 짧은 편)
 - 대구 사투리 사용 (일본인 멤버들에게도 영향)
-- 키: 180cm 이상 (그룹 내에서 큰 편)
+- 키: 180cm 이상 (NCT WISH 내에서 가장 큼)
 - 현재 숙소: 리쿠, 유우시와 함께`,
     },
     {
@@ -259,16 +257,16 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
       joinDate: new Date('2024-02-21'),
       isActive: true,
 
-      colorCode: '#FADD4E', // YELLOW
-      characterUrl: '',
-      iconUrl: '',
-      profileImageUrl: '',
+      colorCode: '#FFF9C4', // YELLOW
+      profileImageUrl: '/content/members/ryo/profile.jpg',
+      iconUrl: '/content/members/ryo/icon.png',
+      characterUrl: '/content/members/ryo/character.png',
 
       description: `NCT WISH의 서브보컬이자 '성공한 덕후(성덕)'. NCT 콘서트 관람 중 현장 캐스팅된 기적 같은 스토리의 주인공.
 
 **배경**: 
 - 원래 최종 데뷔 조에 없었으나, 마지막 미션에서의 눈부신 성장과 팀에 필요한 활기찬 에너지를 인정받아 파이널에서 기적적으로 합류
-- NCTzen (NCT 팬)으로 활동하다가 멤버가 됨 - 진정한 성덕
+- NCTzen (NCT 127 중 도영 팬)으로 활동하다가 멤버가 됨 - 진정한 성덕
 - EXO의 세훈 팬 (최애는 카이)
 
 **성격**:
@@ -314,10 +312,10 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
       joinDate: new Date('2024-02-21'),
       isActive: true,
 
-      colorCode: '#E669A4', // PINK
-      characterUrl: '',
-      iconUrl: '',
-      profileImageUrl: '',
+      colorCode: '#F5CAD4', // PINK
+      profileImageUrl: '/content/members/sakuya/profile.jpg',
+      iconUrl: '/content/members/sakuya/icon.png',
+      characterUrl: '/content/members/sakuya/character.png',
 
       description: `NCT WISH의 막내이자 리드래퍼. 중저음의 보이스로 랩을 소화하는 반전 매력의 소유자.
 
@@ -356,7 +354,7 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
 - 라스타트 성적: 5위-3위-5위-2위
 - 매운맛에 굉장히 약함
 - 다도 학원 다님 (5번만 나간 게 발각됨)
-- 가장 아끼는 물건: 소중한 편지, 판다 인형 '판판', 료 어머니가 준 오마모리 키링
+- 가장 아끼는 물건: 소중한 편지, 판다 인형 '판판', 료 어머니가 준 오마모리 키링, 여동생이 준 분홍 머리끈
 - 꿈: 마트에서 놀기, 하루 종일 빵만 먹기, 친구들이랑 100시간 놀기
 - 2024년 만우절에 NCT WISH 공식 SNS 점령 (데뷔 전부터 준비한 폴더)
 - 목포/대구 사투리 영향 받음 (전라도+경상도 사투리 섞임)
@@ -368,16 +366,16 @@ export async function seedMembers(prisma: PrismaClient, groupId: string) {
   const progress = new ProgressTracker('Seeding Members', members.length)
 
   for (const memberData of members) {
-    const member = await prisma.member.upsert({
-      where: {
+    const member = await upsertRecord(
+      prisma.member,
+      {
         groupId_stageName: {
-          groupId: groupId,
+          groupId,
           stageName: memberData.stageName,
         },
       },
-      update: memberData,
-      create: { ...memberData, groupId },
-    })
+      { ...memberData, groupId },
+    );
 
     createdMembers.push(member)
     progress.increment()

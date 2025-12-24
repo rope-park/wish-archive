@@ -1,6 +1,6 @@
 // prisma/seeds/09-certifications.ts
-import type { PrismaClient } from '@prisma/client'
-import { logger } from './utils'
+import type { PrismaClient, CertBody, CertLevel } from '@prisma/client'
+import { logger, ProgressTracker } from './utils'
 
 /**
  * 앨범 인증 시드

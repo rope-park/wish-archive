@@ -1,5 +1,5 @@
 // prisma/seeds/03-albums.ts
-import type { PrismaClient, Album, Market, Currency, EditionType } from '@prisma/client'
+import { PrismaClient, Album, Market, Currency, EditionType, Member, Prisma } from '@prisma/client'
 import { logger, ProgressTracker } from './utils'
 
 /**
@@ -7,6 +7,42 @@ import { logger, ProgressTracker } from './utils'
  */
 // TODO: 이미지 경로 변경 필요 (이미지 교체 예정)
 export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise<Album[]> {
+  const members = await prisma.member.findMany({
+    where: { groupId },
+    orderBy: { birthDate: 'asc' },  // 생일 순 정렬
+  });
+
+  if (members.length === 0) {
+    throw new Error('No members found for the specified groupId');
+  }
+
+  // 솔로 에디션/앨범 생성 헬퍼 함수
+  const createSoloEditions = (
+    name: string,
+    albumSlug: string,
+    baseSku: string,
+    price: number,
+    currency: Currency,
+    defaultComponents: string[],
+  ) => {
+    const skuParts = baseSku.split('-');
+    const skuPrefix = skuParts[0];
+    const startNumber = parseInt(skuParts[1]);
+
+    return members.map((member, index) => ({
+      name: `${member.nameEn}`,
+      editionType: 'CD' as EditionType,
+      coverImageUrl: `/content/albums/${albumSlug}/editions/${albumSlug}_solo_${member.nameEn?.toLowerCase()}.png`,
+      packageImageUrl: `/content/albums/${albumSlug}/editions/${albumSlug}_solo_${member.nameEn?.toLowerCase()}_pack.png`,
+      description: `${member.stageName} 버전.`,
+      components: defaultComponents,
+      releasePrice: price,
+      currency: currency,
+      sku: `${skuPrefix}-${startNumber + index}`,
+      memberId: member.id,
+    }));
+  };
+
   const albums = [
     // ==================== 0. Hands Up (프리데뷔) ====================
     {
@@ -21,9 +57,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 6 * 60 + 15,
       trackCount: 2,
-      coverImageUrl: '/images/albums/00_handsup/handsup_cover.png',
-      diskImageUrl: null,
-      iconUrl: null,
+      coverImageUrl: '/content/albums/00_handsup/HandsUp_cover.jpg',
+      iconUrl: '/public/content/albums/00_handsup/HandsUp_icon.png',
 
       label: 'Avex Trax',
       distributor: 'Avex Entertainment',
@@ -43,8 +78,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Pre-Debut Single (Limited Edition A Ver.)',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/00_handsup/handsup_lim_a.png',
-          packageImageUrl: '/images/albums/00_handsup/handsup_lim_a_pack.png',
+          coverImageUrl: '/content/albums/00_handsup/editions/lim_a.png',
+          packageImageUrl: '/content/albums/00_handsup/editions/lim_a_pack.png',
           isLimited: true,
           description: '프리 데뷔 싱글 일본 발매 한정반 A 버전.',
           components: { items: ['Poster Jacket(Type A)', 'CD-R', 'Sticker Set', 'Trading Card(Type A) (Random 1 out of 6)'] },
@@ -54,8 +89,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Pre-Debut Single (Limited Edition B Ver.)',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/00_handsup/handsup_lim_b.png',
-          packageImageUrl: '/images/albums/00_handsup/handsup_lim_b_pack.png',
+          coverImageUrl: '/content/albums/hands-up/editions/lim_b.png',
+          packageImageUrl: '/content/albums/hands-up/editions/lim_b_pack.png',
           isLimited: true,
           description: '프리 데뷔 싱글 일본 발매 한정반 B 버전.',
           components: { items: ['Poster Jacket(Type B)', 'CD-R', 'Sticker Set', 'Trading Card(Type B) (Random 1 out of 6)'] },
@@ -78,9 +113,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 13 * 60 + 4,
       trackCount: 4,
-      coverImageUrl: '/images/albums/01_wish/wish_cover_kr.png',
-      diskImageUrl: null,
-      iconUrl: null,
+      coverImageUrl: '/content/albums/01_wish/Wish_cover.jpg',
+      iconUrl: '/content/albums/01_wish/icon.png',
 
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
@@ -104,8 +138,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Photobook Ver.',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/01_wish/wish_cover_kr_a.png',
-          packageImageUrl: '/images/albums/01_wish/wish_cover_kr_a_pack.png',
+          coverImageUrl: '/content/albums/wish/editions/photobook_kr_a.png',
+          packageImageUrl: '/content/albums/wish/editions/photobook_kr_a_pack.png',
           description: '한국/글로벌 포토북 발매 버전.',
           components: { items: ['Photobook (88p)', 'CD-R', 'Polaroid (Random 1 out of 6)', 'Photo Card (Random 1 out of 6)', 'Post Card', 'Folded Poster (Random 1 out of 2)'] },
           releasePrice: 14800,
@@ -114,8 +148,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'WICHU Ver.',
           editionType: 'SMART_ALBUM' as EditionType,
-          coverImageUrl: '/images/albums/01_wish/wish_wichu.png',
-          packageImageUrl: '/images/albums/01_wish/wish_wichu_pack.png',
+          coverImageUrl: '/content/albums/wish/editions/wichu_kr_a.png',
+          packageImageUrl: '/content/albums/wish/editions/wichu_kr_a_pack.png',
           isLimited: true,
           description: '한국/글로벌 WICHU 발매 버전.',
           components: { items: ['Package Box', 'WICHU Keyring', 'NFC CD', 'Photocard (Random 1 out of 6)', 'WICHU Guide (Random 1 out of 6)', 'Polaroid (Random 1 out of 2)', 'Sticker Set (3EA)'] },
@@ -125,25 +159,26 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'All Member Ver.',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/01_wish/wish_all_member.png',
-          packageImageUrl: '/images/albums/01_wish/wish_all_member_pack.png',
+          coverImageUrl: '/content/albums/wish/editions/all_member_jp.png',
+          packageImageUrl: '/content/albums/wish/editions/all_member_jp_pack.png',
           description: 'WISH 싱글 앨범 통상반.',
           components: { items: ['CD-R', 'Trading Card (A Ver.) (Random 1 out of 6)'] },
           releasePrice: 1500,
           currency: 'JPY' as Currency,
           sku: 'AVCK-43330'
         },
-        {
+        /*{
           name: 'Member Solo Ver.',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/01_wish/wish_solo_jp.png',
-          packageImageUrl: '/images/albums/01_wish/wish_solo_jp_pack.png',
+          coverImageUrl: '/content/albums/wish/editions/wish_solo_jp.png',
+          packageImageUrl: '/content/albums/wish/editions/wish_solo_jp_pack.png',
           description: '일본 멤버별 버전.',
           components: { items: ['CD-R', 'Trading Card (B Ver.) (Random 1 out of 6)'] },
           releasePrice: 1500,
           currency: 'JPY' as Currency,
           sku: 'AVCK-43324 ~ AVCK-43329'
-        }
+        },*/
+        ...createSoloEditions('Member Solo Ver.', 'wish', 'AVCK-43324', 1500, 'JPY', ['CD-R', 'Trading Card (B Ver.) (Random 1 out of 6)']),
       ]
     },
 
@@ -160,9 +195,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 6 * 60 + 8,
       trackCount: 2,
-      coverImageUrl: '/images/albums/02_songbird/songbird_cover.png',
-      diskImageUrl: null,
-      iconUrl: null,
+      coverImageUrl: '/content/albums/02_songbird/Songbird_cover_kr.jpg',
+      iconUrl: '/content/albums/02_songbird/Songbird_icon_kr.png',
 
       label: 'Avex Trax',
       distributor: 'Avex Entertainment',
@@ -185,30 +219,31 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'All Member Ver.',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/02_songbird/songbird_all_member.png',
-          packageImageUrl: '/images/albums/02_songbird/songbird_all_member_pack.png',
+          coverImageUrl: '/content/albums/02_songbird/songbird_all_member.png',
+          packageImageUrl: '/content/albums/02_songbird/songbird_all_member_pack.png',
           description: '일본 ALL Member 버전.',
           components: { items: ['Trading Card (Random 1 out of 24)'] },
           releasePrice: 1500,
           currency: 'JPY' as Currency,
           sku: 'AVCK-43380'
         },
-        {
-          name: 'All Member Ver.',
+        /**{
+          name: 'Member Solo Ver.',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/02_songbird/songbird_all_member.png',
-          packageImageUrl: '/images/albums/02_songbird/songbird_all_member_pack.png',
+          coverImageUrl: '/content/albums/songbird/songbird_all_member.png',
+          packageImageUrl: '/content/albums/songbird/songbird_all_member_pack.png',
           description: '일본 멤버별 버전.',
           components: { items: ['Trading Card (Random 1 out of 24)'] },
           releasePrice: 1500,
           currency: 'JPY' as Currency,
           sku: 'AVCK-43374 ~ AVCK-43379'
-        },
+        },**/
+        ...createSoloEditions('Member Solo Ver.', 'songbird', 'AVCK-43374', 1500, 'JPY', ['Trading Card (Random 1 out of 24)']),
         {
           name: 'Letter Ver.',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/02_songbird/songbird_cover_letter.png',
-          packageImageUrl: '/images/albums/02_songbird/songbird_letter_pack.png',
+          coverImageUrl: '/content/albums/02_songbird/songbird_cover_letter.png',
+          packageImageUrl: '/content/albums/02_songbird/songbird_letter_pack.png',
           description: '한국/글로벌 편지봉투 컨셉 버전.',
           components: { items: ['Photobook (24p)', 'Mini CD-R', 'Sticker Photo', 'Postcard (Random 1 out of 6)', 'DIY Letter Set', 'Envelope', 'Photo Card (Random 1 out of 6)'] },
           releasePrice: 14100,
@@ -217,8 +252,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'SMini Ver.',
           editionType: 'MUSIC_NFC_CD' as EditionType,
-          coverImageUrl: '/images/albums/02_songbird/songbird_smini.png',
-          packageImageUrl: '/images/albums/02_songbird/songbird_smini_pack.png',
+          coverImageUrl: '/content/albums/02_songbird/songbird_smini.png',
+          packageImageUrl: '/content/albums/02_songbird/songbird_smini_pack.png',
           description: '한국/글로벌 스마트 앨범 (SMini).',
           components: { items: ['Package (6 Versions)', 'SMini Case', 'Music NFC CD', 'Photo Card (Random 1 out of 6)'] },
           releasePrice: 12600,
@@ -240,9 +275,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 21 * 60 + 18,
       trackCount: 7,
-      coverImageUrl: '/images/albums/04_steady/steady_cover.png',
-      diskImageUrl: null,
-      iconUrl: null,
+      coverImageUrl: '/content/albums/04_steady/Steady_cover.jpg',
+      iconUrl: '/content/albums/04_steady/Steady_icon.png',
 
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
@@ -263,8 +297,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Photobook Ver. (I ❤️ WISH Ver.)',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/04_steady/steady_cover_kr_a.png',
-          packageImageUrl: '/images/albums/04_steady/steady_cover_kr_a_pack.png',
+          coverImageUrl: '/content/albums/steady/steady_cover_kr_a.png',
+          packageImageUrl: '/content/albums/steady/steady_cover_kr_a_pack.png',
           description: '한국/글로벌 발매 포토북 버전 (I ❤️ WISH Ver.).',
           components: { items: ['Package Box', 'Photobook (96p)', 'CD-R', 'Postcard (Random 1 out of 6)', 'Folded Poster (Random 1 out of 2)', 'Sticker', 'Photo Card (Random 1 out of 6)'] },
           releasePrice: 17800,
@@ -273,8 +307,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Photobook Ver. (Finding Psyche Ver.)',
           editionType: 'CD' as EditionType,
-          coverImageUrl: '/images/albums/04_steady/steady_cover_kr_b.png',
-          packageImageUrl: '/images/albums/04_steady/steady_cover_kr_b_pack.png',
+          coverImageUrl: '/content/albums/steady/steady_cover_kr_b.png',
+          packageImageUrl: '/content/albums/steady/steady_cover_kr_b_pack.png',
           description: '한국/글로벌 발매 포토북 버전 (Finding Psyche Ver.).',
           components: { items: ['Package Box', 'Photobook (96p)', 'CD-R', 'Paper Figure (Random 1 out of 6)', 'Folded Poster (Random 1 out of 2)', 'Sticker', 'Photo Card (Random 1 out of 6)'] },
           releasePrice: 17800,
@@ -283,8 +317,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'QR Ver.',
           editionType: 'QR_CARD' as EditionType,
-          coverImageUrl: '/images/albums/04_steady/steady_qr_ver.png',
-          packageImageUrl: '/images/albums/04_steady/steady_qr_ver_pack.png',
+          coverImageUrl: '/content/albums/steady/steady_qr_ver.png',
+          packageImageUrl: '/content/albums/steady/steady_qr_ver_pack.png',
           description: '한국/글로벌 발매 QR 코드 버전.',
           components: { items: ['Package Box', 'Image Card (6EA Set), Photo Card (Random 1 out of 6)', 'Flip Book (120p)', 'QR Card'] },
           releasePrice: 14100,
@@ -293,8 +327,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Keyring Ver.',
           editionType: 'QR_CARD' as EditionType,
-          coverImageUrl: '/images/albums/04_steady/steady_wichu_ver.png',
-          packageImageUrl: '/images/albums/04_steady/steady_wichu_ver_pack.png',
+          coverImageUrl: '/content/albums/steady/steady_wichu_ver.png',
+          packageImageUrl: '/content/albums/steady/steady_wichu_ver_pack.png',
           description: '한국/글로벌 발매 WICHU&apos;s Memory 버전.',
           components: { items: ['WICHU Camera', 'Photo Film (12 Pics) (Random 1 out of 2)', 'Photo Card (Random 1 out of 6)', 'Music NFC CD (Random 1 out of 6)'] },
           releasePrice: 37100,
@@ -316,9 +350,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 40 * 60 + 59,
       trackCount: 13,
-      coverImageUrl: '/images/albums/05_wishful/wishful_cover.png',
-      diskImageUrl: null,
-      iconUrl: null,
+      coverImageUrl: '/content/albums/05_wishful/Wishful_cover.jpg',
+      iconUrl: '/content/albums/05_wishful/Wishful_icon.png',
 
       label: 'Avex Trax',
       distributor: 'Avex Entertainment',
@@ -378,10 +411,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 17 * 60 + 56,
       trackCount: 6,
-      coverImageUrl: '/images/albums/06_poppop/poppop_cover.png',
-      diskImageUrl: null,
-      iconUrl: null,
-
+      coverImageUrl: '/content/albums/06_poppop/poppop_cover.jpg',
+      iconUrl: '/content/albums/06_poppop/poppop_icon.png',
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
       description: '톡톡 터지는 청량감과 경쾌한 사운드로 가득한 2nd 미니앨범. "Melt Inside My Pocket"을 NCT WISH ASIA TOUR LOG in SEOUL에서 선공개하여 화제를 모았다. 앨범 발매 후 133만 장 이상 판매고를 기록하며 데뷔 후 첫 밀리언셀러에 등극했고, 애플뮤직 Top 100 1위, 엠카운트다운/뮤직뱅크/음악중심에서 1위를 차지했다.',
@@ -438,9 +469,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       totalLengthSec: 21 * 60 + 14,
       trackCount: 7,
-      coverImageUrl: '/images/albums/08_color/color_cover.png',
-      diskImageUrl: null,
-      iconUrl: null,
+      coverImageUrl: '/content/albums/08_color/Color_cover.jpg',
+      iconUrl: '/content/albums/08_color/Color_icon.png',
 
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
@@ -501,31 +531,44 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       // Era와 연결 (제목 기반 매칭)
       await linkAlbumToEra(prisma, album, groupId)
-      for (const rel of releases) {
-        await prisma.albumRelease.create({
-          data: { ...rel, albumId: album.id },
-        })
-      }
 
-      for (const edition of editions) {
-        const existingEdition = await prisma.albumEdition.findFirst({
-          where: { albumId: album.id, name: edition.name },
-        })
-
-        if (existingEdition) {
-          await prisma.albumEdition.update({
-            where: { id: existingEdition.id },
-            data: edition,
-          });
-        } else {
-          await prisma.albumEdition.create({
-            data: { ...edition, albumId: album.id },
-          });
+      // 릴리즈 생성
+      if (releases && releases.length > 0) {
+        for (const rel of releases) {
+          await prisma.albumRelease.create({
+            data: { ...rel, albumId: album.id, format: rel.format || 'DIGITAL' },
+          })
         }
       }
 
-      // 앨범 발매 정보 추가 (한국/일본 시장별)
-      await createAlbumReleases(prisma, album)
+      // 에디션 생성
+      if (editions && editions.length > 0) {
+        for (const edition of editions) {
+          const editionData = {
+            ...edition,
+            albumId: album.id,
+            components: edition.components ? (edition.components as Prisma.InputJsonValue) : Prisma.JsonNull,
+          };
+
+          const existingEdition = await prisma.albumEdition.findFirst({
+            where: {
+              albumId: album.id,
+              name: edition.name,
+            },
+          });
+
+          if (existingEdition) {
+            await prisma.albumEdition.update({
+              where: { id: existingEdition.id },
+              data: editionData,
+            });
+          } else {
+            await prisma.albumEdition.create({
+              data: editionData,
+            });
+          }
+        }
+      }
     } catch (error) {
       logger.error(`Failed to seed album: ${albumData.title}`)
       throw error
@@ -543,81 +586,32 @@ async function linkAlbumToEra(
   groupId: string
 ) {
   // Era 제목과 앨범 제목이 일치하는지 확인
-  const eraName = album.title === 'Hands Up' ? 'Pre-Debut' : album.title
+  const eraMap: Record<string, string> = {
+    'Hands Up': 'PRE-DEBUT',
+    'WISH': 'WISH',
+    'Songbird': 'SONGBIRD',
+    'Steady': 'STEADY',
+    'WISHFUL': 'WISHFUL',
+    'poppop': 'POPPOP',
+    'COLOR': 'COLOR',
+  };
+
+  const eraName = eraMap[album.title] || album.title;
 
   const era = await prisma.era.findFirst({
     where: {
       groupId: groupId,
-      OR: [
-        { name: { equals: eraName, mode: 'insensitive' } },
-        { name: { contains: eraName, mode: 'insensitive' } },
-      ],
+      name: { equals: eraName, mode: 'insensitive' },
     },
   })
 
-  if (era && !era.mainAlbumId) {
-    await prisma.era.update({
-      where: { id: era.id },
-      data: { mainAlbumId: album.id },
-    })
-    logger.debug(`Linked album "${album.title}" to era "${era.name}"`)
-  }
-}
-
-// 앨범 발매 정보 생성 함수
-async function createAlbumReleases(
-  prisma: PrismaClient,
-  album: Album
-) {
-  const releases = []
-
-  // 한국 시장
-  if (album.market === 'KOREA' || album.market === 'GLOBAL') {
-    releases.push({
-      albumId: album.id,
-      market: 'KOREA' as const,
-      date: album.releaseDate,
-      format: 'PHYSICAL',
-    })
-
-    // 디지털 발매 (일반적으로 동시 발매)
-    releases.push({
-      albumId: album.id,
-      market: 'KOREA' as const,
-      date: album.releaseDate,
-      format: 'DIGITAL',
-    })
-  }
-
-  // 일본 시장 및 글로벌 시장
-  if (album.market === 'JAPAN' || album.market === 'GLOBAL') {
-    releases.push({
-      albumId: album.id,
-      market: 'JAPAN' as const,
-      date: album.releaseDate,
-      format: album.type === 'DIGITAL_SINGLE' ? 'DIGITAL' : 'PHYSICAL',
-    })
-  }
-
-  // 배치 생성
-  for (const release of releases) {
-    const existing = await prisma.albumRelease.findFirst({
-      where: {
-        albumId: release.albumId,
-        market: release.market,
-        format: release.format,
-      },
-    })
-
-    if (existing) {
-      await prisma.albumRelease.update({
-        where: { id: existing.id },
-        data: release,
+  if (era) {
+    if (!era.mainAlbumId) {
+      await prisma.era.update({
+        where: { id: era.id },
+        data: { mainAlbumId: album.id },
       })
-    } else {
-      await prisma.albumRelease.create({
-        data: release,
-      })
+      logger.debug(`Linked album "${album.title}" to era "${era.name}"`)
     }
   }
 }

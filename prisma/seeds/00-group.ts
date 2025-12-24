@@ -1,6 +1,6 @@
 // prisma/seeds/00-group.ts
 import type { PrismaClient } from '@prisma/client'
-import { createExternalLinks } from './utils'
+import { createExternalLinks, logger } from './utils'
 
 /**
  * NCT WISH 그룹 정보 시드
@@ -24,8 +24,8 @@ export async function seedGroup(prisma: PrismaClient) {
     officialColor: '#BBE309', // PEARL NEO CHAMPAGNE
 
     // [4] 비주얼 에셋
-    logoUrl: '',
-    iconUrl: '',
+    logoUrl: '/content/group/logo_main.png',
+    iconUrl: '/content/group/icon_symbol.png',
 
     // [5] 상세 정보
     agency: 'SM Entertainment',
@@ -59,11 +59,11 @@ export async function seedGroup(prisma: PrismaClient) {
     create: groupData,
   })
 
-  console.log(`✓ Group created: ${group.name}`)
+  logger.success(`✓ Group created/updated: ${group.name}`);
 
 
   // 2. 그룹 외부 링크 추가 (순서 지정)
-  const links = [
+  await createExternalLinks(prisma, group.id, 'groupId', [
     {
       type: 'OFFICIAL_SITE' as const,
       title: 'SMTOWN NCT WISH',
@@ -111,29 +111,8 @@ export async function seedGroup(prisma: PrismaClient) {
       title: 'NCT WISH on Spotify',
       url: 'https://open.spotify.com/artist/4FqmqIspLaUGtxAFFLsZxc',
       order: 8,
-    }
-  ]
-
-  for (const linkData of links) {
-    const existingLink = await prisma.externalLink.findFirst({
-      where: { url: linkData.url, groupId: group.id },
-    })
-
-    if (!existingLink) {
-      await prisma.externalLink.create({
-        data: {
-          ...linkData,
-          groupId: group.id,
-          isOfficial: true,
-        },
-      })
-    } else {
-      await prisma.externalLink.update({
-        where: { id: existingLink.id },
-        data: { order: linkData.order },
-      })
-    }
-  }
+    },
+  ]);
 
   return group
 }

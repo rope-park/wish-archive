@@ -14,6 +14,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'KR',
       periodType: 'WEEKLY',
       notes: '한국 공식 음반 차트 (구 가온차트)',
+      logoUrl: '/content/charts/circle_chart.png',
     },
     {
       name: 'Circle Digital Chart',
@@ -21,6 +22,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'KR',
       periodType: 'DAILY',
       notes: '한국 공식 음원 차트',
+      logoUrl: '/content/charts/circle_chart.png',
     },
     {
       name: 'Melon TOP 100',
@@ -28,6 +30,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'KR',
       periodType: 'REALTIME',
       notes: '멜론 실시간 차트',
+      logoUrl: '/content/charts/melon.png',
     },
     {
       name: 'Bugs Chart',
@@ -35,6 +38,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'KR',
       periodType: 'REALTIME',
       notes: '벅스 실시간 차트',
+      logoUrl: '/content/charts/bugs.png',
     },
     {
       name: 'Apple Music Top 100',
@@ -42,7 +46,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'KR',
       periodType: 'DAILY',
       notes: '애플뮤직 한국 Top 100',
-      colorCode: '#FA57C1',
+      logoUrl: '/content/charts/apple_music.png',
     },
     {
       name: 'Oricon Weekly Singles Chart',
@@ -50,7 +54,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'JP',
       periodType: 'WEEKLY',
       notes: '일본 오리콘 싱글 차트',
-      logoUrl: '/logos/oricon.png',
+      logoUrl: '/content/charts/oricon.png',
     },
     {
       name: 'Oricon Weekly Albums Chart',
@@ -58,6 +62,7 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'JP',
       periodType: 'WEEKLY',
       notes: '일본 오리콘 앨범 차트',
+      logoUrl: '/content/charts/oricon.png',
     },
     {
       name: 'Billboard Japan Hot 100',
@@ -65,10 +70,12 @@ export async function seedCharts(prisma: PrismaClient) {
       country: 'JP',
       periodType: 'WEEKLY',
       notes: '빌보드 재팬 Hot 100',
+      logoUrl: '/content/charts/billboard_japan.png',
     },
   ]
 
   const createdCharts = []
+  const progress = new ProgressTracker('Charts seeding', charts.length)
 
   for (const chartData of charts) {
     const chart = await prisma.chart.upsert({
@@ -83,8 +90,10 @@ export async function seedCharts(prisma: PrismaClient) {
       create: chartData,
     })
     createdCharts.push(chart)
+    progress.increment()
   }
 
+  progress.complete()
   logger.success(`Charts seeded: ${createdCharts.length} charts`)
 
   // 2. 차트 엔트리 (실제 성적) 추가
@@ -95,21 +104,22 @@ export async function seedCharts(prisma: PrismaClient) {
 
 async function seedChartEntries(prisma: PrismaClient, charts: Chart[]) {
   // 앨범 조회
-  const wishAlbum = await prisma.album.findFirst({ where: { title: 'WISH' } })
-  const steadyAlbum = await prisma.album.findFirst({ where: { title: 'Steady' } })
-  const poppopAlbum = await prisma.album.findFirst({ where: { title: 'poppop' } })
-  const songbirdAlbum = await prisma.album.findFirst({ where: { title: 'Songbird' } })
+  const albums = await prisma.album.findMany();
+  const getAlbum = (title: string) => albums.find(a => a.title === title);
+
+  const wishAlbum = getAlbum('WISH');
+  const steadyAlbum = getAlbum('Steady');
+  const poppopAlbum = getAlbum('poppop');
+  const songbirdAlbum = getAlbum('Songbird');
+
 
   // 트랙 조회
-  const wishTrack = await prisma.track.findFirst({
-    where: { title: { contains: 'WISH (Korean' } },
-  })
-  const steadyTrack = await prisma.track.findFirst({
-    where: { title: 'Steady' },
-  })
-  const poppopTrack = await prisma.track.findFirst({
-    where: { title: 'poppop' },
-  })
+  const tracks = await prisma.track.findMany();
+  const getTrack = (title: string) => tracks.find(t => t.title === title);
+
+  const wishTrack = getTrack('WISH (Korean Ver.)');
+  const steadyTrack = getTrack('Steady');
+  const poppopTrack = getTrack('poppop');
 
   // Circle Album Chart
   const circleAlbum = charts.find((c) => c.name === 'Circle Album Chart')

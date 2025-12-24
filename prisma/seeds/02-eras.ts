@@ -1,6 +1,6 @@
 // prisma/seeds/02-eras.ts
 import type { PrismaClient } from '@prisma/client'
-import { logger, slugify, ProgressTracker } from './utils'
+import { logger, slugify, ProgressTracker, upsertRecord } from './utils'
 
 /**
  * Era/활동 시기 시드
@@ -22,10 +22,10 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - 일본 9개 도시 24회 프리데뷔 투어
 - Hands Up 디지털 싱글 발매 (일본)`,
       isCurrent: false,
-      themeColor: '#A8DADC', 
-      backgroundUrl: null,
-      iconUrl: '/icons/folders/folder_predebut.png',
-      logoUrl: null,
+      themeColor: '#A8DADC',
+      iconUrl: '/system/icons/folders/folder_pre-debut.png',
+      logoUrl: '/content/eras/pre-debut/logo.png',
+      backgroundUrl: '/content/eras/pre-debut/background.jpg',
     },
     {
       name: 'WISH',
@@ -42,10 +42,10 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - Circle Album Chart 1위
 - 한국어/일본어 2개 버전 동시 발매`,
       isCurrent: false,
-      themeColor: '#BFFF00', 
-      backgroundUrl: null,
-      iconUrl: '/icons/folders/folder_wish.png',
-      logoUrl: null,
+      themeColor: '#BFFF00',
+      iconUrl: '/system/icons/folders/folder_wish.png',
+      logoUrl: '/content/eras/wish/logo.png',
+      backgroundUrl: '/content/eras/wish/background.jpg',
     },
     {
       name: 'Songbird',
@@ -59,10 +59,10 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - Oricon Weekly Singles Chart 2위
 - RIAJ Gold 인증`,
       isCurrent: false,
-      themeColor: '#8EE3F5', 
-      backgroundUrl: null,
-      iconUrl: '/icons/folders/folder_songbird.png',
-      logoUrl: null,
+      themeColor: '#8EE3F5',
+      iconUrl: '/system/icons/folders/folder_songbird.png',
+      logoUrl: '/content/eras/songbird/logo.png',
+      backgroundUrl: '/content/eras/songbird/background.jpg',
     },
     {
       name: 'Steady',
@@ -80,10 +80,10 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - Circle Album Chart 1위
 - KMCA Double Platinum 인증`,
       isCurrent: false,
-      themeColor: '#FFB6D9', 
-      backgroundUrl: null,
-      iconUrl: '/icons/folders/folder_steady.png',
-      logoUrl: null,
+      themeColor: '#FFB6D9',
+      iconUrl: '/system/icons/folders/folder_steady.png',
+      logoUrl: '/content/eras/steady/logo.png',
+      backgroundUrl: '/content/eras/steady/background.jpg',
     },
     {
       name: 'WISHFUL',
@@ -100,9 +100,9 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - 겨울 감성의 따뜻한 사운드`,
       isCurrent: false,
       themeColor: '#FFF89A',
-      backgroundUrl: null,
-      iconUrl: '/icons/folders/folder_wishful.png',
-      logoUrl: null,
+      iconUrl: '/system/icons/folders/folder_wishful.png',
+      logoUrl: '/content/eras/wishful/logo.png',
+      backgroundUrl: '/content/eras/wishful/background.jpg',
     },
     {
       name: 'poppop',
@@ -121,17 +121,17 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - Show Music Core 1위 (데뷔 후 첫 음악중심 1위)
 - KMCA Million 인증`,
       isCurrent: false,
-      themeColor: '#0C23BC', 
-      backgroundUrl: null,
-      iconUrl: null,
-      logoUrl: null,
+      themeColor: '#0C23BC',
+      iconUrl: '/system/icons/folders/folder_poppop.png',
+      logoUrl: '/content/eras/poppop/logo.png',
+      backgroundUrl: '/content/eras/poppop/background.jpg',
     },
     {
       name: 'COLOR',
       title: 'Color: Bring out the color',
       startDate: new Date('2025-09-01'),
-      endDate: null, 
-      description:  `다채로운 색깔과 개성을 담은 3rd 미니앨범 활동 시기 (현재 진행 중).
+      endDate: null,
+      description: `다채로운 색깔과 개성을 담은 3rd 미니앨범 활동 시기 (현재 진행 중).
 
 선공개곡 "Surf", 뮤직비디오 선공개곡 "Baby Blue", 타이틀곡 "COLOR"까지 총 3편의 뮤직비디오가 공개되었다. 
 
@@ -142,10 +142,10 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 - 3곡 뮤직비디오 공개 (Surf, Baby Blue, COLOR)
 - 게임/컬러풀한 콘셉트`,
       isCurrent: true, // 현재 진행 중
-      themeColor: '#FDF628', 
-      backgroundUrl: null,
-      iconUrl: null,
-      logoUrl: null,
+      themeColor: '#FDF628',
+      iconUrl: '/system/icons/folders/folder_color.png',
+      logoUrl: '/content/eras/color/logo.png',
+      backgroundUrl: '/content/eras/color/background.jpg',
     },
   ]
 
@@ -156,8 +156,8 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
     const id = `${groupId}-${slugify(eraData.name)}`;
 
     const era = await prisma.era.upsert({
-      where: { id: id },
-      update: eraData,
+      where: { id },
+      update: { ...eraData, groupId },
       create: {
         id: id,
         ...eraData,

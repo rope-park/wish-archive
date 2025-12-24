@@ -6,7 +6,7 @@
  * Group -> Member/Era/Album -> Event -> Appearance/Chart
  */
 
-import { PrismaClient, Member, Era, Album } from '@prisma/client'
+import { PrismaClient, Group, Member, Era, Album, Track, Event, Program, } from '@prisma/client'
 import { logger, checkEnvVars } from './seeds/utils'
 import { seedGroup } from './seeds/00-group'
 import { seedMembers } from './seeds/01-members'
@@ -21,9 +21,11 @@ import { seedCertifications } from './seeds/09-certifications'
 import { seedWidgets } from './seeds/10-widgets'
 import { seedMusicShowTrophies } from './seeds/11-music-show'
 import { seedAlbumSales } from './seeds/12-sales'
+import { seedContents } from './seeds/13-contents'
+import { seedAwards } from './seeds/14-awards'
 
 const prisma = new PrismaClient({
-  log: process.env.DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : ['warn', 'error'],
+  log: process.env.DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : ['info', 'warn', 'error'],
 })
 
 type SeedResults = {
@@ -31,15 +33,17 @@ type SeedResults = {
   Members?: Member[];
   Eras?: Era[];
   Albums?: Album[];
-  Tracks?: unknown[];
-  Events?: unknown[];
-  Programs?: unknown[];
+  Tracks?: Track[];
+  Events?: Event[];
+  Programs?: Program[];
   Appearances?: unknown[];
   Charts?: unknown[];
   Certifications?: unknown[];
   Widgets?: unknown;
   MusicShowTrophies?: unknown[];
   AlbumSales?: unknown[];
+  Contents?: unknown[];
+  Awards?: unknown[];
 };
 
 // 시드 단계 정의
@@ -57,6 +61,8 @@ const SEED_STEPS = [
   { name: 'Widgets', fn: seedWidgets, deps: ['Members', 'Albums'] },
   { name: 'MusicShowTrophies', fn: seedMusicShowTrophies, deps: ['Programs', 'Tracks'] },
   { name: 'AlbumSales', fn: seedAlbumSales, deps: ['Albums'] },
+  { name: 'Contents', fn: seedContents, deps: [] },
+  { name: 'Awards', fn: seedAwards, deps: [] },
 ] as const
 
 // 메인 시드 함수
@@ -66,7 +72,7 @@ async function main() {
   // 환경 변수 확인
   checkEnvVars(['DATABASE_URL'])
   
-  logger.info('🌱 Starting database seed...')
+  logger.info('🌱 Starting database seed process...')
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`)
   logger.info(`Total steps: ${SEED_STEPS.length}`)
   console.log('')
@@ -118,6 +124,8 @@ async function main() {
           case 'Widgets':
           case 'MusicShowTrophies':
           case 'AlbumSales':
+          case 'Contents':
+          case 'Awards':
             result = await step.fn(prisma);
             break;
         }
@@ -146,6 +154,8 @@ async function main() {
     console.log(`  • Events: ${Array.isArray(seedResults.Events) ? seedResults.Events.length : 0}`)
     console.log(`  • Music Show Trophies: ${Array.isArray(seedResults.MusicShowTrophies) ? seedResults.MusicShowTrophies.length : 0}`)
     console.log(`  • Album Sales: ${Array.isArray(seedResults.AlbumSales) ? seedResults.AlbumSales.length : 0}`)
+    console.log(`  • Contents: ${Array.isArray(seedResults.Contents) ? seedResults.Contents.length : 0}`)
+    console.log(`  • Awards: ${Array.isArray(seedResults.Awards) ? seedResults.Awards.length : 0}`)
     
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)
     console.log(`\n Total time: ${duration}s`)

@@ -1,0 +1,490 @@
+/**
+ * APP: Discography
+ */
+
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Album, Track } from '@prisma/client';
+import { useAudioStore } from '@/app/stores/useAudioStore';
+import Image from 'next/image';
+import {
+    Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2,
+    Music, ChevronLeft, ChevronRight, Volume2
+} from 'lucide-react';
+
+// ------------------------------------------------------------------
+// 타입 정의
+// ------------------------------------------------------------------
+interface ExtendedAlbum extends Album {
+    tracks: Track[];
+}
+
+interface DiscographyProps { 
+    onClose?: () => void;
+}
+
+// ------------------------------------------------------------------
+// YouTube API용 컴포넌트
+// ------------------------------------------------------------------
+function YouTubeBackground({
+    videoId,
+    isFullscreen
+}: {
+    videoId: string | null,
+    isFullscreen: boolean
+}) {
+    const { setPlayerRef, isPlaying, volume, isMuted } = useAudioStore();
+    const playerInstanceRef = useRef<YT.Player | null>(null); // YT.Player 인스턴스
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // 1. YouTube IFrame API 로드 및 플레이어 초기화
+    useEffect(() => {
+        if (!videoId) return;
+
+        // API 스크립트가 없으면 로드
+        if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+        }
+
+        const initPlayer = () => {
+            if (!containerRef.current || !window.YT) return;
+
+            // 이미 플레이어가 있으면 곡만 로드
+            if (playerInstanceRef.current) {
+                // loadVideoById 메서드가 있는지 확인 후 호출
+                if (typeof playerInstanceRef.current.loadVideoById === 'function') {
+                    playerInstanceRef.current.loadVideoById(videoId);
+                }
+                return;
+            }
+
+            // 새 플레이어 생성
+            playerInstanceRef.current = new window.YT.Player(containerRef.current, {
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1, // 자동 재생
+                    controls: 0, // 컨트롤러 숨김 (커스텀 UI 사용)
+                    disablekb: 1,
+                    fs: 0,
+                    loop: 1,
+                    playlist: videoId, // 루프를 위해 필요
+                    modestbranding: 1,
+                    playsinline: 1,
+                    rel: 0,
+                },
+                events: {
+                    onReady: (event: YT.OnReadyEvent) => {
+                        const player = event.target;
+                        setPlayerRef(player); // Store에 제어 권한 위임
+                        if (typeof player.setVolume === 'function') {
+                            player.setVolume(isMuted ? 0 : volume);
+                        }
+                        if (isPlaying && typeof player.playVideo === 'function') {
+                            player.playVideo();
+                        }
+                    },
+                    onStateChange: (event: YT.OnReadyEvent | YT.OnStateChangeEvent) => {
+                        // 영상이 끝났거나 등등의 상태 처리 가능
+                    }
+                }
+            });
+        };
+
+        if (window.YT && window.YT.Player) {
+            initPlayer();
+        } else {
+            window.onYouTubeIframeAPIReady = initPlayer;
+        }
+
+    }, [videoId, setPlayerRef]);
+
+    // 2. 스토어 상태(isPlaying) 변경에 따른 반응
+    useEffect(() => {
+        const player = playerInstanceRef.current;
+        if (player && typeof player.playVideo === 'function') {
+            if (isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
+        }
+    }, [isPlaying]);
+
+    // 3. 비디오가 없을 때 처리
+    if (!videoId) return null;
+
+    return (
+        <div className={`absolute inset-0 w-full h-full transition-all duration-700 pointer-events-none overflow-hidden
+      ${isFullscreen ? 'z-50 opacity-100 bg-black' : 'z-0 opacity-60 blur-md scale-110'}`}
+        >
+            {/* 실제 YouTube Iframe이 마운트될 컨테이너 */}
+            <div
+                ref={containerRef}
+                className="w-full h-full"
+                style={{ pointerEvents: isFullscreen ? 'auto' : 'none' }}
+            />
+        </div>
+    );
+}
+
+
+// ------------------------------------------------------------------
+// 메인 Discography 컴포넌트
+// ------------------------------------------------------------------
+export default function Discography({ onClose }: DiscographyProps) {
+    const [albums, setAlbums] = useState<ExtendedAlbum[]>([]);
+    const [selectedAlbumIndex, setSelectedAlbumIndex] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('/api/discography')
+            .then((res) => res.json())
+            .then((data) => {
+                setAlbums(data);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) return <div className="flex h-full items-center justify-center text-white">Loading...</div>;
+
+    if (selectedAlbumIndex !== null) {
+        return (
+            <AlbumDetailView
+                albums={albums}
+                currentIndex={selectedAlbumIndex}
+                onBack={() => setSelectedAlbumIndex(null)}
+                onNavigate={(index) => setSelectedAlbumIndex(index)}
+            />
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-8 h-full overflow-y-auto content-start custom-scrollbar">
+            {albums.map((album, idx) => (
+                <div
+                    key={album.id}
+                    className="group cursor-pointer flex flex-col items-center gap-3"
+                    onClick={() => setSelectedAlbumIndex(idx)}
+                >
+                    <div className="relative w-40 h-40 rounded-lg shadow-lg overflow-hidden transition-transform group-hover:scale-105">
+                        {album.coverImageUrl ? (
+                            <Image
+                                src={album.coverImageUrl}
+                                alt={album.title}
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400">No Image</div>
+                        )}
+                        <div className="absolute top-1/2 -right-4 w-36 h-36 -translate-y-1/2 bg-black rounded-full -z-10 group-hover:-right-8 transition-all duration-500 flex items-center justify-center">
+                            <div className="w-12 h-12 bg-gray-800 rounded-full border-2 border-gray-600" />
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-white font-bold text-sm truncate w-32">{album.title}</h3>
+                        <p className="text-gray-400 text-xs">{new Date(album.releaseDate).getFullYear()}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ------------------------------------------------------------------
+// 상세 보기 컴포넌트
+// ------------------------------------------------------------------
+function AlbumDetailView({
+    albums,
+    currentIndex,
+    onBack,
+    onNavigate
+}: {
+    albums: ExtendedAlbum[],
+    currentIndex: number,
+    onBack: () => void,
+    onNavigate: (index: number) => void
+}) {
+    const currentAlbum = albums[currentIndex];
+    // 트랙 정렬
+    const sortedTracks = [...currentAlbum.tracks].sort((a, b) => a.trackNumber - b.trackNumber);
+
+    const { currentTrack, isPlaying, playTrack, togglePlay, setPlaylist, playlist } = useAudioStore();
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // 자동 재생 및 동기화 로직
+    useEffect(() => {
+        if (sortedTracks.length === 0) return;
+
+        // 현재 재생 중인 트랙이 이 앨범의 곡인지 확인
+        const isCurrentAlbumPlaying = sortedTracks.some(t => t.id === currentTrack?.id);
+
+        // 1. 앨범 진입 시: 다른 앨범을 듣고 있었거나 재생 중이 아니면 1번 트랙 자동 재생
+        if (!isCurrentAlbumPlaying) {
+            playTrack(sortedTracks[0]); // 상태 업데이트 -> isPlaying: true
+            setPlaylist(sortedTracks);
+        }
+        // 2. 같은 앨범이면 플레이리스트만 갱신 (끊김 방지)
+        else {
+            // 이미 같은 플레이리스트라면 굳이 업데이트 안 함 (무한 렌더링 방지)
+            const isPlaylistSame = playlist.length === sortedTracks.length && playlist[0]?.albumId === currentAlbum.id;
+            if (!isPlaylistSame) {
+                setPlaylist(sortedTracks);
+            }
+        }
+    }, [currentAlbum.id]); // 앨범 변경 시에만 실행
+
+    // YouTube ID 추출
+    const getYoutubeId = (url: string | null | undefined) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+
+    // 현재 재생 곡의 뮤비 우선, 없으면 1번 트랙 뮤비
+    const targetTrack = currentTrack && currentAlbum.tracks.some(t => t.id === currentTrack.id)
+        ? currentTrack
+        : sortedTracks[0];
+    const currentYoutubeId = getYoutubeId(targetTrack?.mvUrl);
+
+    const formatTime = (seconds: number | null) => {
+        if (!seconds) return "0:00";
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    };
+
+    return (
+        <div className="relative w-full h-full overflow-hidden flex flex-col md:flex-row">
+
+            {/* 1. Background Player (Controlled via Store) */}
+            <YouTubeBackground videoId={currentYoutubeId} isFullscreen={isFullscreen} />
+
+            {/* Fallback Background if no video */}
+            {!currentYoutubeId && (
+                <div className="absolute inset-0 z-0">
+                    {currentAlbum.coverImageUrl && (
+                        <Image
+                            src={currentAlbum.coverImageUrl}
+                            alt="Background"
+                            fill
+                            className="object-cover blur-xl opacity-50"
+                        />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-64 h-64 bg-white/10 rounded-full animate-pulse flex items-center justify-center backdrop-blur-sm">
+                            <Music size={64} className="text-white/50" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Fullscreen Close Button */}
+            {isFullscreen && (
+                <button
+                    onClick={() => setIsFullscreen(false)}
+                    className="absolute top-4 right-4 z-[60] p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+                >
+                    <Minimize2 size={24} />
+                </button>
+            )}
+
+            {/* 2. Left Side Panels (3 Cards) */}
+            <div className={`relative z-10 w-full md:w-[420px] h-full p-4 flex flex-col gap-4 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
+
+                {/* Card 1: Player Control */}
+                <div className="flex-none h-[200px] bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-5 flex flex-col justify-between shadow-xl">
+                    <div className="flex items-center gap-5">
+                        <div className={`relative w-24 h-24 rounded-full bg-black flex-shrink-0 border-4 border-gray-900 shadow-xl ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
+                            <div className="absolute inset-[32%] bg-orange-500 rounded-full border border-red-700 opacity-80" />
+                            <div className="absolute inset-[46%] bg-black rounded-full" />
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
+                        </div>
+
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            <div className="mb-2">
+                                <h2 className="text-white font-bold text-lg truncate leading-tight">{currentTrack?.title || "Select a track"}</h2>
+                                <p className="text-gray-300 text-sm truncate">NCT WISH</p>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <button className="text-gray-300 hover:text-white transition"><SkipBack size={20} /></button>
+                                <button
+                                    onClick={togglePlay}
+                                    className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition shadow-lg shadow-white/20"
+                                >
+                                    {isPlaying ? <Pause size={18} fill="black" /> : <Play size={18} fill="black" className="ml-1" />}
+                                </button>
+                                <button className="text-gray-300 hover:text-white transition"><SkipForward size={20} /></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => setIsFullscreen(true)}
+                        disabled={!currentYoutubeId}
+                        className="mt-1 w-full py-2 bg-black/40 hover:bg-black/60 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed border border-white/5"
+                    >
+                        <Maximize2 size={14} />
+                        {currentYoutubeId ? 'WATCH OFFICIAL MV' : 'NO MV AVAILABLE'}
+                    </button>
+                </div>
+
+                {/* Card 2: Tracklist */}
+                <div className="flex-1 min-h-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-0 flex flex-col shadow-xl overflow-hidden">
+                    <div className="p-4 pb-2 flex items-center gap-4 border-b border-white/10">
+                        <div className="relative w-14 h-14 flex-shrink-0 group">
+                            <div className="absolute top-0 right-0 w-12 h-12 bg-black rounded-full ml-6 mt-1 transition-transform group-hover:translate-x-2" />
+                            {currentAlbum.coverImageUrl && (
+                                <Image src={currentAlbum.coverImageUrl} alt="cover" fill className="relative z-10 rounded-md shadow-lg object-cover" />
+                            )}
+                        </div>
+                        <div className="min-w-0 pt-1">
+                            <h3 className="text-white font-bold text-base truncate">{currentAlbum.title}</h3>
+                            <p className="text-gray-400 text-xs">{sortedTracks.length} Songs</p>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
+                        {sortedTracks.map((track, idx) => {
+                            const isActive = currentTrack?.id === track.id;
+                            return (
+                                <div
+                                    key={track.id}
+                                    onClick={() => { playTrack(track); setPlaylist(sortedTracks); }}
+                                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition group hover:bg-white/5 ${isActive ? 'bg-white/10 border border-white/5' : ''}`}
+                                >
+                                    <span className={`text-xs w-5 text-center flex justify-center ${isActive ? 'text-wish-green' : 'text-gray-500'}`}>
+                                        {isActive ? <Volume2 size={14} className="animate-pulse" /> : track.trackNumber}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm truncate ${isActive ? 'text-white font-bold' : 'text-gray-300 group-hover:text-white'}`}>
+                                            {track.title}
+                                        </p>
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-mono">
+                                        {formatTime(track.durationSec)}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Card 3: Album Navigation */}
+                <div className="flex-none h-28 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2 flex items-center justify-between shadow-xl">
+                    <button
+                        onClick={() => currentIndex > 0 && onNavigate(currentIndex - 1)}
+                        disabled={currentIndex === 0}
+                        className="p-2 hover:bg-white/10 rounded-full disabled:opacity-30 transition text-white"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+
+                    <div className="flex-1 flex items-center justify-center gap-6 overflow-hidden h-full px-2">
+                        <div className="relative w-14 h-14 opacity-40 blur-[1px] scale-90 grayscale transition-all">
+                            {albums[currentIndex - 1]?.coverImageUrl && (
+                                <Image src={albums[currentIndex - 1].coverImageUrl!} alt="prev" fill className="object-cover rounded-md" />
+                            )}
+                        </div>
+
+                        <div className="relative w-20 h-20 z-10 transition-transform duration-300 hover:scale-105">
+                            <div className="absolute top-1/2 -right-3 w-16 h-16 -translate-y-1/2 bg-black rounded-full -z-10 shadow-lg" />
+                            {currentAlbum.coverImageUrl && (
+                                <Image src={currentAlbum.coverImageUrl} alt="current" fill className="object-cover rounded-md shadow-xl border border-white/10" />
+                            )}
+                        </div>
+
+                        <div className="relative w-14 h-14 opacity-40 blur-[1px] scale-90 grayscale transition-all">
+                            {albums[currentIndex + 1]?.coverImageUrl && (
+                                <Image src={albums[currentIndex + 1].coverImageUrl!} alt="next" fill className="object-cover rounded-md" />
+                            )}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => currentIndex < albums.length - 1 && onNavigate(currentIndex + 1)}
+                        disabled={currentIndex === albums.length - 1}
+                        className="p-2 hover:bg-white/10 rounded-full disabled:opacity-30 transition text-white"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
+            </div>
+
+            <button
+                onClick={onBack}
+                className="absolute top-4 left-4 z-20 md:hidden bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md"
+            >
+                ← List
+            </button>
+
+        </div>
+    );
+}
+
+// global window 타입 확장 (TypeScript용)
+declare global {
+  interface Window {
+    YT: typeof YT; 
+    onYouTubeIframeAPIReady: () => void;
+  }
+  
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace YT {
+    class Player {
+      constructor(element: HTMLElement | string | null, options: PlayerOptions);
+      playVideo(): void;
+      pauseVideo(): void;
+      stopVideo(): void;
+      setVolume(volume: number): void;
+      getVolume(): number;
+      mute(): void;
+      unMute(): void;
+      isMuted(): boolean;
+      loadVideoById(videoId: string): void;
+      getIframe(): HTMLIFrameElement;
+    }
+
+    interface PlayerOptions {
+      width?: string | number;
+      height?: string | number;
+      videoId?: string;
+      playerVars?: PlayerVars;
+      events?: Events;
+    }
+
+    interface PlayerVars {
+      autoplay?: 0 | 1;
+      controls?: 0 | 1;
+      disablekb?: 0 | 1;
+      fs?: 0 | 1;
+      loop?: 0 | 1;
+      modestbranding?: 0 | 1;
+      playsinline?: 0 | 1;
+      rel?: 0 | 1;
+      playlist?: string;
+      [key: string]: string | number | undefined;
+    }
+
+    interface Events {
+      onReady?: (event: OnReadyEvent | OnStateChangeEvent) => void;
+      onStateChange?: (event: OnReadyEvent | OnStateChangeEvent) => void;
+      [key: string]: ((event: OnReadyEvent | OnStateChangeEvent) => void) | undefined;
+    }
+
+    interface OnReadyEvent {
+      target: Player;
+    }
+
+    interface OnStateChangeEvent {
+      target: Player;
+      data: number; // PlayerState
+    }
+  }
+}

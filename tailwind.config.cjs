@@ -122,7 +122,7 @@ module.exports = {
       fontFamily: {
         pixel: ['var(--font-pixel)', 'monospace'],
         gothic: ['var(--font-gothic)', 'sans-serif'],
-        handwriting: ['var(--font-handwriting)', 'cursive'],
+        hand: ['var(--font-hand)', 'cursive'],
         code: ['var(--font-code)', 'monospace'],
       },
 
@@ -184,9 +184,9 @@ module.exports = {
       backgroundImage: {
         // 줄 공책 패턴
         'lined-paper': "repeating-linear-gradient(transparent, transparent 27px, #B4D4F1 27px, #B4D4F1 28px)",
-        'noise-texture': "url('/images/background/noise.png')",
+        'noise-texture': "url('/system/wallpapers/noise.png')",
         'main-gradient': "",
-        'sparkle-texture': "url('/images/background/Sparkle.png')",
+        'sparkle-texture': "url('/system/wallpapers/Sparkle.png')",
       },
 
       // 6. Animations

@@ -1,8 +1,15 @@
+/**
+ * Random Quote API Route
+ */
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET /api/widgets/quotes/random
+ * @returns {Promise<NextResponse>} HTTP 응답 객체
+ */
 export async function GET() {
   try {
     const count = await prisma.quote.count();
@@ -13,14 +20,14 @@ export async function GET() {
 
     const skip = Math.floor(Math.random() * count);
 
+    // 랜덤으로 하나의 명언을 조회
     const randomQuote = await prisma.quote.findFirst({
       skip: skip,
       include: {
         member: {
           select: {
             stageName: true,
-            profileImageUrl: true, // 프로필 사진 (없으면 아이콘 대체)
-            iconUrl: true,         // 아이콘
+            characterUrl: true,
             colorCode: true,
           },
         },
@@ -31,7 +38,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Quote not found' }, { status: 404 });
     }
 
-    return NextResponse.json(randomQuote);
+    const responseData = {
+      ...randomQuote,
+      member: {
+        ...randomQuote.member,
+        characterUrl: randomQuote.member.characterUrl || null,
+        colorCode: randomQuote.member.colorCode || null,
+      },
+    };
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Error fetching random quote:', error);

@@ -18,13 +18,16 @@ export type AppType =
     | 'RECYCLE_BIN'  // 휴지통
     | 'README';      // README 파일
 
-// 개별 창(Window) 상태 인터페이스
-export interface WindowState {
+// 앱 기본 정보
+export interface AppInfo {
     id: string;               // 고유 ID
-    appType: AppType;         // 앱 종류
+    type: AppType;            // 앱 종류
     title: string;            // 창 제목
     icon: string;             // 창 아이콘 경로
+}
 
+// 개별 창(Window) 상태 인터페이스
+export interface WindowState extends AppInfo {
     isMinimized: boolean;     // 최소화 여부
     isMaximized: boolean;     // 최대화 여부
     zIndex: number;           // 레이어 순서 (높을수록 맨 앞)
@@ -43,6 +46,9 @@ export interface WindowState {
 interface WindowStore {
     windows: WindowState[];         // 열려있는 창들
     activeWindowId: string | null;  // 현재 활성화(포커스)된 창 ID
+    recentApps: AppInfo[];          // 최근 사용한 앱 목록
+
+    backgroundImage: string | null; // 바탕화면 이미지 경로
 
     // 액션 (기능)
     openWindow: (app: { id: string; type: AppType; title: string; icon: string; defaultPosition?: { x: number; y: number }; defaultSize?: { width: number; height: number }; }) => void;
@@ -52,39 +58,51 @@ interface WindowStore {
     maximizeWindow: (id: string) => void;
     updateWindowPosition: (id: string, position: { x: number; y: number }) => void;
     updateWindowSize: (id: string, size: { width: number; height: number }) => void;
+    setBackgroundImage: (url: string | null) => void;
 }
 
 // Zustand를 사용한 윈도우 스토어 생성
 export const useWindowStore = create<WindowStore>((set, get) => ({
     windows: [],
     activeWindowId: null,
+    recentApps: [],
+    backgroundImage: null,
 
     // 1. 창 열기
     openWindow: (app) => {
-        const { windows } = get();
+        const { windows, recentApps } = get();
+
+        // 최근 앱 기록 업데이트
+        const newAppInfo: AppInfo = {
+            id: app.id,
+            type: app.type,
+            title: app.title,
+            icon: app.icon,
+        };
+        const updatedRecentApps = [
+            newAppInfo,
+            ...recentApps.filter((a) => a.id !== app.id)
+        ].slice(0, 3);
         
         // 이미 열려있는지 확인
         const existingWindow = windows.find((w) => w.id === app.id);
+
         if (existingWindow) {
             get().focusWindow(app.id); // 맨 앞으로
-            if (existingWindow.isMinimized) {
-                get().minimizeWindow(app.id); // 최소화 해제
-            }
+            set({ recentApps: updatedRecentApps });
             return;
         }
 
         // 새 창 열기 (가장 높은 z-index + 1)
         const maxZ: number = windows.length > 0 ? Math.max(...windows.map((w) => w.zIndex)) : 10;
         
-        // Cascading 위치 계산
-        // 현재 열려있는 창의 개수를 기준으로 오른쪽 아래로 밀어서 배치
-        // offset을 40px로 증가하여 더 명확한 cascading 효과
-        const cascadeOffset: number = windows.length * 40;
-        const baseX = 100;
+        // Cascading 위치 계산 (현재 열려있는 창의 개수를 기준으로 오른쪽 아래로 밀어서 배치)
+        const cascadeOffset: number = windows.length * 30;
+        const baseX = 50;
         const baseY = 50;
         
         // 화면을 벗어나지 않도록 최대 offset 제한 (최대 10개 창까지 cascading)
-        const maxOffset = 400;
+        const maxOffset = 150;
         const limitedOffset = Math.min(cascadeOffset, maxOffset);
         
         const finalPosition = app.defaultPosition || { 
@@ -94,10 +112,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
         const finalSize = app.defaultSize || { width: 600, height: 400 };
 
         const newWindow: WindowState = {
-            id: app.id,
-            appType: app.type,
-            title: app.title,
-            icon: app.icon,
+            ...newAppInfo,
             isMinimized: false,
             isMaximized: false,
             zIndex: maxZ + 1,
@@ -108,6 +123,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
         set((state) => ({
             windows: [...state.windows, newWindow],
             activeWindowId: app.id,
+            recentApps: updatedRecentApps,
         }));
     },
 
@@ -219,5 +235,16 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
                 w.id === id && !w.isMaximized ? { ...w, size } : w
             ),
         }));
+    },
+
+    // 8. 바탕화면 이미지 설정
+    setBackgroundImage: (url) => {
+        set({ backgroundImage: url });
+        const desktopEl = document.getElementById('desktop-background');
+        if (desktopEl) {
+            desktopEl.style.backgroundImage = `url(${url})`;
+            desktopEl.style.backgroundSize = 'cover';
+            desktopEl.style.backgroundPosition = 'center';
+        }
     },
 }));

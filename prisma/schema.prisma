@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ===========================
@@ -114,7 +115,7 @@ enum MediaType {
   PERFORMANCE // 퍼포먼스
   RECORDING_BEHIND // 녹음 비하인드
   POSTER
-  OTHER
+  DATA_PIC // 홈마 사진
 }
 
 // 크레딧 역할 (작사/작곡/편곡/프로듀서 등)
@@ -159,6 +160,8 @@ enum ContentType {
   PERFORMANCE_CLIP
   UNBOXING
   ANNOUNCEMENT
+  FANCAM
+  OFFICIAL_CAM
   OTHER
 }
 
@@ -271,9 +274,10 @@ model Member {
   externalLinks ExternalLink[]
   medias        Media[]
   quotes        Quote[]
-  photoCards    DigitalPhotoCard[]
+  photoCards    PhotoCard[]
   albumEditions AlbumEdition[]
   awardWins     AwardWin[]
+  appearances   Appearance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -337,7 +341,6 @@ model Album {
   contents       Content[]
   salesDaily     AlbumDailySales[]
   awards         AwardWin[]         @relation("AlbumAwards")
-  photoCards     DigitalPhotoCard[]
   era            Era?
 
   createdAt DateTime @default(now())
@@ -575,8 +578,6 @@ model Event {
   medias        Media[]
   contents      Content[]
 
-  digitalPhotoCard DigitalPhotoCard[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -726,6 +727,7 @@ model Appearance {
   date    DateTime // 출연 날짜
   title   String? // 출연 제목
   episode String? // 회차 정보
+  members Member[]
 
   // --- b. 분류 플래그 ---
   isPerformance Boolean @default(false) // 무대/공연 여부 (무대 모아보기 필터용)
@@ -988,7 +990,6 @@ model Content {
 
   // --- b. 기능용 플래그 ---
   isHighlight Boolean @default(false)
-  tags        String? // 검색 태그
 
   // --- c. 관계 ---
   groupId String?
@@ -1011,6 +1012,8 @@ model Content {
 
   appearanceId String?
   appearance   Appearance? @relation("AppearanceContent", fields: [appearanceId], references: [id], onDelete: SetNull)
+
+  tags          String[]
 
   // 출연 멤버 & 통계
   members    MemberOnContent[]
@@ -1327,13 +1330,12 @@ model Wish {
   createdAt DateTime @default(now())
 }
 
-// === 33. [PhotoCard 위젯] DIGITAL PHOTOCARD ===
-model DigitalPhotoCard {
+// === 33. [PhotoCard 위젯] PHOTOCARD ===
+model PhotoCard {
   id       String  @id @default(cuid())
   name     String // 카드 이름
   imageUrl String // 앞면
   backUrl  String? // 뒷면 (싸인 등)
-  rarity   String  @default("COMMON") // COMMON, RARE, LEGENDARY (홀로그램 효과)
 
   // --- a. 멤버 연결 ---
   memberId String?
@@ -1341,12 +1343,7 @@ model DigitalPhotoCard {
 
   // --- b. 출처 분류 ---
   sourceType PhotoCardSource @default(ALBUM)
-
-  albumId String?
-  album   Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
-
-  eventId String?
-  event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  versionName   String?
 
   createdAt DateTime @default(now())
 }
@@ -1367,4 +1364,13 @@ model PlaylistTrack {
   isActive Boolean @default(true) // 노출 여부
 
   createdAt DateTime @default(now())
+}
+
+// === 35. [Polaroid 위젯] POLAROID ===
+model Polaroid {
+  id          String  @id @default(cuid())
+  imageUrl    String  // 사진 경로
+  caption     String  // 손글씨 멘트
+
+  createAt    DateTime @default(now())
 }

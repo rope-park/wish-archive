@@ -6,9 +6,11 @@
  * - 윈도우 프레임 컴포넌트로 감싸서 창 관리 기능 제공
  */
 
+/* TODO: 앱과 위젯 렌더링 분리 */
+
 'use client';
 
-import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
+import { useWindowStore, AppType, WindowState } from '@/app/stores/useWindowStore';
 import { WindowFrame } from '..';
 
 // 앱 컴포넌트 Imports
@@ -22,6 +24,8 @@ import {
     WichuTamagotchiWidget,
     WishJarWidget
 } from '../widgets';
+
+import { MyWish, WishWorld, WishArchive, WishGallery, Discography } from '@/components/apps';
 
 function PlaceholderApp({ type }: { type: string }) {
   return (
@@ -39,16 +43,20 @@ export default function WindowRenderer() {
     const { windows, closeWindow, minimizeWindow, maximizeWindow } = useWindowStore();
 
     // 앱 타입에 따른 컴포넌트 매핑
-    const renderAppContent = (type: AppType) => {
+    const renderAppContent = (type: AppType, windowId: string) => {
         switch (type) {
             case 'TO_WISH':
                 return <WishJarWidget />;
             case 'MY_WISH':
-            case 'DISCOGRAPHY':
-            case 'WISH_ARCHIVE':
-            case 'WISH_GALLERY':
+                return <MyWish onClose={() => closeWindow(windowId)}/>;
             case 'WISH_WORLD':
-            case 'RECYCLE_BIN':
+                return <WishWorld onClose={() => closeWindow(windowId)}/>;
+            case 'WISH_ARCHIVE':
+                return <WishArchive onClose={() => closeWindow(windowId)}/>;
+            case 'WISH_GALLERY':
+                return <WishGallery onClose={() => closeWindow(windowId)} />;
+            case 'DISCOGRAPHY':
+                return <Discography onClose={() => closeWindow(windowId)} />;
             case 'README':
             default:
                 return <PlaceholderApp type={type} />;
@@ -66,7 +74,7 @@ export default function WindowRenderer() {
                     initialSize={win.size}
                     initialPosition={win.position}
                 >
-                    {renderAppContent(win.appType)}
+                    {renderAppContent(win.type, win.id)}
                 </WindowFrame>
             ))}
         </>

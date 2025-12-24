@@ -8,6 +8,7 @@
 
 import Image from 'next/image';
 import { MouseEventHandler } from 'react';
+import { useWindowStore } from '@/app/stores/useWindowStore';
 
 interface DesktopIconProps {
   label: string;        // 아이콘 이름 

@@ -2,7 +2,7 @@
  * WindowFrame 컴포넌트
  * 
  * - 윈도우 스타일의 프레임 제공
- * - 드래그 가능한 헤더 (추후 Draggable 라이브러리 연동 가능)
+ * - 드래그 가능한 헤더
  * - 반응형 크기 조절
  */
 
@@ -11,7 +11,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWindowStore } from '@/app/stores/useWindowStore';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface WindowFrameProps {
   id: string;           // 윈도우 고유 ID
@@ -32,14 +32,17 @@ export default function WindowFrame({
   initialSize = { width: 600, height: 400 },
   initialPosition = { x: 50, y: 50 },
 }: WindowFrameProps) {
+  // Store에서 윈도우 상태 및 액션 가져오기
   const { windows, activeWindowId, closeWindow, focusWindow, minimizeWindow, maximizeWindow, updateWindowPosition, updateWindowSize } = useWindowStore();
+
   const windowState = windows.find(w => w.id === id);
   const isFocused = activeWindowId === id;
 
+  // 반응형 상태
   const [isMobile, setIsMobile] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // 1. 반응형 처리 (모바일 여부 감지)
+  // 1. 마운트 및 모바일 감지
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
@@ -50,65 +53,82 @@ export default function WindowFrame({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  if (!isMounted || !windowState || windowState.isMinimized) return null; // SSR 문제 방지
+  if (!isMounted || !windowState ) return null;
 
-  // 2. [모바일 뷰] 최대화 상태로 고정
+  const displayStyle = windowState.isMinimized ? 'none' : 'flex';
+
+  // 2. [Mobile] 최대화 상태로 고정
   if (isMobile) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[50] flex flex-col bg-[#c0c0c0] pb-[50px]"
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+
+        className={`
+          fixed top-0 left-0 right-0
+          flex flex-col
+          bg-[#c0c0c0]
+          border-0
+          shadow-2xl
+          pt-safe
+          `}
+        style={{
+          height: 'calc(100dvh - 40px)',
+          zIndex: windowState.zIndex,
+          display: displayStyle,
+        }}
         onClick={() => focusWindow(id)}
       >
-        {/* 모바일 헤더 */}
+        {/* 헤더 */}
         <div className="
-          h-10 shrink-0
+          h-12 shrink-0
           bg-linear-to-r from-[#ff2e93] to-[#ff8fab]
           flex items-center justify-between px-3
           border-b-2 border-white border-t-2 border-t-white/50
           shadow-md
         ">
-          <div className="flex items-center gap-2">
-            {iconSrc && <img src={iconSrc} alt="" className="w-5 h-5 object-contain filter drop-shadow-sm" />}
-            <span className="text-white font-bold font-pixel text-sm truncate max-w-[200px] drop-shadow-md">
+          <div className="flex items-center gap-2 overflow-hidden">
+            {iconSrc && (
+              <img src={iconSrc} alt="" className="w-6 h-6 object-contain filter drop-shadow-sm" />
+            )}
+            <span className="text-white font-bold font-pixel text-base truncate drop-shadow-md">
               {title}.exe
             </span>
           </div>
 
-          <div className="flex gap-2">
-            <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} />
-            <WindowControlBtn type="close" onClick={() => closeWindow(id)} />
+          <div className="flex gap-3">
+            <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} isMobile />
+            <WindowControlBtn type="close" onClick={() => closeWindow(id)} isMobile />
           </div>
         </div>
 
-        {/* 모바일 컨텐츠 */}
-        <div className="flex-1 overflow-auto bg-white custom-scrollbar">
+        {/* [Mobile] 콘텐츠 */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white custom-scrollbar relative">
           {children}
         </div>
 
-        {/* 모바일 상태바 */}
+        {/* [Mobile] 상태바 */}
         <div className="
-          h-6 px-2 shrink-0
+          h-6 px-3 shrink-0
           flex justify-between items-center
           bg-[#e0e0e0]
           border-t-2 border-gray-400
           shadow-inset
           text-[10px] font-pixel text-gray-600 select-none
         ">
-          <span className="truncate">Connected to WISH World...</span>
+          <span className="truncate max-w-[150px]">Running on WISH OS Mobile</span>
           <div className="flex gap-2">
-            <span>Mem: 128MB</span>
-            <span className="text-green-600 font-bold">Online</span>
+            <span>Mem: 221MB</span>
+            <span className="text-green-600 font-bold">● Online</span>
           </div>
         </div>
       </motion.div>
     );
   }
 
-  // 3. [데스크탑 뷰] 드래그 윈도우 (Desktop Window)
+  // 3. [Desktop] 드래그 윈도우
   return (
     <Rnd
       // 최대화 상태일 때는 위치(0,0)와 크기(100%) 고정, 아니면 store의 값 사용
@@ -130,7 +150,8 @@ export default function WindowFrame({
 
       onDragStart={() => focusWindow(id)}
       onDragStop={(e, d) => {
-        updateWindowPosition(id, { x: d.x, y: d.y });
+        if (!windowState.isMaximized)
+          updateWindowPosition(id, { x: d.x, y: d.y });
       }}
 
       onResizeStart={() => focusWindow(id)}
@@ -144,38 +165,46 @@ export default function WindowFrame({
 
       onMouseDown={() => focusWindow(id)}
 
-      style={{ 
+      style={{
         zIndex: windowState.zIndex,
-        display: 'flex',  // Rnd의 기본 inline-block을 flex로 오버라이드
+        display: displayStyle,  // Rnd의 기본 inline-block을 flex로 오버라이드
       }}
 
       className={`
         flex-col bg-[#c0c0c0] 
         border-2 border-[#dfdfdf] border-r-black border-b-black
         shadow-[4px_4px_10px_rgba(0,0,0,0.3)]
+        ${className}
+        ${windowState.isMaximized 
+          ? '!fixed !top-0 !left-0 !right-0 !bottom-12 !w-auto !h-auto !transform-none' 
+          : ''
+        }
       `}
       dragHandleClassName="window-header"
     >
-      {/* 데스크탑 헤더 */}
+      {/* [Desktop] 헤더 */}
       <div
         onDoubleClick={() => maximizeWindow(id)} // 더블클릭 시 최대화 토글
         className={`
           window-header h-8 px-2 shrink-0
           flex items-center justify-between 
           cursor-default select-none border-b-2 border-[#808080]
+          transition-colors duration-150
           ${isFocused
             ? 'bg-linear-to-r from-[#ff2e93] to-[#ff8fab]'
             : 'bg-gray-400'}
         `}
       >
         <div className="flex items-center gap-2">
-          {iconSrc && <img src={iconSrc} alt="" className="w-4 h-4 object-contain filter drop-shadow-sm" />}
+          {iconSrc && (
+            <img src={iconSrc} alt="" className="w-4 h-4 object-contain filter drop-shadow-sm" />
+          )}
           <span className="text-white font-bold font-pixel text-sm tracking-wide drop-shadow-sm">
             {title}.exe
           </span>
         </div>
 
-        {/* 윈도우 컨트롤 버튼 그룹 */}
+        {/* [Desktop] 윈도우 컨트롤 버튼 그룹 */}
         <div className="flex gap-1" onMouseDown={(e) => e.stopPropagation()}>
           <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} />
           <WindowControlBtn
@@ -189,12 +218,12 @@ export default function WindowFrame({
       {/* 툴바/메뉴바 영역 (옵션 - 필요시 여기에 MenuBar 추가) */}
       {/* <div className="h-7 bg-gray-200 border-b border-white shadow-inset">...</div> */}
 
-      {/* 컨텐츠 영역 (Body) - 흰색 배경으로 꽉 채우기 */}
-      <div className="flex-1 overflow-auto custom-scrollbar bg-white">
+      {/* [Desktop] 컨텐츠 영역 (Body) */}
+      <div className="flex-1 overflow-auto custom-scrollbar bg-white relative">
         {children}
       </div>
-
-      {/* 상태바 (Status Bar) - 창의 맨 아래에 고정 */}
+ 
+      {/* [Desktop] 상태바 */}
       <div className="
         h-6 px-2 shrink-0
         flex justify-between items-center
@@ -205,24 +234,22 @@ export default function WindowFrame({
       ">
         <span className="truncate">Connected to WISH World...</span>
         <div className="flex gap-2">
-          <span>Mem: 128MB</span>
-          <span className="text-green-600 font-bold">Online</span>
+          <span>Mem: 221MB</span>
+          <span className="text-green-600 font-bold">● Online</span>
         </div>
       </div>
     </Rnd >
   );
 }
 
-
-
 // 윈도우 컨트롤 버튼 컴포넌트
-function WindowControlBtn({
-  type,
-  onClick,
-}: {
+interface WindowControlBtnProps {
   type: 'minimize' | 'maximize' | 'restore' | 'close';
   onClick: () => void;
-}) {
+  isMobile?: boolean;
+}
+
+function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnProps) {
   // 버튼 타입별 라벨 및 스타일
   const isClose = type === 'close';
 
@@ -230,32 +257,30 @@ function WindowControlBtn({
   switch (type) {
     case 'minimize': label = '_'; break;
     case 'maximize': label = '□'; break;
-    case 'restore': label = '❐'; break; // 복구 아이콘
+    case 'restore': label = '❐'; break;
     case 'close': label = '✕'; break;
   }
+
+  const sizeClasses = isMobile
+    ? "w-8 h-8 text-sm"
+    : "w-5 h-5 md:w-6 md:h-6 text-[10px] md:text-xs";
 
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       className={`
-        w-5 h-5 md:w-6 md:h-6 
+        ${sizeClasses}
         flex items-center justify-center
-        bg-white/20 shadow-outset
+        bg-[#c0c0c0] shadow-outset
         border border-white
-        shadow-outset active:shadow-inset active:translate-y-[1px]
+        active:shadow-inset active:translate-y-[1px]
         transition-colors
-        font-pixel text-[10px] text-white leading-none
-        ${isClose ? 'hover:bg-red-500/80' : 'hover:bg-white/80'}
+        font-pixel text-black leading-none font-bold
+        ${isClose ? 'hover:bg-red-500/80 hover:text-white' : 'hover:bg-white/80'}
       `}
       aria-label={type}
     >
-      <span className={`
-        font-bold text-black leading-none
-        ${type === 'minimize' ? 'mb-2 text-[10px]' : 'text-[10px] md:text-xs'}
-        ${type === 'restore' ? 'text-[8px] md:text-[10px]' : ''}
-      `}>
-        {label}
-      </span>
+      {label}
     </button>
   );
 }

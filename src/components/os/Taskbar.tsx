@@ -1,5 +1,5 @@
 /**
- * Taskbar (작업 표시줄)
+ * Taskbar (작업 표시줄) 컴포넌트
  * 
  * - Colocation(파일 내 분리): 메인 컴포넌트 + 하위 컴포넌트들
  * - 하위 컴포넌트: 시작 버튼 (홈으로 이동), 앱 아이콘 독 (메뉴 이동), 시스템 트레이 (시계)
@@ -12,14 +12,15 @@ import Image from 'next/image';
 import { StartMenu } from '../os';
 import { Button, Divider, Tooltip } from '../ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
+import { useAudioStore } from '@/app/stores/useAudioStore';
 
 // [하위 컴포넌트] 시작 버튼
 function StartButton() {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // 바깥 클릭 시 메뉴 닫기
+  // 바깥 클릭 시 메뉴 닫기
+  useEffect(() => {    
     function handleClickOutside(event: MouseEvent) {
       if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -30,7 +31,7 @@ function StartButton() {
   }, []);
 
   return (
-    <div className="shrink-0 relative" ref={buttonRef}>
+    <div className="shrink-0 relative h-full flex items-center" ref={buttonRef}>
       {/* 시작 메뉴 (버튼 위에 렌더링) */}
       <StartMenu
         isOpen={isOpen}
@@ -41,20 +42,24 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-[38px] px-2 md:px-4 text-lg md:text-xl font-bold gap-2 
-          ${isOpen ? 'bg-dither shadow-inset' : 'bg-gray-200'} // 열리면 눌린 상태
+          h-full max-h-[32px] md:max-h-[38px]
+          px-3 md:px-4
+          gap-1 md:gap-2
+          font-bold text-lg md:text-xl
+          transition-all
+          ${isOpen ? 'bg-dither shadow-inset translate-y-[1px]' : 'bg-gray-200'} // 열리면 눌린 상태
         `}
         onClick={() => setIsOpen(!isOpen)}
         isActive={isOpen}
       >
-        <span className="text-brand-primary drop-shadow-md">★</span>
-        <span className="hidden md:inline font-pixel pt-1">START</span>
+        <span className="text-brand-retro-navy drop-shadow-md text-base md:text-lg">★</span>
+        <span className="hidden md:inline font-pixel pt-1 text-sm md:text-base">START</span>
       </Button>
     </div>
   );
 }
 
-// [하위 컴포넌트] 시계
+// [하위 컴포넌트] 시스템 시계
 function SystemClock() {
   const [time, setTime] = useState<string>('');
 
@@ -74,12 +79,14 @@ function SystemClock() {
 
   return (
     <div className="
-      h-[37px] min-w-[90px] md:min-w-[110px] px-2
+      h-[28px] md:h-[36px]
+      min-w-[70px] md:min-w-[110px]
+      px-1 md:px-2
       flex items-center justify-center
       bg-gray-300 border border-gray-400 shadow-inset
     ">
-      <span className="font-pixel text-sm md:text-xl tracking-wide pt-1 truncate">
-        {time}
+      <span className="font-pixel text-[10px] md:text-sm pt-0.5 truncate select-none">
+        {time || '--:-- --'}
       </span>
     </div>
   );
@@ -90,16 +97,13 @@ function SystemTray() {
   // 트레이 아이콘 데이터
   /** TODO: 아이콘 이미지 추가 */
 
-  // 볼륨 상태 관리
-  const [isMuted, setIsMuted] = useState(false);
-
-  // 메일 상태
+  const { isMuted, volume, toggleMute } = useAudioStore();
   /** TODO: 전역 상태로 관리 */
   const [hasNewMail, setHasNewMail] = useState(true);
 
   return (
     <div className="
-      hidden md:flex items-center gap-1 px-2 py-1 h-[37px] 
+      hidden md:flex items-center gap-1 px-2 h-[36px] 
       bg-gray-200 shadow-inset border border-gray-400
       select-none
     ">
@@ -116,6 +120,7 @@ function SystemTray() {
 
       {/* Mail: 새 소식 알림 */}
       {/* 메일이 있을 때만 깜빡거리는 애니메이션 추가 */}
+      {/* TODO: 실제 방명록 데이터와 연동 */}
       <Tooltip content={hasNewMail ? "새로운 방명록이 도착했습니다!" : "새로운 메시지가 없습니다."}>
         <div
           onClick={() => setHasNewMail(false)} // 클릭하면 읽음 처리
@@ -134,7 +139,7 @@ function SystemTray() {
           w-6 h-6 flex items-center justify-center 
           cursor-default animate-pulse
         ">
-          <span className="text-xs text-red-600 drop-shadow-[1px_1px_0_#000]">
+          <span className="text-xs text-green-400 drop-shadow-[1px_1px_0_#000]">
             ❤
           </span>
         </div>
@@ -148,9 +153,10 @@ function SystemTray() {
       </Tooltip>
 
       {/* Volume: 음소거 토글 */}
-      <Tooltip content={isMuted ? "음소거 켜짐" : "볼륨: 100%"}>
+      {/* 실제 오디오 볼륨과 연동됨 */}
+      <Tooltip content={isMuted ? "음소거 켜짐" : `볼륨: ${volume}%`}>
         <button
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={toggleMute}
           className="
             w-6 h-6 flex items-center justify-center 
             hover:bg-gray-300 active:translate-y-[1px] rounded-sm
@@ -179,21 +185,24 @@ export default function Taskbar() {
 
   return (
     <nav className="
-      fixed bottom-0 left-0 z-[100]
-      w-full h-[50px] px-1 pb-1
-      flex items-center gap-2
-      bg-gray-200
+      fixed bottom-0 left-0 right-0
+      z-[var(--z-taskbar)]
+      h-11 md:h-12
+      pb-safe
+      bg-[#c0c0c0]
       border-t-2 border-white
       shadow-[0_-4px_10px_rgba(0,0,0,0.1)]
+
+      flex items-center px-1 gap-1 md:gap-2
     ">
 
-      {/* 시작 버튼 영역 */}
+      {/* [좌측] 시작 버튼 영역 */}
       <StartButton />
 
-      <div className="h-[36px] mx-1"><Divider orientation="vertical" /></div>
+      <div className="h-[28px] md:h-[36px]"><Divider orientation="vertical" /></div>
 
-      {/* 태스크 탭 영역 (열린 창 목록 렌더링) */}
-      <div className="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar px-1 h-full">
+      {/* [중앙] 윈도우 태스크 탭 영역 (열린 창 목록 렌더링) */}
+      <div className="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar h-full py-1 pl-1">
         {windows.map((win) => {
           // 활성 상태 조건: 현재 ID와 일치하고, 최소화 상태가 아닌 경우
           const isActive = activeWindowId === win.id && !win.isMinimized;
@@ -204,35 +213,40 @@ export default function Taskbar() {
               key={win.id}
               onClick={() => handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-[38px] flex-1
-                min-w-[40px] max-w-[200px]
-                flex items-center justify-center gap-2 px-2
+                h-full max-h-[32px] md:max-h-[36px]
+                w-9 md:w-auto md:min-w-[40px] md:max-w-[180px] md:flex-1
+                flex items-center justify-center md:justify-start gap-2 px-1 md:px-2
                 border rounded-sm
                 transition-all select-none
 
                 /* 상태에 따른 스타일 분기 */
                 ${isActive
-                  ? 'bg-white shadow-inset font-bold translate-y-[1px] border-gray-400' // 활성: 눌린 상태, 흰색 배경
+                  ? 'bg-white shadow-inset border-gray-500 translate-y-[1px] font-bold' // 활성: 눌린 상태, 흰색 배경
                   : isFocused 
-                    ? 'bg-gray-300 shadow-outset border-gray-500 hover:bg-gray-200' // 포커스(최소화): 회색, 약간 어두운 테두리
-                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-400' // 비활성: 기본 상태
+                    ? 'bg-gray-300 shadow-outset border-gray-400 hover:bg-gray-200' // 포커스(최소화): 회색, 약간 어두운 테두리
+                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-100' // 비활성: 기본 상태
                 }
               `}
             >
-              {/* 아이콘 + 제목 */}
-              {win.icon.startsWith('/') ? (
-                <Image
-                  src={win.icon}
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="w-5 h-5 object-contain shrink-0"
-                />
-              ) : (
-                <span className="text-lg shrink-0">{win.icon}</span>
-              )}
+              {/* 아이콘 */}
+              <div className={`
+                relative flex items-center justify-center
+                w-5 h-5 md:w-4 md:h-4
+                ${isActive ? 'opacity-100' : 'opacity-80 grayscale-[0.3]'}
+              `}>
+                {win.icon.startsWith('/') ? (
+                  <Image src={win.icon} alt="" fill className="object-contain" />
+                ) : (
+                  <span className="text-lg md:text-base leading-none">{win.icon}</span>
+                )}
+              </div>
 
-              <span className="font-pixel text-sm pt-1 truncate flex-1 text-left min-w-0 hidden [@media(min-width:100px)]:inline">
+              {/* 제목 */}
+              <span className={`
+                font-pixel text-xs md:text-sm pt-0.5 truncate flex-1 text-left
+                ${isActive ? 'text-black': 'text-gray-700'}
+                hidden sm:inline
+              `}>
                 {win.title}
               </span>
             </button>
@@ -240,10 +254,10 @@ export default function Taskbar() {
         })}
       </div>
 
-      <div className="hidden md:block h-[36px] mx-1"><Divider orientation="vertical" /></div>
+      <div className="h-[28px] md:h-[36px]"><Divider orientation="vertical" /></div>
 
-      {/* 트레이 & 시계 영역 */}
-      <div className="flex gap-2 shrink-0">
+      {/* [우측] 트레이 & 시계 영역 */}
+      <div className="flex gap-1 md:gap-2 shrink-0 items-center h-full py-1">
         <SystemTray />
         <SystemClock />
       </div>

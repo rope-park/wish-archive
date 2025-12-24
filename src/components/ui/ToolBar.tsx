@@ -33,7 +33,8 @@ export default function Toolbar({
         /* 상단: 흰색 하이라이트 */
         border-t border-white
         /* 하단: 어두운 그림자 (#808080) */
-        border-b border-gray-400 
+        border-b border-gray-400
+        select-none
         
         ${className}
       `}
@@ -44,16 +45,21 @@ export default function Toolbar({
       {hasGripper && (
         <div 
           className="
-            w-[3px] h-[70%] mx-1
+            w-[3px] h-[60%] mx-1
             border-l border-white      /* 왼쪽: 하이라이트 */
-            border-r border-gray-400   /* 오른쪽: 그림자 */
+            border-r border-gray-500   /* 오른쪽: 그림자 */
           " 
           aria-hidden="true"
         />
       )}
 
       {/* 내용물 컨테이너 */}
-      <div className="flex-1 flex items-center h-full gap-2 overflow-hidden px-1">
+      <div className="
+        flex-1 flex items-center h-full gap-2
+        px-1
+        overflow-x-auto overflow-y-hidden
+        no-scrollbar
+      ">
         {children}
       </div>
     </div>

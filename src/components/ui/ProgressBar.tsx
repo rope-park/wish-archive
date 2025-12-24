@@ -6,9 +6,8 @@
  * - 상단 라벨 및 우측 값 표시 기능
  * - 내부에 광택 효과 포함
  */
-'use client';
 
-import { useMemo } from 'react';
+'use client';
 
 export interface ProgressBarProps {
   value: number;       // 현재 값
@@ -31,7 +30,7 @@ export default function ProgressBar({
   variant = 'smooth',
   className = '',
 }: ProgressBarProps) {
-  
+
   // 퍼센트 계산 (0~100)
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
@@ -45,29 +44,28 @@ export default function ProgressBar({
     purple: 'bg-brand-character-sion',  // #9B419B
     lime: 'bg-accent-neon-lime',        // #CCFF00
   };
-  
+
   // 크기 설정 (높이)
   const heightClass = {
-    sm: 'h-3',
-    md: 'h-4',
-    lg: 'h-6',
+    sm: 'h-4',
+    md: 'h-6',
+    lg: 'h-8',
   };
 
-  // 'Blocks' 모드일 때 벽돌 개수 계산
-  // (예: 100%면 벽돌 20개, 50%면 10개)
+  // 'Blocks' 모드일 때 벽돌 개수 계산 및 렌더링
   const renderBlocks = () => {
-    const totalBlocks = 20; // 전체 벽돌 개수
+    const totalBlocks = 30;
     const activeBlocks = Math.round((percentage / 100) * totalBlocks);
-    
+
     return (
       <div className="flex w-full h-full gap-[2px] px-[2px] items-center">
         {Array.from({ length: totalBlocks }).map((_, i) => (
           <div
             key={i}
             className={`
-              flex-1 h-[80%] 
+              flex-1 h-[70%] 
               ${i < activeBlocks ? colorMap[color] : 'bg-transparent'}
-              ${i < activeBlocks ? 'shadow-none' : ''}
+              ${i < activeBlocks ? 'shadow-[inset_1px_1px_0px_rgba(255,255,255,0.4)]' : ''}
             `}
           />
         ))}
@@ -76,12 +74,19 @@ export default function ProgressBar({
   };
 
   return (
-    <div className={`w-full flex flex-col gap-1 ${className}`}>
-      
+    <div
+      className={`w-full flex flex-col gap-1 ${className}`}
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      aria-label={label || 'Progress Bar'}
+    >
+
       {/* 라벨 영역 (옵션) */}
       {(label || showValueLabel) && (
-        <div className="flex justify-between items-end font-pixel text-xs text-gray-900 px-0.5">
-          {label && <span>{label}</span>}
+        <div className="flex justify-between items-end font-pixel text-xs text-gray-900 px-0.5 select-none">
+          {label ? <span>{label}</span> : <span />}
           {showValueLabel && <span>{Math.round(percentage)}%</span>}
         </div>
       )}
@@ -90,23 +95,30 @@ export default function ProgressBar({
       <div className={`
         relative w-full overflow-hidden
         bg-white
-        border border-gray-600
-        shadow-inset
+        border-2
+        border-t-gray-600 border-l-gray-600
+        border-r-white border-b-white
+
         ${heightClass[size]}
-        rounded-none
       `}>
-        
+
         {variant === 'smooth' ? (
           // A. Smooth 모드 (일반 막대)
-          <div
-            className={`h-full transition-all duration-300 ${colorMap[color]}`}
-            style={{ width: `${percentage}%` }}
-          >
-            {/* 광택 효과 (선택) */}
-            <div className="w-full h-1/2 bg-white/30" />
+          <div className="w-full h-full p-[2px]">
+            <div
+              className={`
+                h-full transition-all duration-300 ease-out 
+                ${colorMap[color]}
+                relative
+              `}
+              style={{ width: `${percentage}%` }}
+            >
+              {/* 광택 효과 (상단 하이라이트) */}
+              <div className="absolute top-0 left-0 w-full h-[40%] bg-white/30" />
+            </div>
           </div>
         ) : (
-          // B. Blocks 모드 (윈도우 98 벽돌)
+          // B. Blocks 모드 (벽돌)
           renderBlocks()
         )}
 

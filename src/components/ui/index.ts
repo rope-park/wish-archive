@@ -34,6 +34,9 @@ export type { EmptyStateProps } from './EmptyState';
 export { default as Input } from './Input';
 export type { InputProps } from './Input';
 
+export { default as MenuBar } from './MenuBar';
+export type { MenuItemType } from './MenuBar';
+
 export { default as Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
@@ -66,6 +69,9 @@ export type { TabsProps, TabItem } from './Tabs';
 
 export { default as Toggle } from './Toggle';
 export type { ToggleProps } from './Toggle';
+
+export { default as ToolBar } from './ToolBar';
+export type { ToolbarProps } from './ToolBar';
 
 export { default as Tooltip } from './Tooltip';
 export type { TooltipProps } from './Tooltip';

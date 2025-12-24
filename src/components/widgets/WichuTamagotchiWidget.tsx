@@ -12,7 +12,7 @@ import Image from 'next/image';
 export default function WichuTamagotchiWidget() {
   return (
     // 전체 컨테이너 (크기 및 그림자 설정)
-    <div className="relative w-[260px] h-[380px] flex justify-center filter drop-shadow-2xl">
+    <div className="relative w-full max-w-[260px] min-w-[100px] aspect-[13/19] flex justify-center filter drop-shadow-2xl">
       
       {/* ------------------------------------------------------ */}
       {/* Layer 1: 배경 구름 (Clouds) - 가장 뒤 */}
@@ -20,7 +20,7 @@ export default function WichuTamagotchiWidget() {
       {/* 왼쪽 구름 */}
       <div className="absolute right-[150px] top-[90px] w-[110px] h-[90px] z-0 opacity-90 ">
         <Image 
-          src="/images/widgets/WichuTamagotchi/UnionLeft.svg" 
+          src="/system/widgets/WichuTamagotchi/UnionLeft.svg" 
           alt="cloud background left" 
           fill 
           className="object-contain"
@@ -29,7 +29,7 @@ export default function WichuTamagotchiWidget() {
       {/* 오른쪽 구름 */}
       <div className="absolute left-[150px] top-[90px] w-[110px] h-[90px] z-0 opacity-90 ">
         <Image 
-          src="/images/widgets/WichuTamagotchi/UnionRight.svg" 
+          src="/system/widgets/WichuTamagotchi/UnionRight.svg" 
           alt="cloud background right" 
           fill 
           className="object-contain"
@@ -41,7 +41,7 @@ export default function WichuTamagotchiWidget() {
       {/* ------------------------------------------------------ */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[70px] h-[120px] z-10">
         <Image 
-          src="/images/widgets/WichuTamagotchi/Keyring.svg"
+          src="/system/widgets/WichuTamagotchi/Keyring.svg"
           alt="chain" 
           fill 
           className="object-contain"
@@ -54,7 +54,7 @@ export default function WichuTamagotchiWidget() {
       <div className="relative z-20 w-[240px] h-[240px] mt-[75px]">
         {/* 별 모양 몸통 이미지 */}
         <Image 
-          src="/images/widgets/WichuTamagotchi/Star.svg" 
+          src="/system/widgets/WichuTamagotchi/Star.svg" 
           alt="Wichu Tamagotchi Body" 
           fill 
           className="object-contain"
@@ -84,7 +84,7 @@ export default function WichuTamagotchiWidget() {
         {/* ------------------------------------------------------ */}
         <div className="absolute bottom-[40px] left-1/2 -translate-x-1/2 w-[90px] h-[35px]">
           <Image 
-            src="/images/widgets/WichuTamagotchi/Button.svg" 
+            src="/system/widgets/WichuTamagotchi/Button.svg" 
             alt="buttons" 
             fill 
             className="object-contain"

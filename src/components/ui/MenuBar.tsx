@@ -8,78 +8,115 @@
 
 'use client';
 
-import { ReactNode } from 'react';
-import Dropdown from '@/components/ui/Dropdown';
+import { ReactNode, Fragment } from 'react';
+import Dropdown, { useDropdown } from './Dropdown';
 
 
 export interface MenuItemType {
-    key: string;
-    label: string;
-    disabled?: boolean;
-    children?: ReactNode;
-    onClick?: () => void;
+  key: string;
+  label: string;
+  disabled?: boolean;
+  children?: ReactNode;
+  onClick?: () => void;
 }
 
 interface MenuBarProps {
-    items: MenuItemType[];
-    className?: string;
+  items: MenuItemType[];
+  className?: string;
 }
 
 export default function MenuBar({ items, className = '' }: MenuBarProps) {
-    return (
-        <nav
-            className={`flex items-center h-full ${className}`}
-            aria-label="Application Menu"
-        >
-            {items.map((item) => (
-                <Dropdown key={item.key}>
-                    {/* Dropdown.Trigger: 메뉴 버튼 */}
-                    <Dropdown.Trigger>
-                        <MenuButton disabled={item.disabled}>
-                            {/* 첫 글자에 밑줄 (단축키 느낌) */}
-                            <span className="first-letter:underline">{item.label}</span>
-                        </MenuButton>
-                    </Dropdown.Trigger>
+  const renderLabel = (label: string) => {
+    const parts = label.split('&');
+    if (parts.length === 1) return label;
 
-                    {/* Dropdown.Menu: 실제 펼쳐지는 내용 */}
-                    {item.children}
-                </Dropdown>
-            ))}
-        </nav>
+    return (
+      <>
+        {parts[0]}
+        <span className="underline">{parts[1].charAt(0)}</span>
+        {parts[1].slice(1)}
+      </>
     );
+  };
+
+  return (
+    <nav
+      className={`
+        flex items-center w-full h-7 px-1
+      bg-gray-200
+        border-b border-white shadow-[0_1px_0_#808080]
+        select-none z-40
+        ${className}
+      `}
+      aria-label="Application Menu"
+    >
+      {items.map((item) => (
+        <Dropdown key={item.key}>
+          {/* Dropdown.Trigger: 메뉴 버튼 */}
+          <Dropdown.Trigger as={MenuButton} disabled={item.disabled}>
+            {/* 첫 글자에 밑줄 (단축키 느낌) */}
+            {renderLabel(item.label)}
+          </Dropdown.Trigger>
+
+          {/* Dropdown.Menu: 실제 펼쳐지는 내용 */}
+          {item.children}
+        </Dropdown>
+      ))}
+    </nav>
+  );
 }
 
 // 메뉴 버튼 컴포넌트
 interface MenuButtonProps {
   children: ReactNode;
   disabled?: boolean;
-  onClick?: () => void;
-  // Dropdown에서 자동으로 주입해주는 isOpen props를 받을 수 있게 설정
-  isOpen?: boolean; 
+  onClick?: (e: React.MouseEvent) => void;
+  className?: string;
 }
 
-function MenuButton({ children, disabled, onClick, isOpen }: MenuButtonProps) {
+function MenuButton({ children, disabled, onClick, className = '' }: MenuButtonProps) {
+  const { isOpen } = useDropdown();
+
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
+    <div
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      onClick={disabled ? undefined : onClick}
       className={`
-        h-6 px-2 mx-[1px]
+        h-5 px-2 mx-[1px]
         flex items-center justify-center
         rounded-none
-        font-pixel text-sm leading-none select-none
-        transition-colors duration-0
+        font-pixel text-sm leading-none
+        border 
+        transition-none cursor-default
         
-        /* --- 상태별 스타일 --- */
-        ${disabled 
-          ? 'text-gray-400 cursor-default' 
+        ${disabled
+          ? 'text-gray-400 border-transparent'
           : isOpen
-            ? 'bg-brand-retro-navy text-white shadow-none' // 열려있을 때
-            : 'text-black hover:bg-brand-retro-navy hover:text-white' // 평소 & 호버
+            ? `
+              bg-gray-200 text-black
+              border-t-black border-l-black border-r-white border-b-white
+              shadow-none
+            `
+            : `
+              /* [Normal 상태] 평소에는 투명, 호버 시 Outset */
+              text-black border-transparent
+              
+              /* Hover: 튀어나온 버튼 효과 (Outset) */
+              hover:border-t-white hover:border-l-white hover:border-r-black hover:border-b-black
+              hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.5)]
+              
+              /* Active (클릭 순간): 움푹 들어간 효과 */
+              active:border-t-black active:border-l-black active:border-r-white active:border-b-white
+              active:shadow-none
+            `
         }
+        ${className}
       `}
     >
-      {children}
-    </button>
+      <span className={`pt-[2px] ${isOpen ? 'translate-x-[1px] translate-y-[1px]' : ''}`}>
+        {children}
+      </span>
+    </div>
   );
 }

@@ -4,6 +4,7 @@
  * - 윈도우 98 스타일의 툴팁을 구현
  * - 호버 시 툴팁 내용이 표시됨
  */
+
 'use client';
 
 import { ReactNode } from 'react';
@@ -41,6 +42,7 @@ export default function Tooltip({
         className={`
           absolute z-50 whitespace-nowrap
           hidden group-hover:block
+          pointer-events-none
           
           /* --- 윈도우 98 스타일 --- */
           bg-[#FFFFE1] text-black font-pixel text-xs

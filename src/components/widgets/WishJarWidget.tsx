@@ -1,11 +1,13 @@
 /**
  * WishJarWidget 컴포넌트
  * 
+ * - 유리병에 소원을 담는 인터랙티브 위젯
+ * - 글쓰기 버튼, 유리병 애니메이션, 소원 목록 보기 기능 포함
  */
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 //import { WritingModal } from '@/components/widgets';
 import { Modal } from '../ui';
@@ -13,12 +15,13 @@ import { Modal } from '../ui';
 // 소원 데이터 타입
 interface Wish {
     id: number;     // 사용자 ID (등록 순서대로 오름차순 부여)
-    text: string;   // 소원 내용
+    content: string; // 소원 내용
     color: 'pink' | 'blue' | 'green' | 'yellow' | 'purple' | 'red'; // 소원 색종이 색상
     date: string;   // 작성 날짜
-    x: number;      // 유리병 내 가로 위치
-    y: number;      // 유리병 내 세로 위치
-    rotation: number; // 회전 각도
+    nickname?: string; // 작성자 닉네임
+    x: number;      // 유리병 내 X 좌표
+    y: number;      // 유리병 내 Y 좌표
+    rotation: number; // 종이학 회전 각도
 }
 
 export default function WishJarWidget() {
@@ -29,7 +32,7 @@ export default function WishJarWidget() {
   const [flyingCrane, setFlyingCrane] = useState<{ color: 'pink' | 'blue' | 'yellow' | 'green' | 'purple' | 'red' } | null>(null);
 
   // 소원 추가 핸들러 (애니메이션 시작)
-  const handleAddWish = async (text: string, color: 'pink' | 'blue' | 'yellow' | 'green' | 'purple' | 'red') => {
+  const handleAddWish = async (content: string, color: 'pink' | 'blue' | 'yellow' | 'green' | 'purple' | 'red') => {
     setIsWriting(false); // 1. 모달 닫기
     setFlyingCrane({ color }); // 2. 날아가는 학 생성
     setIsAnimating(true); // 3. 병뚜껑 열기 신호
@@ -39,7 +42,7 @@ export default function WishJarWidget() {
       const newWish: Wish = {
         id: wishes.length + 1,
         date: new Date().toISOString(),
-        text,
+        content,
         color,
         // 유리병 안쪽 영역 내 랜덤 위치 계산
         x: 30 + Math.random() * 100, 
@@ -53,7 +56,7 @@ export default function WishJarWidget() {
   };
 
   return (
-    <div className="relative w-[300px] h-[350px]">
+    <div className="relative w-full max-w-[300px] min-w-[220px] aspect-[6/7]">
       
       {/* --- [1] 글쓰기 트리거 (색종이) --- */}
       <motion.button

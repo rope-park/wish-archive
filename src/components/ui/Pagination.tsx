@@ -4,9 +4,11 @@
  * - 페이지 네비게이션
  * - 최대 표시 페이지 수 조절 가능
  */
+
 'use client';
 
-import Button from '@/components/ui/Button';
+import { useEffect, useState } from 'react';
+import { Button } from '../ui';
 
 export interface PaginationProps {
   currentPage: number;
@@ -14,6 +16,7 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
   maxVisible?: number; // 한 번에 보여줄 페이지 번호 개수
   className?: string;
+  showFirstLast?: boolean; // 처음/끝 페이지 버튼 표시 여부
 }
 
 export default function Pagination({
@@ -22,24 +25,41 @@ export default function Pagination({
   onPageChange,
   maxVisible = 5,
   className = '',
+  showFirstLast = true,
 }: PaginationProps) {
-  
+
+  const [visibleCount, setVisibleCount] = useState(maxVisible);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setVisibleCount(Math.min(3, maxVisible)); // 모바일에서는 최대 3개
+      } else {
+        setVisibleCount(maxVisible);
+      }
+    };
+
+    handleResize(); // 초기 실행
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [maxVisible]);
+
   // 표시할 페이지 번호 계산 로직
   const getPageNumbers = (): (number | '...')[] => {
-    if (totalPages <= maxVisible) {
+    if (totalPages <= visibleCount) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    const halfVisible = Math.floor(maxVisible / 2);
+    const halfVisible = Math.floor(visibleCount / 2);
     let start = Math.max(1, currentPage - halfVisible);
     let end = Math.min(totalPages, currentPage + halfVisible);
 
     if (currentPage <= halfVisible) {
-      end = maxVisible;
+      end = visibleCount;
     }
 
     if (currentPage > totalPages - halfVisible) {
-      start = totalPages - maxVisible + 1;
+      start = totalPages - visibleCount + 1;
     }
 
     const pages: (number | '...')[] = [];
@@ -63,7 +83,7 @@ export default function Pagination({
 
   const pages = getPageNumbers();
 
-  // 페이지가 1개뿐이면 숨김 (선택사항)
+  // 페이지가 1개뿐이면 숨김
   if (totalPages <= 1) return null;
 
   return (
@@ -71,14 +91,26 @@ export default function Pagination({
       aria-label="Pagination"
       className={`flex items-center justify-center gap-1 ${className}`}
     >
-      {/* 이전 버튼 */}
+      {/* 맨 처음으로 (<<) */}
+      {showFirstLast && (
+        <Button
+          size="sm"
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(1)}
+          aria-label="First page"
+          className="w-8 px-0 font-pixel text-xs hidden sm:flex"
+        >
+          {'<<'}
+        </Button>
+      )}
+
+      {/* 이전 (◀) */}
       <Button
         size="sm"
-        variant="default"
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
         aria-label="Previous page"
-        className="w-8 px-0 font-pixel"
+        className="w-8 px-0 font-pixel text-xs"
       >
         ◀
       </Button>
@@ -86,25 +118,23 @@ export default function Pagination({
       {/* 페이지 번호들 */}
       {pages.map((page, idx) =>
         page === '...' ? (
-          // 생략 표시 (...)
-          <span 
-            key={`ellipsis-${idx}`} 
+          <span
+            key={`ellipsis-${idx}`}
             className="px-1 font-pixel text-xs text-gray-500 select-none"
           >
             ...
           </span>
         ) : (
-          // 숫자 버튼
           <Button
             key={page}
             size="sm"
-            isActive={currentPage === page} 
+            isActive={currentPage === page}
             onClick={() => onPageChange(page)}
             aria-label={`Page ${page}`}
             aria-current={currentPage === page ? 'page' : undefined}
             className={`
               w-8 px-0 font-pixel
-              ${currentPage === page ? 'font-bold text-brand-deep' : 'text-gray-900'}
+              ${currentPage === page ? 'font-bold text-brand-retro-navy' : 'text-gray-900'}
             `}
           >
             {page}
@@ -112,17 +142,29 @@ export default function Pagination({
         )
       )}
 
-      {/* 다음 버튼 */}
+      {/* 다음 (▶) */}
       <Button
         size="sm"
-        variant="default"
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
         aria-label="Next page"
-        className="w-8 px-0 font-pixel"
+        className="w-8 px-0 font-pixel text-xs"
       >
         ▶
       </Button>
+
+      {/* 맨 끝으로 (>>) */}
+      {showFirstLast && (
+        <Button
+          size="sm"
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(totalPages)}
+          aria-label="Last page"
+          className="w-8 px-0 font-pixel text-xs hidden sm:flex"
+        >
+          {'>>'}
+        </Button>
+      )}
     </nav>
   );
 }

@@ -5,6 +5,7 @@
  * - 자동 닫힘 지원 (지정 시간 후 사라짐)
  * - 닫기 버튼 지원
  */
+
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -29,7 +30,10 @@ export default function Notification({
   className = '',
 }: NotificationProps) {
   const [isClosing, setIsClosing] = useState(false); // 퇴장 애니메이션 제어용
+  const [progress, setProgress] = useState(100);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const remainingTimeRef = useRef<number>(duration);
 
   // 닫기 핸들러 (애니메이션 -> 부모에게 알림)
   const handleClose = useCallback(() => {
@@ -41,26 +45,48 @@ export default function Notification({
 
   // 타이머 시작 함수
   const startTimer = useCallback(() => {
-    if (duration > 0) {
-      timerRef.current = setTimeout(handleClose, duration);
+    if (duration > 0 && remainingTimeRef.current > 0) {
+      timerRef.current = setTimeout(handleClose, remainingTimeRef.current);
+      startTimeRef.current = Date.now();
+
+      timerRef.current = setTimeout(handleClose, remainingTimeRef.current);
     }
   }, [duration, handleClose]);
 
   // 타이머 정지 함수
-  const clearTimer = useCallback(() => {
-    if (timerRef.current) {
+  const pauseTimer = useCallback(() => {
+    if (timerRef.current && startTimeRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
+      const elapsed = Date.now() - startTimeRef.current;
+      remainingTimeRef.current -= elapsed;
     }
   }, []);
 
-  // 마운트 시 타이머 시작 & 언마운트 시 정리
+  // 초기 실행 및 정리
   useEffect(() => {
     startTimer();
-    return clearTimer;
-  }, [startTimer, clearTimer]);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [startTimer]);
 
-  //타입별 스타일 매핑
+  useEffect(() => {
+    if (duration > 0) {
+      // 100ms마다 프로그래스 업데이트 (간단한 시각적 효과용)
+      const interval = setInterval(() => {
+        if (!timerRef.current) return; // 일시 정지 상태면 업데이트 안 함
+        
+        setProgress((prev) => {
+          const next = prev - (100 / (duration / 100));
+          return next > 0 ? next : 0;
+        });
+      }, 100);
+      
+      return () => clearInterval(interval);
+    }
+  }, [duration]);
+  
   const typeConfig = {
     success: {
       header: 'bg-gradient-to-r from-blue-700 to-blue-500', // 파란색 (System Success)
@@ -81,7 +107,7 @@ export default function Notification({
       role: 'alert',
     },
     info: {
-      header: 'bg-gradient-to-r from-brand-deep to-brand-secondary', // Navy -> Sky (기본)
+      header: 'bg-gradient-to-r from-brand-retro-navy to-brand-wish-blue', // Navy -> Sky (기본)
       icon: 'ℹ️', /** TODO: icon 이미지로 변경 */
       text: 'text-white',
       role: 'status',
@@ -90,40 +116,34 @@ export default function Notification({
 
   const config = typeConfig[type];
 
-  return (
+return (
     <div
       role={config.role}
       aria-live={type === 'error' || type === 'warning' ? 'assertive' : 'polite'}
-      onMouseEnter={clearTimer} // 🐭 마우스 올리면 타이머 정지 (읽는 중)
-      onMouseLeave={startTimer} // 🐭 마우스 떼면 타이머 다시 시작
+      onMouseEnter={pauseTimer} // 마우스 오버 시 타이머 일시 정지
+      onMouseLeave={startTimer} // 마우스 아웃 시 타이머 재개
       className={`
-        /* --- 레이아웃 & 위치 --- */
         pointer-events-auto 
-        w-80 flex flex-col
-        
+        w-72 md:w-80 flex flex-col
         bg-gray-200 
-        shadow-outset       /* 3D 튀어나옴 */
-        outline outline-1 outline-black
-        
-        /* --- 애니메이션 (슬라이드 & 투명도) --- */
+        shadow-[4px_4px_10px_rgba(0,0,0,0.3)]
+        border border-white border-r-black border-b-black
         transition-all duration-300 ease-in-out transform
         ${isClosing ? 'translate-x-[120%] opacity-0' : 'translate-x-0 opacity-100'}
-        
         ${className}
       `}
     >
-      {/* [헤더] 타이틀 바 */}
+      {/* 헤더 */}
       <div className={`
         h-6 px-1.5 flex items-center justify-between shrink-0
         ${config.header}
-        ${config.text}
-        border-b border-white/30
+        ${type === 'warning' ? 'text-black' : 'text-white'}
         select-none cursor-default
       `}>
-        {/* 아이콘 + 제목 */}
+        {/* 아이콘 및 제목 */}
         <div className="flex items-center gap-1.5">
-          <span className="text-xs filter drop-shadow-md">{config.icon}</span>
-          <span className="font-pixel text-[10px] font-bold pt-[1px] tracking-wide truncate max-w-[200px]">
+          {config.icon}
+          <span className="font-pixel text-xs font-bold pt-[1px] tracking-wide truncate max-w-[180px]">
             {title}
           </span>
         </div>
@@ -133,26 +153,35 @@ export default function Notification({
           <button
             onClick={handleClose}
             className="
-              w-3.5 h-3.5 flex items-center justify-center
+              w-4 h-4 flex items-center justify-center
               bg-gray-200 text-black 
-              border border-white/50
-              shadow-outset active:shadow-inset active:translate-y-[1px]
+              border-t-white border-l-white border-r-gray-800 border-b-gray-800 border
+              active:border-t-gray-800 active:border-l-gray-800 active:border-r-white active:border-b-white
               hover:bg-red-500 hover:text-white group
-              transition-colors
             "
-            aria-label="Close notification"
+            aria-label="Close"
           >
-            <span className="font-pixel text-[8px] leading-none -mt-[1px] group-hover:text-white">×</span>
+            <span className="font-pixel text-[10px] -mt-[2px]">✕</span>
           </button>
         )}
       </div>
 
-      {/* [바디] 메시지 영역 */}
-      <div className="p-3 flex items-start gap-3 bg-gray-200">
+      {/* 내용 */}
+      <div className="p-3 bg-gray-200 relative overflow-hidden">
         {message && (
           <p className="font-pixel text-xs text-gray-900 leading-relaxed break-keep">
             {message}
           </p>
+        )}
+        
+        {/* 프로그래스 바 (자동 닫힘일 때만) */}
+        {duration > 0 && (
+          <div className="absolute bottom-0 left-0 h-1 bg-gray-300 w-full">
+            <div 
+              className={`h-full ${config.header} transition-all duration-100 ease-linear`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         )}
       </div>
     </div>

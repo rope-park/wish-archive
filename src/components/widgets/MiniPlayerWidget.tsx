@@ -1,9 +1,25 @@
+/**
+ * MiniPlayerWidget 컴포넌트
+ * 
+ * - iPod 클래식 스타일의 미니 플레이어 위젯
+ * - YouTube Iframe API를 사용하여 음악 재생
+ */
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAudioStore } from '@/app/stores/useAudioStore';
 
-// 플레이리스트 아이템 타입
+// 시간 포맷 함수 (초 -> MM:SS)
+const formatTime = (seconds: number) => {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+// 플레이리스트 아이템 타입 정의
 interface PlaylistItem {
   id: string;
   trackId: string;
@@ -13,78 +29,91 @@ interface PlaylistItem {
 }
 
 export default function MiniPlayer() {
+  // 상태 관리
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [playerKey, setPlayerKey] = useState(0);
+  const [playerKey, setPlayerKey] = useState(0); // iframe 강제 리렌더링용
+
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  // 참조 관리
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // API에서 플레이리스트 로드
+  // 전역 상태 관리
+  const { isMuted, volume, setPlayerRef } = useAudioStore();
+
+  // 1. 초기 플레이리스트 로드
   useEffect(() => {
     const loadPlaylist = async () => {
       try {
-        console.log('🎵 Fetching playlist...');
-        const res = await fetch('/api/widgets/tracks', {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.warn('⚠️ API returned error:', res.status, errorText);
-          throw new Error(`API error: ${res.status}`);
-        }
-
-        const data: PlaylistItem[] = await res.json();
-        
-        if (!data || data.length === 0) {
-          console.warn('⚠️ No tracks returned from API, using fallback');
-          throw new Error('Empty playlist');
-        }
-        
-        console.log('✅ Playlist loaded:', data.length, 'tracks');
-        setPlaylist(data);
+        const res = await fetch('/api/widgets/tracks');
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+        setPlaylist(data.length > 0 ? data : []);
       } catch (error) {
-        console.warn('⚠️ Using fallback playlist:', error instanceof Error ? error.message : 'Unknown error');
-        // 폴백 데이터
-        const fallbackData = [
-          { id: 'hvQZs3k6Ytk', trackId: 'fallback-1', title: 'WISH (Korean Ver.)', album: 'WISH', themeColor: '#BFFF00' },
-          { id: '2XqVNFBtVo4', trackId: 'fallback-2', title: 'Songbird', album: 'Songbird', themeColor: '#8EE3F5' },
-          { id: 'Pqm6KO2y2pw', trackId: 'fallback-3', title: 'Dunk Shot', album: 'Dunk Shot', themeColor: '#FF6B6B' },
-        ];
-        setPlaylist(fallbackData);
+        console.error('Playlist load failed, using fallback.', error);
+        setPlaylist([
+          { id: 'hvQZs3k6Ytk', trackId: 'fb1', title: 'WISH (Korean Ver.)', album: 'WISH', themeColor: '#BFFF00' },
+          { id: '2XqVNFBtVo4', trackId: 'fb2', title: 'Songbird', album: 'Songbird', themeColor: '#8EE3F5' },
+          { id: 'Pqm6KO2y2pw', trackId: 'fb3', title: 'Dunk Shot', album: 'Dunk Shot', themeColor: '#FF6B6B' },
+        ]);
       } finally {
         setIsLoading(false);
       }
     };
-
     loadPlaylist();
   }, []);
 
   const currentSong = playlist[currentIndex];
 
-  // 곡이 변경되면 3초 후 강제로 ready 상태로 전환 (로딩 커버 제거)
+  // 2. 곡 변경 시 로딩 상태 처리 (3초 후 강제 Ready)
   useEffect(() => {
     if (currentSong) {
       setIsReady(false);
-      const timeout = setTimeout(() => {
-        setIsReady(true);
-      }, 3000);
-      return () => clearTimeout(timeout);
+      setCurrentTime(0);
+      setDuration(0);
+      setProgress(0);
+      const timer = setTimeout(() => setIsReady(true), 3000);
+      return () => clearTimeout(timer);
     }
   }, [currentSong]);
 
-  // ▶ 재생/일시정지 토글
+  // 3. 볼륨/음소거 동기화
+  useEffect(() => {
+    if (playerRef.current?.setVolume) {
+      playerRef.current.setVolume(isMuted ? 0 : volume);
+    }
+  }, [isMuted, volume]);
+
+  // 4. 재생 시간 추적
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (playerRef.current && isPlaying && typeof playerRef.current.getCurrentTime === 'function') {
+        const curr = playerRef.current.getCurrentTime();
+        const total = playerRef.current.getDuration();
+
+        if (curr && total) {
+          setCurrentTime(curr);
+          setDuration(total);
+          setProgress((curr / total) * 100);
+        }
+      }
+    }, 500);
+
+    return () => clearInterval(timer);
+  }, [isPlaying]);
+
+  // 재생/일시정지 토글
   const togglePlay = () => {
-    if (!isReady || !currentSong || !playerRef.current) return;
-    if (typeof playerRef.current.playVideo !== 'function') return;
-    
+    if (!isReady || !playerRef.current?.playVideo) return;
     if (isPlaying) {
       playerRef.current.pauseVideo();
       setIsPlaying(false);
@@ -94,71 +123,66 @@ export default function MiniPlayer() {
     }
   };
 
-  // ⏮️ 이전 곡 재생
-  const playPreviousSong = () => {
+  // 이전/다음 곡 재생
+  const playPrev = () => {
     if (playlist.length === 0) return;
-
-    const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length; // 첫 곡에서 마지막 곡으로
-
-    setIsPlaying(false);
-    setIsReady(false);
-    
-    setTimeout(() => {
-      setCurrentIndex(prevIndex);
-      setPlayerKey(prev => prev + 1);
-    }, 100);
+    const prevIdx = (currentIndex - 1 + playlist.length) % playlist.length;
+    changeTrack(prevIdx);
   };
 
-  // ⏭️ 다음 곡 재생 (순차)
-  const playNextSong = () => {
+  const playNext = () => {
     if (playlist.length === 0) return;
-
-    const nextIndex = (currentIndex + 1) % playlist.length; // 마지막 곡 후 첫 곡으로
-
-    setIsPlaying(false);
-    setIsReady(false);
-    
-    setTimeout(() => {
-      setCurrentIndex(nextIndex);
-      setPlayerKey(prev => prev + 1);
-    }, 100);
+    const nextIdx = (currentIndex + 1) % playlist.length;
+    changeTrack(nextIdx);
   };
 
-  // YouTube Player API 초기화
+  const changeTrack = (index: number) => {
+    setIsPlaying(false);
+    setIsReady(false);
+    setProgress(0);
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setPlayerKey((prev) => prev + 1);
+    }, 50);
+  };
+
+  // 5. YouTube API 초기화
   useEffect(() => {
     if (!currentSong) return;
 
-    // YouTube IFrame API 로드
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+      const firstScript = document.getElementsByTagName('script')[0];
+      firstScript.parentNode?.insertBefore(tag, firstScript);
     }
 
-    // API 준비 완료 시 플레이어 생성
     const initPlayer = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (iframeRef.current && (window as any).YT) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        new (window as any).YT.Player(iframeRef.current, {
-          events: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onReady: (event: any) => {
-              playerRef.current = event.target;
-              setIsReady(true);
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onStateChange: (event: any) => {
-              // 0 = 종료, 자동으로 다음 곡 재생
-              if (event.data === 0) {
-                playNextSong();
-              }
-            },
+      if (!iframeRef.current || !(window as any).YT) return;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      new (window as any).YT.Player(iframeRef.current, {
+        events: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onReady: (e: any) => {
+            playerRef.current = e.target;
+            setPlayerRef(e.target);
+            e.target.setVolume(isMuted ? 0 : volume);
+            setIsReady(true);
           },
-        });
-      }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onStateChange: (e: any) => {
+            // 0 = Ended
+            if (e.data === 0) playNext();
+            // 1 = Playing
+            if (e.data === 1) setIsPlaying(true);
+            // 2 = Paused
+            if (e.data === 2) setIsPlaying(false);
+          },
+        },
+      });
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,205 +195,237 @@ export default function MiniPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong, playerKey]);
 
-  // 곡 변경 시 자동 재생
+  // 6. Ready 상태 되면 자동 재생 시도
   useEffect(() => {
-    if (isReady && currentSong && playerRef.current) {
-      if (typeof playerRef.current.playVideo === 'function') {
-        setTimeout(() => {
-          playerRef.current.playVideo();
-          setIsPlaying(true);
-        }, 500);
-      }
+    if (isReady && currentSong && playerRef.current?.playVideo) {
+      const timer = setTimeout(() => {
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [isReady, currentSong]);
 
+  if (!currentSong) return null;
+
   return (
-    <div className="relative">
+    <div className="relative group select-none">
 
-      {/* --- [1] MP3 플레이어 본체 (iPod 클래식 스타일) --- */}
+      {/* 메인 몸체 */}
       <div className="
-        w-[320px] h-[150px] p-4
-        bg-gradient-to-br from-[#e8e8e8] via-[#f5f5f5] to-[#e0e0e0]
-        rounded-[20px]
-        shadow-[0_8px_16px_rgba(0,0,0,0.2),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-2px_4px_rgba(0,0,0,0.1)]
-        border border-[#d0d0d0]
-        flex flex-row items-center gap-3
-        select-none
+        relative z-10
+        w-[340px] h-[140px]
+        bg-gradient-to-b from-[#f0f0f0] via-[#dcdcdc] to-[#b0b0b0]
+        rounded-[24px]
+        shadow-[0_10px_20px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-2px_4px_rgba(0,0,0,0.2)]
+        shadow-[
+          0_20px_40px_-10px_rgba(0,0,0,0.5),    /* 바닥 깊은 그림자 */
+          0_5px_10px_-5px_rgba(0,0,0,0.3),      /* 근접 그림자 */
+          inset_0_1px_0_rgba(255,255,255,0.8),  /* 상단 날카로운 빛 반사 */
+          inset_0_-1px_0_rgba(0,0,0,0.3),       /* 하단 모서리 그림자 */
+          inset_1px_0_1px_rgba(255,255,255,0.1),/* 좌측 미세 광택 */
+          inset_-1px_0_1px_rgba(0,0,0,0.1)      /* 우측 미세 그림자 */
+        ]
+        flex items-center justify-between
+        px-6 py-4
+        border border-[#a0a0a0]
+        overflow-hidden
       ">
+        {/* 몸체 표면 노이즈 텍스처 */}
+        <div className="absolute inset-0 rounded-[24px] bg-noise opacity-[0.07] pointer-events-none mix-blend-multiply" />
+        {/* 표면 그라데이션 코팅 */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none mix-blend-overlay" />
+        
+        {/* [왼쪽] 화면 영역 */}
+        <div className="
+          relative
+          w-[160px] h-[110px]
+          bg-[#0a0a0a]
+          rounded-[10px]
+          shadow-[inset_0_2px_6px_rgba(0,0,0,0.8),0_1px_2px_rgba(255,255,255,0.2)]
+          border-[3px] border-[#222]
+          overflow-hidden
+          flex flex-col
+          z-20
+        ">
+          {/* YouTube Iframe 레이어 */}
+          <div className="relative flex-1 bg-black overflow-hidden group/screen">
+            <iframe
+              ref={iframeRef}
+              key={playerKey}
+              id={`Youtubeer-${playerKey}`}
+              src={`https://www.youtube.com/embed/${currentSong.id}?enablejsapi=1&controls=0&showinfo=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&playsinline=1&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
+              className="absolute inset-0 w-full h-full object-cover scale-[1.35] opacity-90 pointer-events-none mix-blend-screen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              title="YouTube video player"
+            />
 
-        {/* [왼쪽] 클릭휠 영역 */}
-        <div className="w-[120px] h-full flex flex-col items-center justify-center gap-2">
+            {/* 로딩 커버 */}
+            {!isReady && (
+              <div className="absolute inset-0 bg-black z-20 flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
 
+            {/* 유리 반사 효과 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-white/5 to-transparent pointer-events-none z-30 mix-blend-overlay" />
+          </div>
 
-          {/* 클릭휠 (iPod 스타일) */}
-          <div className="relative w-[100px] h-[100px]">
-            {/* 외부 링 */}
-            <div className="
-              absolute inset-0 rounded-full
-              bg-gradient-to-br from-white via-gray-100 to-gray-200
-              shadow-[inset_0_2px_4px_rgba(0,0,0,0.15),0_2px_6px_rgba(0,0,0,0.1)]
-              border border-gray-300
-            ">
-              {/* 상단 버튼 (메뉴) */}
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="
-                  absolute top-0 left-1/2 -translate-x-1/2
-                  w-8 h-8 flex items-center justify-center
-                  text-gray-600 hover:text-gray-800 transition-colors
-                  text-[10px] font-bold tracking-wider mb-1
-                "
-              >
-                MUSIC
-              </button>
+          <div className="relative z-40 bg-gradient-to-t from-black via-black/95 to-transparent pt-1">
+            {/* 상태 진행 바 */}
+            <div className="w-full h-[3px] bg-gray-700/50 relative">
+              <div
+                className="h-full bg-brand-wichu-green shadow-[0_0_4px_rgba(50,255,100,0.6)] transition-all duration-300 ease-linear"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
 
-              {/* 왼쪽 버튼 (이전곡) */}
-              <button
-                onClick={playPreviousSong}
-                disabled={isLoading || playlist.length === 0}
-                className="
-                  absolute left-0 top-1/2 -translate-y-1/2
-                  w-8 h-8 flex items-center justify-center
-                  text-gray-600 hover:text-gray-800 transition-colors
-                  text-[10px] disabled:opacity-30
-                "
-              >
-                ⏮
-              </button>
+            {/* 시간 및 제목 정보 */}
+            <div className="flex items-center justify-between px-1.5 h-[18px]">
+              {/* 현재 시간 */}
+              <span className="text-[7px] font-pixel text-gray-300 w-6 text-left">
+                {formatTime(currentTime)}
+              </span>
 
-              {/* 오른쪽 버튼 (다음곡) */}
-              <button
-                onClick={playNextSong}
-                disabled={isLoading || playlist.length === 0}
-                className="
-                  absolute right-0 top-1/2 -translate-y-1/2
-                  w-8 h-8 flex items-center justify-center
-                  text-gray-600 hover:text-gray-800 transition-colors
-                  text-[10px] disabled:opacity-30
-                "
-              >
-                ⏭
-              </button>
+              {/* 제목 */}
+              <div className="flex-1 overflow-hidden mx-1 relative h-full flex items-center">
+                <div className="whitespace-nowrap animate-marquee text-[8px] font-pixel text-white/90 w-full text-center">
+                  {currentSong.title} <span className="text-gray-400 mx-1">-</span> {currentSong.album}
+                </div>
+              </div>
 
-              {/* 하단 버튼 (재생/일시정지) */}
-              <button
-                onClick={togglePlay}
-                disabled={isLoading || !currentSong}
-                className="
-                  absolute bottom-0 left-1/2 -translate-x-1/2
-                  w-8 h-8 flex items-center justify-center
-                  text-gray-600 hover:text-gray-800 transition-colors
-                  text-[10px] disabled:opacity-30
-                "
-              >
-                {isPlaying ? '❚❚' : '▶'}
-              </button>
-
-              {/* 중앙 선택 버튼 */}
-              <button
-                onClick={togglePlay}
-                disabled={isLoading || !currentSong}
-                className="
-                  absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                  w-12 h-12 rounded-full
-                  bg-gradient-to-br from-gray-50 to-gray-200
-                  shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)]
-                  border border-gray-300
-                  active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] active:scale-95
-                  transition-all disabled:opacity-50
-                "
-              >
-              </button>
+              {/* 총 재생 시간 */}
+              <span className="text-[7px] font-pixel text-gray-500 w-6 text-right">
+                {formatTime(duration)}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* [오른쪽] 스크린 영역 (유튜브) */}
-        <div className="
-          flex-1 h-full relative
-          bg-gradient-to-br from-[#1a1a1a] to-black
-          rounded-lg 
-          shadow-[inset_0_3px_8px_rgba(0,0,0,0.6),0_2px_4px_rgba(0,0,0,0.3)]
-          border-2 border-[#0a0a0a]
-          overflow-hidden
-        ">
-          {/* 스크린 베젤 효과 */}
-          <div className="absolute inset-0 rounded-lg border-2 border-white/5 pointer-events-none z-20" />
+        {/* [오른쪽] 클릭 휠 영역 */}
+        <div className="relative w-[100px] h-[100px] shrink-0 flex items-center justify-center">
 
-          {/* 유튜브 플레이어 - YouTube Player API */}
-          {currentSong && (
-            <iframe
-              ref={iframeRef}
-              key={playerKey}
-              id={`youtube-player-${playerKey}`}
-              src={`https://www.youtube.com/embed/${currentSong.id}?enablejsapi=1&controls=0&showinfo=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&playsinline=1&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
-              className="absolute inset-0 w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          )}
+          {/* 휠 배경 (흰색/회색 그라데이션) */}
+          <div className="
+            absolute inset-0 rounded-full
+            bg-gradient-to-br from-[#f8f8f8] via-[#eeeeee] to-[#dcdcdc]
+            shadow-[0_4px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,1)]
+            shadow-[
+              0_4px_10px_rgba(0,0,0,0.3),       /* 전체적인 드롭 섀도우 */
+              inset_0_2px_3px_rgba(255,255,255,1), /* 상단 내부 하이라이트 */
+              inset_0_-2px_5px_rgba(0,0,0,0.1),    /* 하단 내부 그림자 */
+              0_0_0_1px_#d0d0d0                  /* 미세한 외곽선 정의 */
+            ]
+            border border-[#ccc]
+          ">
 
-          {/* 로딩 커버 */}
-          {isLoading && (
-            <div className="absolute inset-0 bg-black flex items-center justify-center z-10">
-              <span className="font-pixel text-[8px] text-brand-wichu-green animate-pulse">
-                LOADING...
-              </span>
-            </div>
-          )}
+            <div className="absolute inset-0 rounded-full bg-noise opacity-[0.05] mix-blend-multiply" />
+            
+            {/* MENU 버튼 (상단) */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="absolute top-2 left-1/2 -translate-x-1/2 text-[9px] font-bold text-gray-500 hover:text-black transition-colors tracking-tighter"
+            >
+              MENU
+            </button>
 
-          {/* 스캔라인 효과 */}
-          <div className="absolute inset-0 bg-scanline opacity-10 pointer-events-none z-30" />
+            {/* PREV 버튼 (왼쪽) */}
+            <button
+              onClick={playPrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-[14px] text-gray-500 hover:text-black transition-colors"
+            >
+              ⏮
+            </button>
 
-          {/* 현재 곡 정보 오버레이 */}
-          {currentSong && (
-            <div className="absolute bottom-0 left-0 w-full h-5 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-[2px] flex items-center overflow-hidden px-2 z-40 pointer-events-none">
-              <div className="whitespace-nowrap font-pixel text-[8px] text-white animate-marquee">
-                ♪ {currentSong.title} - {currentSong.album}
-              </div>
-            </div>
-          )}
+            {/* NEXT 버튼 (오른쪽) */}
+            <button
+              onClick={playNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[14px] text-gray-500 hover:text-black transition-colors"
+            >
+              ⏭
+            </button>
+
+            {/* PLAY/PAUSE 버튼 (하단) */}
+            <button
+              onClick={togglePlay}
+              className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[12px] text-gray-500 hover:text-black transition-colors flex gap-0.5"
+            >
+              {isPlaying ? '❚❚' : '▶'}
+            </button>
+          </div>
+
+          {/* 중앙 버튼 (선택) */}
+          <button
+            onClick={togglePlay}
+            className="
+              relative z-10
+              w-[38px] h-[38px] rounded-full
+              bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)]
+              shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)]
+              border border-[#b0b0b0]
+              shadow-[
+                0_2px_5px_rgba(0,0,0,0.4),        /* 버튼 아래 그림자 */
+                inset_0_1px_1px_rgba(255,255,255,1), /* 상단 날카로운 엣지 */
+                inset_0_-1px_1px_rgba(0,0,0,0.3)     /* 하단 그림자 */
+              ]
+              active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
+              transition-transform
+            "
+          />
         </div>
-
       </div>
 
-      {/* --- [2] 재생 목록 (아래로 열리는 메뉴) --- */}
+
+      {/* 플레이리스트 드롭다운 */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 10 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
             className="
-              absolute top-[150px] left-0 z-50
-              w-[340px] bg-gray-100 
-              border border-gray-400 shadow-retro-hard
-              rounded-sm p-1
+              absolute top-full right-0 z-50 mt-2
+              w-[240px]
+              bg-white/95 backdrop-blur-md
+              border border-gray-300
+              rounded-xl shadow-2xl
+              overflow-hidden
             "
           >
-            <div className="bg-[#000080] text-white px-2 py-1 text-xs font-bold font-pixel mb-1 flex justify-between">
-              <span>NCT WISH PLAYLIST</span>
-              <span onClick={() => setIsMenuOpen(false)} className="cursor-pointer">x</span>
+            {/* 헤더 */}
+            <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+              <span className="text-xs font-bold text-gray-600">Now Playing</span>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-400 hover:text-red-500 transition-colors"
+              >
+                ✖
+              </button>
             </div>
 
-            <ul className="flex flex-col gap-px max-h-[150px] overflow-y-auto custom-scrollbar">
+            {/* 리스트 */}
+            <ul className="max-h-[200px] overflow-y-auto custom-scrollbar p-1">
               {playlist.map((song, idx) => (
                 <li key={song.trackId}>
                   <button
                     onClick={() => {
-                      setCurrentIndex(idx);
-                      setIsPlaying(true);
+                      changeTrack(idx);
                       setIsMenuOpen(false);
                     }}
                     className={`
-                      w-full text-left px-2 py-1.5 text-xs font-pixel truncate
+                      w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all
+                      flex items-center gap-2
                       ${idx === currentIndex
-                        ? 'bg-brand-retro-navy text-white'
-                        : 'hover:bg-gray-200 text-black'
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'text-gray-700 hover:bg-gray-100'
                       }
                     `}
                   >
-                    {idx + 1}. {song.title}
+                    <span className="opacity-60 w-4 text-center">{idx + 1}</span>
+                    <span className="truncate flex-1">{song.title}</span>
+                    {idx === currentIndex && (
+                      <span className="text-[10px] animate-pulse">Playing</span>
+                    )}
                   </button>
                 </li>
               ))}

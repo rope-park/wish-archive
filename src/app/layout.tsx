@@ -38,7 +38,7 @@ const pyeongjin = localFont({
 const ssshinbi = localFont({
   src: './fonts/SSShinb7Regular.ttf',
   display: 'swap',
-  variable: '--font-handwriting',
+  variable: '--font-hand',
 });
 
 // 코드 폰트 (터미널 등)
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   description: "NCT WISH Fan-made Archive & OS",
   keywords: ["NCT WISH", "NCT", "엔시티 위시", "아카이브", "WISH OS"],
   icons: {
-    icon: '/favicon.ico', 
+    icon: '/system/icons/favicon.ico', 
   },
   openGraph: {
     title: "Wish for Our Wish",
@@ -90,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* [C] 메인 콘텐츠 영역 */}
         {/* 하단 Taskbar 높이(50px)만큼 패딩을 주어 가려짐 방지 */}
-        <main className="w-full h-full pb-[50px] relative z-[--z-desktop]">
+        <main className="w-full h-full relative z-[var(--z-desktop)]">
           {children}
         </main>
 

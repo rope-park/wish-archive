@@ -11,7 +11,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Draggable from 'react-draggable';
-import ReactMarkdown from 'react-markdown';
 import { Group, Member, ExternalLink } from '@prisma/client';
 import { Tabs, Button, Card, Divider, Spinner } from '@/components/ui';
 import { 
@@ -315,9 +314,9 @@ function GeneralTab({ group }: { group: GroupWithLinks | null }) {
             {/* 소개 멘트 */}
             <fieldset className="border border-gray-400 p-3 rounded-sm bg-white">
                 <legend className="text-xs px-1 text-blue-600 font-bold">Description.txt</legend>
-                <div className="text-xs md:text-sm text-gray-800 leading-relaxed">
-                    <ReactMarkdown>{group.description || ''}</ReactMarkdown>
-                </div>
+                <div className="text-xs md:text-sm text-gray-800 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: group.description || '' }}
+                />
             </fieldset>
         </div>
     );
@@ -429,7 +428,10 @@ function MembersTab({ members }: { members: Member[] }) {
                                 </section>
                                 <section>
                                     <h4 className="font-bold border-b border-gray-300 mb-1 pb-0.5 text-gray-600">Details</h4>
-                                    <p className="text-gray-800 leading-snug whitespace-pre-wrap">{selectedMember.description}</p>
+                                    <div 
+                                        className="text-gray-800 leading-snug"
+                                        dangerouslySetInnerHTML={{ __html: selectedMember.description || '' }}
+                                    />
                                 </section>
                             </div>
 

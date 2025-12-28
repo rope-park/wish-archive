@@ -5,10 +5,10 @@
  * - 폴더 탐색 및 이미지 미리보기
  * - 이미지 선택 시 바탕화면 배경화면으로 설정 가능
  */
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import Image from 'next/image';
 import { Button, Spinner, MenuBar, MenuItemType, Dropdown, ToolBar } from '@/components/ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 
@@ -19,23 +19,24 @@ import { useWindowStore } from '@/app/stores/useWindowStore';
 type GalleryItem = {
   id: string;
   name: string;
-  type: 'root' | 'folder' | 'image';
-  children?: GalleryItem[];
-  url?: string;
-  thumbnailUrl?: string;
-  date?: string;
+  type: 'folder' | 'image';
+  path?: string;   // 폴더일 때 경로
+  src?: string;    // 이미지일 때 URL
+  caption?: string; // Cloudinary Context (설명)
   width?: number;
   height?: number;
+  createdAt?: string;
 };
 
-const hasDescendant = (parent: GalleryItem, targetId: string): boolean => {
-  if (!parent.children) return false;
-  for (const child of parent.children) {
-    if (child.id === targetId) return true;
-    if (child.children && hasDescendant(child, targetId)) return true;
-  }
-  return false;
-}
+// 사이드바 퀵 링크 정의
+const QUICK_LINKS = [
+  { name: 'Root', path: 'nct-wish', icon: '💿' },
+  { name: 'Members', path: 'nct-wish/members', icon: '👥' },
+  { name: 'Eras (Album)', path: 'nct-wish/eras', icon: '💿' },
+  { name: 'Events (Schedule)', path: 'nct-wish/events', icon: '📅' },
+  { name: 'Widgets', path: 'nct-wish/widgets', icon: '🧩' },
+  { name: 'System', path: 'nct-wish/system', icon: '⚙️' },
+];
 
 // ----------------------------------------------------------------------
 // 메인 컴포넌트
@@ -46,69 +47,87 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
   const setBackgroundImage = useWindowStore((state) => state.setBackgroundImage);
 
   // 상태 관리
-  const [fileSystem, setFileSystem] = useState<GalleryItem | null>(null);
-  const [currentFolder, setCurrentFolder] = useState<GalleryItem | null>(null);
-  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [currentPath, setCurrentPath] = useState<string>('nct-wish'); // 현재 경로
+  const [items, setItems] = useState<GalleryItem[]>([]); // 현재 폴더의 아이템들
   const [loading, setLoading] = useState(true);
+
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null); // 선택된 아이템
 
   // 뷰 모드 상태
   const [viewMode, setViewMode] = useState<'thumb' | 'preview' | 'details'>('thumb'); // 보기 모드
-  const [showTree, setShowTree] = useState(true); // 폴더 트리 표시 여부
+  const [showSidebar, setShowSidebar] = useState(true); // 사이드바 표시 여부
   const [zoomLevel, setZoomLevel] = useState(1); // 줌 레벨 (미리보기 모드)
   const [isSlideshow, setIsSlideshow] = useState(false); // 슬라이드쇼 모드 여부
 
   // 슬라이드 쇼 타이머 참조
   const slideshowTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 데이터 로드
+  // ----------------------------------------------------------------------
+  // 1. 데이터 로드 (API Call)
+  // ----------------------------------------------------------------------
   useEffect(() => {
-    async function init() {
+    const fetchItems = async () => {
+      setLoading(true);
+      setSelectedItem(null); // 폴더 이동 시 선택 초기화
       try {
-        const res = await fetch('/api/gallery');
-        if (res.ok) {
-          const data: GalleryItem = await res.json();
-          setFileSystem(data);
-          // 초기 폴더: 'All Photos' 또는 루트
-          const allPhotos = data.children?.find((c: GalleryItem) => c.name === 'All Photos');
-          setCurrentFolder(allPhotos || data);
+        // API 호출: 현재 경로의 폴더/파일 가져오기
+        const res = await fetch(`/api/gallery?mode=folder&path=${currentPath}`);
+        const data = await res.json();
+
+        if (data.items) {
+          setItems(data.items);
+        } else {
+          setItems([]);
         }
-      } catch (e) { console.error(e); } finally { setLoading(false); }
-    }
-    init();
-  }, []);
-
-  const currentImages = useMemo(() => {
-    return currentFolder?.children?.filter((item) => item.type === 'image') || [];
-  }, [currentFolder]);
-
-  const sortedChildren = useMemo(() => {
-    if (!currentFolder?.children) return [];
-    return [...currentFolder.children].sort((a, b) => {
-      // 폴더 우선 정렬, 그 다음 이름순
-      if (a.type === b.type) {
-        return a.name.localeCompare(b.name);
+      } catch (e) {
+        console.error("Failed to load gallery:", e);
+        setItems([]);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchItems();
+  }, [currentPath]);
+
+  // ----------------------------------------------------------------------
+  // 2. 데이터 가공 및 정렬
+  // ----------------------------------------------------------------------
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      // 폴더 우선, 그 다음 이름순
+      if (a.type === b.type) return a.name.localeCompare(b.name);
       return a.type === 'folder' ? -1 : 1;
     });
-  }, [currentFolder]);
+  }, [items]);
 
-  // 폴더 이동
-  const handleNavigate = (item: GalleryItem) => {
-    if (item.type === 'folder' || item.type === 'root') {
-      setCurrentFolder(item);
-      setSelectedItem(null);
-      setViewMode('thumb');
-      stopSlideshow();
-    }
+  const currentImages = useMemo(() => {
+    return sortedItems.filter(item => item.type === 'image');
+  }, [sortedItems]);
+
+  // ----------------------------------------------------------------------
+  // 3. 네비게이션 핸들러
+  // ----------------------------------------------------------------------
+
+  // 뒤로 가기 (상위 폴더로 이동)
+  const handleBack = () => {
+    if (currentPath === 'nct-wish') return; // 루트면 무시
+    const parts = currentPath.split('/');
+    parts.pop(); // 마지막 경로 제거
+    setCurrentPath(parts.join('/'));
   };
 
-  const handleImageSelect = (item: GalleryItem) => {
-    setSelectedItem(item);
+  // 폴더 진입
+  const handleNavigate = (path: string) => {
+    setCurrentPath(path);
+    setViewMode('thumb');
+    stopSlideshow();
   };
 
+  // 아이템 열기 (더블 클릭)
   const handleOpenItem = (item: GalleryItem) => {
-    if (item.type === 'folder') {
-      handleNavigate(item);
+    if (item.type === 'folder' && item.path) {
+      handleNavigate(item.path);
     } else if (item.type === 'image') {
       setSelectedItem(item);
       setViewMode('preview');
@@ -116,10 +135,9 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
     }
   };
 
-  // 이미지 네비게이션 (이전/다음)
+  // 이미지 이전/다음
   const navigateImage = (direction: 'prev' | 'next') => {
     if (!selectedItem || currentImages.length === 0) return;
-
     const currentIndex = currentImages.findIndex(img => img.id === selectedItem.id);
     if (currentIndex === -1) return;
 
@@ -129,12 +147,13 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
     } else {
       nextIndex = (currentIndex + 1) % currentImages.length;
     }
-
     setSelectedItem(currentImages[nextIndex]);
     setZoomLevel(1);
   };
 
-  // 슬라이드쇼
+  // ----------------------------------------------------------------------
+  // 4. 슬라이드쇼 및 줌 로직
+  // ----------------------------------------------------------------------
   const toggleSlideshow = () => {
     if (isSlideshow) {
       stopSlideshow();
@@ -157,14 +176,14 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
     if (isSlideshow) {
       slideshowTimerRef.current = setInterval(() => {
         navigateImage('next');
-      }, 3000); // 3초마다 전환
+      }, 3000);
     } else {
       if (slideshowTimerRef.current) clearInterval(slideshowTimerRef.current);
     }
     return () => { if (slideshowTimerRef.current) clearInterval(slideshowTimerRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSlideshow, selectedItem, currentImages]);
 
-  // 줌 컨트롤
   const handleZoom = (delta: number) => {
     setZoomLevel(prev => Math.max(0.5, Math.min(3.0, prev + delta)));
   };
@@ -183,18 +202,9 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, selectedItem]);
 
-
-  // 렌더링
-  if (loading || !fileSystem) {
-    return (
-      <div className="h-full flex items-center justify-center bg-[#f0f0f0] select-none">
-        <Spinner size="lg" />
-        <p className="mt-4 font-pixel text-xs text-gray-500 animate-pulse">Loading Gallery...</p>
-      </div>
-    );
-  }
-
-  // 메뉴 정의
+  // ----------------------------------------------------------------------
+  // 5. 메뉴 및 UI 구성
+  // ----------------------------------------------------------------------
   const menuItems: MenuItemType[] = [
     {
       key: 'file',
@@ -203,7 +213,7 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
         <Dropdown.Menu>
           <Dropdown.Item
             label="Set as Wallpaper"
-            onClick={() => selectedItem?.url && setBackgroundImage(selectedItem.url)}
+            onClick={() => selectedItem?.src && setBackgroundImage(selectedItem.src)}
             disabled={!selectedItem || selectedItem.type !== 'image'}
           />
           <Dropdown.Divider />
@@ -219,6 +229,8 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
           <Dropdown.Item label="Thumbnails" onClick={() => setViewMode('thumb')} checked={viewMode === 'thumb'} />
           <Dropdown.Item label="Filmstrip (Preview)" onClick={() => setViewMode('preview')} checked={viewMode === 'preview'} />
           <Dropdown.Item label="Details" onClick={() => setViewMode('details')} checked={viewMode === 'details'} />
+          <Dropdown.Divider />
+          <Dropdown.Item label="Sidebar" onClick={() => setShowSidebar(!showSidebar)} checked={showSidebar} />
         </Dropdown.Menu>
       ),
     }
@@ -233,9 +245,14 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
       {/* 2. Tool Bar */}
       <ToolBar hasGripper={true} className="border-b-0">
         <div className="flex gap-1 items-center">
-          <NavButton label="Back" icon="⬅️" onClick={() => setCurrentFolder(fileSystem)} disabled={currentFolder === fileSystem} />
+          <NavButton
+            label="Back"
+            icon="⬅️"
+            onClick={handleBack}
+            disabled={currentPath === 'nct-wish'}
+          />
           <div className="w-[1px] h-5 bg-gray-400 mx-2" />
-          <NavButton label="Folders" icon="📂" active={showTree} onClick={() => setShowTree(!showTree)} />
+          <NavButton label="Folders" icon="📂" active={showSidebar} onClick={() => setShowSidebar(!showSidebar)} />
           <div className="w-[1px] h-5 bg-gray-400 mx-2" />
           <NavButton
             label={isSlideshow ? "Stop" : "SlideShow"}
@@ -247,18 +264,24 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
           <NavButton
             label="Wallpaper"
             icon="🖼️"
-            onClick={() => selectedItem?.url && setBackgroundImage(selectedItem.url)}
+            onClick={() => selectedItem?.src && setBackgroundImage(selectedItem.src)}
             disabled={!selectedItem || selectedItem.type !== 'image'}
           />
         </div>
       </ToolBar>
 
-      {/* 3. View Options Bar (Secondary Toolbar) */}
+      {/* 3. Address Bar / View Options */}
       <div className="h-7 bg-[#f0f0f0] border-b border-white border-t border-gray-200 flex items-center px-2 gap-2 text-xs">
-        <span className="text-gray-500">View:</span>
-        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'thumb' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('thumb')}>Thumbnails</button>
-        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'preview' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('preview')}>Preview</button>
-        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'details' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('details')}>Details</button>
+        <span className="text-gray-500">Path:</span>
+        <div className="flex-1 bg-white border border-gray-400 px-2 py-0.5 truncate text-gray-700 shadow-inner">
+          {currentPath.replace('nct-wish', 'Root')}
+        </div>
+
+        <div className="w-[1px] h-4 bg-gray-400 mx-1" />
+
+        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'thumb' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('thumb')}>Thumb</button>
+        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'preview' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('preview')}>Prev</button>
+        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'details' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('details')}>List</button>
 
         {viewMode === 'preview' && (
           <>
@@ -273,154 +296,173 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
       {/* 4. Main Content Area */}
       <div className="flex-1 flex m-1 bg-white border-2 border-inset border-gray-400 shadow-[inset_1px_1px_0px_#888] min-h-0 relative">
 
-        {/* [Left] Folder Tree (Responsive) */}
-        {showTree && (
-          <div className="h-full w-[180px] bg-white border-r border-gray-200 overflow-y-auto custom-scrollbar flex flex-col shrink-0">
-            <div className="p-1 min-w-max">
-              <FolderTree item={fileSystem} currentFolder={currentFolder} onNavigate={handleNavigate} />
-            </div>
+        {/* [Left] Quick Access Sidebar */}
+        {showSidebar && (
+          <div className="h-full w-[160px] bg-[#f5f5f5] border-r border-gray-300 overflow-y-auto custom-scrollbar flex flex-col shrink-0">
+            <div className="p-2 font-bold text-xs text-gray-500 uppercase tracking-wider">Quick Access</div>
+            {QUICK_LINKS.map((link) => (
+              <div
+                key={link.path}
+                onClick={() => handleNavigate(link.path)}
+                className={`
+                  flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs
+                  ${currentPath === link.path || currentPath.startsWith(link.path + '/')
+                    ? 'bg-[#000080] text-white'
+                    : 'text-gray-700 hover:bg-gray-200 hover:text-black'}
+                `}
+              >
+                <span>{link.icon}</span>
+                <span>{link.name}</span>
+              </div>
+            ))}
           </div>
         )}
 
         {/* [Right] Content View */}
         <div className="flex-1 flex flex-col bg-white overflow-hidden w-full relative">
 
-          {/* A. Thumbnail View */}
-          {viewMode === 'thumb' && (
-            <div
-              className="flex-1 overflow-y-auto p-3 content-start grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-4 bg-white custom-scrollbar"
-              onClick={() => setSelectedItem(null)}
-            >
-              {sortedChildren.length === 0 && (
-                <div className="col-span-full text-center text-gray-400 text-sm mt-10">Empty Folder</div>
+          {loading ? (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <Spinner size="lg" />
+              <p className="mt-4 font-pixel text-xs text-gray-500 animate-pulse">Fetching Cloudinary...</p>
+            </div>
+          ) : (
+            <>
+              {/* A. Thumbnail View */}
+              {viewMode === 'thumb' && (
+                <div
+                  className="flex-1 overflow-y-auto p-3 content-start grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-4 bg-white custom-scrollbar"
+                  onClick={() => setSelectedItem(null)}
+                >
+                  {sortedItems.length === 0 && (
+                    <div className="col-span-full text-center text-gray-400 text-sm mt-10">This folder is empty.</div>
+                  )}
+
+                  {sortedItems.map((item) => (
+                    <div
+                      key={item.id || item.name}
+                      onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}
+                      onDoubleClick={() => handleOpenItem(item)}
+                      className={`
+                        flex flex-col items-center justify-start group cursor-default
+                        ${selectedItem === item ? '' : 'hover:opacity-90'}
+                      `}
+                    >
+                      {/* Frame */}
+                      <div className={`
+                        w-20 h-20 mb-1 flex items-center justify-center bg-gray-50 overflow-hidden relative shadow-sm
+                        ${selectedItem === item ? 'ring-2 ring-[#000080] opacity-80' : 'border border-gray-300'}
+                      `}>
+                        {item.type === 'folder' ? (
+                          <span className="text-4xl">📁</span>
+                        ) : (
+                          <img
+                            src={item.src}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                            draggable={false}
+                          />
+                        )}
+                      </div>
+                      {/* Label */}
+                      <span className={`
+                        text-xs text-center line-clamp-2 break-all px-1 py-0.5 rounded
+                        ${selectedItem === item ? 'bg-[#000080] text-white' : 'text-gray-900'}
+                      `}>
+                        {item.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
 
-              {sortedChildren.map((item) => (
-                <div
-                  key={item.id || item.name}
-                  onClick={(e) => { e.stopPropagation(); handleImageSelect(item); }}
-                  onDoubleClick={() => handleOpenItem(item)}
-                  className={`
-                                flex flex-col items-center justify-start group cursor-default
-                                ${selectedItem === item ? '' : 'hover:opacity-90'}
-                            `}
-                >
-                  {/* Frame */}
-                  <div className={`
-                                w-20 h-20 mb-1 flex items-center justify-center bg-gray-100 overflow-hidden relative shadow-sm
-                                ${selectedItem === item ? 'ring-2 ring-[#000080] opacity-80' : 'border border-gray-300'}
-                            `}>
-                    {item.type === 'folder' ? (
-                      <span className="text-4xl">📁</span>
-                    ) : (
-                      <img
-                        src={item.thumbnailUrl || item.url}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        draggable={false}
-                      />
-                    )}
+              {/* B. Details View */}
+              {viewMode === 'details' && (
+                <div className="flex-1 flex flex-col overflow-hidden bg-white">
+                  <div className="flex text-xs text-gray-600 px-2 py-1 border-b border-gray-200 bg-gray-50 font-bold shrink-0">
+                    <div className="w-1/2 px-1 border-r border-gray-200">Name</div>
+                    <div className="w-1/4 px-1 border-r border-gray-200">Caption/Tag</div>
+                    <div className="w-1/4 px-1">Size</div>
                   </div>
-                  {/* Label */}
-                  <span className={`
-                                text-xs text-center line-clamp-2 break-all px-1 py-0.5 rounded
-                                ${selectedItem === item ? 'bg-[#000080] text-white' : 'text-gray-900'}
-                            `}>
-                    {item.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* B. Details View (List) */}
-          {viewMode === 'details' && (
-            <div className="flex-1 flex flex-col overflow-hidden bg-white">
-              <div className="flex text-xs text-gray-600 px-2 py-1 border-b border-gray-200 bg-gray-50 font-bold shrink-0">
-                <div className="w-1/2 px-1 border-r border-gray-200">Name</div>
-                <div className="w-1/4 px-1 border-r border-gray-200">Date</div>
-                <div className="w-1/4 px-1">Dimensions</div>
-              </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-1">
-                {sortedChildren.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => handleImageSelect(item)}
-                    onDoubleClick={() => handleOpenItem(item)}
-                    className={`
-                                    flex items-center text-xs px-1 py-0.5 cursor-default
-                                    ${selectedItem === item ? 'bg-[#000080] text-white' : 'hover:bg-gray-100 text-gray-800'}
-                                `}
-                  >
-                    <div className="w-1/2 flex items-center gap-2 truncate pr-2">
-                      <span className="text-sm">{item.type === 'folder' ? '📁' : '🖼️'}</span>
-                      <span className="truncate">{item.name}</span>
-                    </div>
-                    <div className="w-1/4 truncate px-1 opacity-80">{item.date ? new Date(item.date).toLocaleDateString() : '-'}</div>
-                    <div className="w-1/4 truncate px-1 opacity-80">{item.width ? `${item.width} x ${item.height}` : '-'}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* C. Preview View */}
-          {viewMode === 'preview' && (
-            <div className="flex-1 flex flex-col bg-[#505050] relative overflow-hidden">
-              {selectedItem ? (
-                <>
-                  {/* Main Canvas */}
-                  <div className="flex-1 flex items-center justify-center overflow-auto custom-scrollbar relative">
-                    <img
-                      src={selectedItem.url}
-                      alt={selectedItem.name}
-                      className="transition-transform duration-200 origin-center shadow-lg"
-                      style={{
-                        transform: `scale(${zoomLevel})`,
-                        maxWidth: '95%',
-                        maxHeight: '95%',
-                        objectFit: 'contain'
-                      }}
-                      draggable={false}
-                    />
-                  </div>
-
-                  {/* Navigation Arrows */}
-                  <button
-                    onClick={() => navigateImage('prev')}
-                    className="absolute top-1/2 left-2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center text-2xl z-10 transition-colors"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    onClick={() => navigateImage('next')}
-                    className="absolute top-1/2 right-2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center text-2xl z-10 transition-colors"
-                  >
-                    ›
-                  </button>
-
-                  {/* Bottom Filmstrip */}
-                  <div className="h-16 bg-[#333] border-t border-gray-600 flex items-center gap-2 px-4 overflow-x-auto custom-scrollbar shrink-0">
-                    {currentImages.map(img => (
-                      <button
-                        key={img.id}
-                        onClick={() => { setSelectedItem(img); setZoomLevel(1); }}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar p-1">
+                    {sortedItems.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedItem(item)}
+                        onDoubleClick={() => handleOpenItem(item)}
                         className={`
-                                    w-10 h-10 shrink-0 border-2 overflow-hidden
-                                    ${selectedItem.id === img.id ? 'border-yellow-400 opacity-100' : 'border-transparent opacity-60 hover:opacity-80'}
-                                  `}
+                          flex items-center text-xs px-1 py-0.5 cursor-default
+                          ${selectedItem === item ? 'bg-[#000080] text-white' : 'hover:bg-gray-100 text-gray-800'}
+                        `}
                       >
-                        <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" />
-                      </button>
+                        <div className="w-1/2 flex items-center gap-2 truncate pr-2">
+                          <span className="text-sm">{item.type === 'folder' ? '📁' : '🖼️'}</span>
+                          <span className="truncate">{item.name}</span>
+                        </div>
+                        <div className="w-1/4 truncate px-1 opacity-80">{item.caption || '-'}</div>
+                        <div className="w-1/4 truncate px-1 opacity-80">{item.width ? `${item.width} x ${item.height}` : '-'}</div>
+                      </div>
                     ))}
                   </div>
-                </>
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-400">
-                  No image selected
                 </div>
               )}
-            </div>
+
+              {/* C. Preview View */}
+              {viewMode === 'preview' && (
+                <div className="flex-1 flex flex-col bg-[#505050] relative overflow-hidden">
+                  {selectedItem && selectedItem.type === 'image' ? (
+                    <>
+                      {/* Main Canvas */}
+                      <div className="flex-1 flex items-center justify-center overflow-auto custom-scrollbar relative">
+                        <img
+                          src={selectedItem.src}
+                          alt={selectedItem.name}
+                          className="transition-transform duration-200 origin-center shadow-lg"
+                          style={{
+                            transform: `scale(${zoomLevel})`,
+                            maxWidth: '95%',
+                            maxHeight: '95%',
+                            objectFit: 'contain'
+                          }}
+                          draggable={false}
+                        />
+                      </div>
+
+                      {/* Caption Overlay */}
+                      {selectedItem.caption && (
+                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-1 rounded-full text-sm font-handwriting">
+                          {selectedItem.caption}
+                        </div>
+                      )}
+
+                      {/* Nav Arrows */}
+                      <button onClick={() => navigateImage('prev')} className="absolute top-1/2 left-2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center text-2xl z-10">‹</button>
+                      <button onClick={() => navigateImage('next')} className="absolute top-1/2 right-2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center text-2xl z-10">›</button>
+
+                      {/* Filmstrip */}
+                      <div className="h-16 bg-[#333] border-t border-gray-600 flex items-center gap-2 px-4 overflow-x-auto custom-scrollbar shrink-0">
+                        {currentImages.map(img => (
+                          <button
+                            key={img.id}
+                            onClick={() => { setSelectedItem(img); setZoomLevel(1); }}
+                            className={`
+                              w-10 h-10 shrink-0 border-2 overflow-hidden
+                              ${selectedItem.id === img.id ? 'border-yellow-400 opacity-100' : 'border-transparent opacity-60 hover:opacity-80'}
+                            `}
+                          >
+                            <img src={img.src} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-gray-400">
+                      No image selected
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -430,12 +472,14 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
         <span className="flex-1 truncate">
           {viewMode === 'preview'
             ? `${currentImages.findIndex(i => i.id === selectedItem?.id) + 1} / ${currentImages.length}`
-            : `${currentFolder?.children?.length || 0} object(s)`
+            : `${sortedItems.length} object(s)`
           }
         </span>
         <div className="w-[1px] h-4 bg-gray-400" />
         <span className="w-48 truncate text-right">
-          {selectedItem ? `${selectedItem.name} ${selectedItem.width ? `(${selectedItem.width}x${selectedItem.height})` : ''}` : 'My Wish Gallery'}
+          {selectedItem
+            ? `${selectedItem.name} ${selectedItem.width ? `(${selectedItem.width}x${selectedItem.height})` : ''}`
+            : 'Ready'}
         </span>
       </div>
     </div>
@@ -443,7 +487,7 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
 }
 
 // ----------------------------------------------------------------------
-// Helper Components
+// Helper Component
 // ----------------------------------------------------------------------
 
 function NavButton({ label, icon, disabled, onClick, active }: { label: string, icon: React.ReactNode, disabled?: boolean, onClick?: () => void, active?: boolean }) {
@@ -464,112 +508,5 @@ function NavButton({ label, icon, disabled, onClick, active }: { label: string, 
       <span className="text-lg leading-none">{icon}</span>
       <span className="sr-only">{label}</span>
     </button>
-  );
-}
-
-// ----------------------------------------------------------------------
-// FolderTree Component
-// ----------------------------------------------------------------------
-
-function FolderTree({
-  item,
-  currentFolder,
-  onNavigate,
-  level = 0
-}: {
-  item: GalleryItem,
-  currentFolder: GalleryItem | null,
-  onNavigate: (i: GalleryItem) => void,
-  level?: number
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  // 선택 여부 확인
-  const isSelected = currentFolder?.id === item.id;
-
-  // 자식 폴더가 있는지 확인
-  const childFolders = item.children?.filter(c => c.type === 'folder' || c.type === 'root') || [];
-  const hasChildren = childFolders.length > 0;
-
-  // [Effect] 현재 선택된 폴더가 내 자식이라면 자동으로 펼치기
-  useEffect(() => {
-    let shouldOpen = false;
-
-    // 루트는 처음에 항상 펼쳐두기
-    if (item.type === 'root') {
-      setIsOpen(true);
-    }
-
-    if (currentFolder && (currentFolder.id === item.id || hasDescendant(item, currentFolder.id))) {
-      shouldOpen = true;
-    }
-
-    if (shouldOpen) {
-      setIsOpen(prev => {
-        if (prev) return prev; // 이미 열려있으면 유지
-        return true;
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentFolder, item]);
-
-  // 토글 핸들러
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsOpen(!isOpen);
-  };
-
-  return (
-    <div className="font-sans select-none">
-      <div
-        className={`
-                    flex items-center gap-1 py-[1px] cursor-pointer text-xs truncate border border-transparent 
-                    ${isSelected
-            ? 'bg-[#000080] text-white border-dotted border-gray-200'
-            : 'text-black hover:underline hover:text-blue-800'
-          }
-                `}
-        style={{ paddingLeft: `${level * 16}px` }} // 들여쓰기 조정
-        onClick={() => onNavigate(item)}
-      >
-        {/* 1. 토글 버튼 (자식이 있을 때만 표시) */}
-        <div
-          className="w-4 h-4 flex items-center justify-center shrink-0 hover:bg-black/10 rounded-sm cursor-pointer"
-          onClick={hasChildren ? handleToggle : undefined}
-        >
-          {hasChildren && (
-            <span className="text-[10px] text-gray-500 transform scale-75">
-              {isOpen ? '▼' : '▶'}
-            </span>
-          )}
-        </div>
-
-        {/* 2. 폴더 아이콘 (상태에 따라 변경) */}
-        <span className="text-sm shrink-0">
-          {item.type === 'root'
-            ? '🖼️'
-            : (isOpen ? '📂' : '📁') // 열리면 📂, 닫히면 📁
-          }
-        </span>
-
-        {/* 3. 폴더 이름 */}
-        <span className="truncate">{item.name}</span>
-      </div>
-
-      {/* 4. 자식 폴더 렌더링 (isOpen일 때만) */}
-      {hasChildren && isOpen && (
-        <div>
-          {childFolders.map(child => (
-            <FolderTree
-              key={child.id || child.name}
-              item={child}
-              currentFolder={currentFolder}
-              onNavigate={onNavigate}
-              level={level + 1}
-            />
-          ))}
-        </div>
-      )}
-    </div>
   );
 }

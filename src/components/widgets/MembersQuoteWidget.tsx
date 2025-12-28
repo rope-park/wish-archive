@@ -78,13 +78,13 @@ export default function MembersQuoteWidget() {
 
   return (
     <div className="
-      relative
-      w-56 md:w-72 aspect-[17/20]
+      relative w-full h-full
       flex flex-col justify-end items-center
       gap-4 md:gap-6 
       pb-4 md:pb-5
       select-none
-    ">
+    "
+    >
 
       {/* 말풍선 영역 (클릭 시 어록 등장) */}
       <motion.div

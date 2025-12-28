@@ -183,7 +183,6 @@ export default function DraggableWidget({
         `}
         style={{
           zIndex: currentZIndex,
-          transform: `scale(${scale})`,
           touchAction: isMobile ? 'auto' : 'none',
         }}
         onMouseDown={handleMouseDown}

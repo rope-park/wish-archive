@@ -15,8 +15,8 @@ interface DDayData {
 }
 
 interface DDayCounterProps {
-  targetDate?: string | Date  // 목표 날짜 (YYYY-MM-DD)
-  label?: string;             // 라벨 (예: Debut)
+  targetDate?: string | Date;
+  label?: string;
   className?: string;
 }
 
@@ -29,13 +29,9 @@ export default function DDayCounterWidget({
   const [data, setData] = useState<DDayData | null>(null);
   const [dDayString, setDDayString] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
 
   // 1. 데이터 로드 (Props 우선 -> 없으면 API에서 불러오기)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true);
-
     const initData = async () => {
       setIsLoading(true);
 
@@ -86,11 +82,9 @@ export default function DDayCounterWidget({
     setDDayString(calculateDDay());
   }, [data]);
 
-  if (!isMounted) return null;
-
   return (
     <div className={`
-      relative w-40 h-[70px]
+      relative w-full h-full
       select-none cursor-default
       ${className}`}
     >

@@ -32,10 +32,11 @@ export default function MiniPlayer() {
   // 상태 관리
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [playerKey, setPlayerKey] = useState(0); // iframe 강제 리렌더링용
 
   const [currentTime, setCurrentTime] = useState(0);
@@ -46,9 +47,12 @@ export default function MiniPlayer() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const isFirstLoadRef = useRef(true);
+  const isTrackChangedRef = useRef(false);
 
   // 전역 상태 관리
   const { isMuted, volume, setPlayerRef } = useAudioStore();
+  const currentSong = playlist[currentIndex];
 
   // 1. 초기 플레이리스트 로드
   useEffect(() => {
@@ -65,25 +69,28 @@ export default function MiniPlayer() {
           { id: '2XqVNFBtVo4', trackId: 'fb2', title: 'Songbird', album: 'Songbird', themeColor: '#8EE3F5' },
           { id: 'Pqm6KO2y2pw', trackId: 'fb3', title: 'Dunk Shot', album: 'Dunk Shot', themeColor: '#FF6B6B' },
         ]);
-      } finally {
-        setIsLoading(false);
       }
     };
     loadPlaylist();
   }, []);
 
-  const currentSong = playlist[currentIndex];
-
   // 2. 곡 변경 시 로딩 상태 처리 (3초 후 강제 Ready)
   useEffect(() => {
-    if (currentSong) {
-      setIsReady(false);
-      setCurrentTime(0);
-      setDuration(0);
-      setProgress(0);
-      const timer = setTimeout(() => setIsReady(true), 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!currentSong) return;
+    if (isFirstLoadRef.current) return; // 첫 로드 시는 건너뜀
+
+    setIsPlaying(false);
+    setIsReady(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setProgress(0);
+    isTrackChangedRef.current = true;
+
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [currentSong]);
 
   // 3. 볼륨/음소거 동기화
@@ -113,7 +120,15 @@ export default function MiniPlayer() {
 
   // 재생/일시정지 토글
   const togglePlay = () => {
-    if (!isReady || !playerRef.current?.playVideo) return;
+    if (!playerRef.current || typeof playerRef.current.playVideo !== 'function') {
+      // 플레이어가 아직 로딩 안됐는데 눌렀을 경우를 대비
+      console.log("Player not ready, waiting...");
+      return;
+    }
+
+    // 사용자가 버튼을 눌렀으니 첫 로딩 상태 해제
+    if (isFirstLoadRef.current) isFirstLoadRef.current = false;
+
     if (isPlaying) {
       playerRef.current.pauseVideo();
       setIsPlaying(false);
@@ -121,6 +136,20 @@ export default function MiniPlayer() {
       playerRef.current.playVideo();
       setIsPlaying(true);
     }
+  };
+
+  const changeTrack = (index: number) => {
+    // 사용자가 클릭해서 바꿨으므로 첫 로딩 아님
+    isFirstLoadRef.current = false;
+
+    // 상태 초기화
+    setIsPlaying(false);
+
+    // 약간의 딜레이 후 인덱스 변경 (React 상태 업데이트 보장)
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setPlayerKey((prev) => prev + 1); // iframe 강제 리로드
+    }, 10);
   };
 
   // 이전/다음 곡 재생
@@ -134,16 +163,6 @@ export default function MiniPlayer() {
     if (playlist.length === 0) return;
     const nextIdx = (currentIndex + 1) % playlist.length;
     changeTrack(nextIdx);
-  };
-
-  const changeTrack = (index: number) => {
-    setIsPlaying(false);
-    setIsReady(false);
-    setProgress(0);
-    setTimeout(() => {
-      setCurrentIndex(index);
-      setPlayerKey((prev) => prev + 1);
-    }, 50);
   };
 
   // 5. YouTube API 초기화
@@ -170,16 +189,27 @@ export default function MiniPlayer() {
             playerRef.current = e.target;
             setPlayerRef(e.target);
             e.target.setVolume(isMuted ? 0 : volume);
-            setIsReady(true);
+
+            // 첫 로딩이면: 준비 완료 상태만(아이콘 표시용) 만들고 재생 안 함
+            if (isFirstLoadRef.current) {
+              setIsReady(true);
+              setIsPlaying(false);
+            } else {
+              // 곡 변경이나 재로드인 경우: 자동 재생
+              setIsReady(true);
+              e.target.playVideo();
+              setIsPlaying(true);
+            }
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onStateChange: (e: any) => {
-            // 0 = Ended
-            if (e.data === 0) playNext();
-            // 1 = Playing
-            if (e.data === 1) setIsPlaying(true);
-            // 2 = Paused
+            // 1: 재생중, 2: 일시정지, 0: 끝남
+            if (e.data === 1) {
+              setIsPlaying(true);
+              setIsReady(true); // 혹시 로딩바가 안 꺼졌으면 끔
+            }
             if (e.data === 2) setIsPlaying(false);
+            if (e.data === 0) playNext();
           },
         },
       });
@@ -194,17 +224,6 @@ export default function MiniPlayer() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong, playerKey]);
-
-  // 6. Ready 상태 되면 자동 재생 시도
-  useEffect(() => {
-    if (isReady && currentSong && playerRef.current?.playVideo) {
-      const timer = setTimeout(() => {
-        playerRef.current.playVideo();
-        setIsPlaying(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isReady, currentSong]);
 
   if (!currentSong) return null;
 
@@ -235,7 +254,7 @@ export default function MiniPlayer() {
         <div className="absolute inset-0 rounded-[24px] bg-noise opacity-[0.07] pointer-events-none mix-blend-multiply" />
         {/* 표면 그라데이션 코팅 */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none mix-blend-overlay" />
-        
+
         {/* [왼쪽] 화면 영역 */}
         <div className="
           relative
@@ -254,8 +273,8 @@ export default function MiniPlayer() {
               ref={iframeRef}
               key={playerKey}
               id={`Youtubeer-${playerKey}`}
-              src={`https://www.youtube.com/embed/${currentSong.id}?enablejsapi=1&controls=0&showinfo=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&playsinline=1&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
-              className="absolute inset-0 w-full h-full object-cover scale-[1.35] opacity-90 pointer-events-none mix-blend-screen"
+              src={`https://www.youtube.com/embed/${currentSong.id}?enablejsapi=1&controls=0&showinfo=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&playsinline=1&autoplay=0&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
+              className="absolute inset-0 w-full h-full object-cover scale-[1.35] opacity-90 mix-blend-screen"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               title="YouTube video player"
             />
@@ -320,7 +339,7 @@ export default function MiniPlayer() {
           ">
 
             <div className="absolute inset-0 rounded-full bg-noise opacity-[0.05] mix-blend-multiply" />
-            
+
             {/* MENU 버튼 (상단) */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}

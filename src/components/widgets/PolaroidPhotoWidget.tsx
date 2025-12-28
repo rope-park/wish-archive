@@ -12,62 +12,117 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CSSProperties } from 'react';
 
-interface PolaroidPhotoProps {
+// ----------------------------------------------------------------------
+// Types & Constants
+// ----------------------------------------------------------------------
+
+// 1. API에서 받아오는 원본 데이터 타입
+interface APIGalleryItem {
   id: string;
-  src: string;          // 이미지 경로
-  alt?: string;         // 접근성 텍스트
-  caption: string;     // 손글씨 멘트
-  rotate?: number;      // 회전 각도
-  className?: string;   // 추가 클래스
-  style?: CSSProperties;
+  name: string;
+  src: string;
+  tags?: string[];
+  caption?: string; // Cloudinary Context
 }
 
-const DEFAULT_POLAROID: PolaroidPhotoProps = {
-  id: 'polaroid_default',
-  src: '/system/widgets/PolaroidPhoto/wishpolaroid_temp.jpg',
+// 2. 화면에 보여줄 폴라로이드 상태 타입
+interface PolaroidPhotoState {
+  id: string;
+  src: string;
+  caption: string;
+  rotate: number; // 회전 각도 (랜덤)
+}
+
+const DEFAULT_POLAROID: PolaroidPhotoState = {
+  id: 'default',
+  // 기본 이미지가 없으면 빈 문자열 (또는 로컬 placeholder 경로)
+  src: '', 
   caption: 'Welcome to Wish OS!',
   rotate: -2,
-  className: '',
-  style: {},
 };
-
 
 export default function PolaroidPhotoWidget() {
   // 상태 관리
-  const [data, setData] = useState<PolaroidPhotoProps>(DEFAULT_POLAROID);
+  const [currentPhoto, setCurrentPhoto] = useState<PolaroidPhotoState>(DEFAULT_POLAROID);
+  
+  // 데이터 캐싱
+  const [photoList, setPhotoList] = useState<APIGalleryItem[]>([]);
+  
+  // UI 상태
   const [isLoading, setIsLoading] = useState(false);
-  const [rotation, setRotation] = useState<number>(data.rotate || 0);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // API 호출
-  const fetchRandomPolaroid = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/widgets/polaroid/random');
+  // ----------------------------------------------------------------------
+  // 1. Data Fetching
+  // ----------------------------------------------------------------------
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // 'widget-polaroid' 태그가 있는 이미지 가져오기
+        const res = await fetch('/api/gallery?mode=widget&tag=widget-polaroid');
+        const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch polaroid data');
+        if (data.items && data.items.length > 0) {
+          setPhotoList(data.items);
+          pickRandomPhoto(data.items);
+        }
+      } catch (error) {
+        console.error('Failed to fetch polaroid:', error);
+      } finally {
+        setTimeout(() => setIsLoading(false), 500);
       }
+    };
 
-      const polaroidData: PolaroidPhotoProps = await response.json();
-      setData(polaroidData);
+    setIsMounted(true);
+    initData();
+  }, []);
 
-      setRotation(Math.random() * 8 - 4); // -4도 ~ +4도 랜덤 회전
-    } catch (error) {
-      console.error('Error fetching polaroid data:', error);
-    } finally {
-      setTimeout(() => setIsLoading(false), 500);
-    }
+  // ----------------------------------------------------------------------
+  // 2. Logic
+  // ----------------------------------------------------------------------
+
+  const pickRandomPhoto = (items: APIGalleryItem[]) => {
+    if (!items || items.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * items.length);
+    const item = items[randomIndex];
+
+    // -3도 ~ +3도 사이의 자연스러운 랜덤 회전
+    const randomRotate = Math.random() * 6 - 3;
+
+    setCurrentPhoto({
+      id: item.id,
+      src: item.src,
+      caption: item.caption || 'NCT WISH', // 캡션 없으면 기본 멘트
+      rotate: randomRotate,
+    });
   };
 
-  useEffect(() => {
-    fetchRandomPolaroid();
-  }, []);
+  // ----------------------------------------------------------------------
+  // 3. Interaction Handlers
+  // ----------------------------------------------------------------------
+
+  const handleClick = () => {
+    if (isLoading || photoList.length === 0) return;
+
+    setIsLoading(true);
+    
+    // 로딩 연출 후 데이터 교체
+    setTimeout(() => {
+      pickRandomPhoto(photoList);
+      setIsLoading(false);
+    }, 400);
+  };
+
+  if (!isMounted) return null;
 
   return (
     <div
       className={`
         relative flex flex-col items-center
-        w-48 md:w-64
+        w-full h-full
         p-3 pb-8 md:p-4 md:pb-12
         bg-white
         
@@ -79,19 +134,22 @@ export default function PolaroidPhotoWidget() {
         cursor-pointer
         transition-all duration-300 ease-out
         hover:scale-105 hover:z-50 hover:shadow-2xl hover:rotate-0
+        select-none
       `}
       style={{
-        transform: `rotate(${rotation}deg)`,
-        ...data.style,
+        transform: `rotate(${currentPhoto.rotate}deg)`,
       }}
-      onClick={fetchRandomPolaroid}
+      onClick={handleClick}
     >
-      {/* 테이프 장식 */}
+      {/* ------------------------------------------------- */}
+      {/* 테이프 장식 (CSS Only) */}
+      {/* ------------------------------------------------- */}
+      
       {/* 왼쪽 상단 테이프 */}
       <div className="
         absolute -top-5 left-1 z-20
         w-8 h-10 md:w-10 md:h-12
-      bg-white/50 backdrop-blur-[1px]
+        bg-white/50 backdrop-blur-[1px]
         shadow-[1px_1px_3px_rgba(0,0,0,0.1)]
         -rotate-[15deg]
         pointer-events-none
@@ -102,14 +160,16 @@ export default function PolaroidPhotoWidget() {
       <div className="
         absolute -top-3 right-2 z-20
         w-12 h-6 md:w-16 md:h-8
-      bg-white/40 backdrop-blur-[1px]
+        bg-white/40 backdrop-blur-[1px]
         shadow-[1px_1px_3px_rgba(0,0,0,0.1)]
         rotate-[5deg]
         pointer-events-none
         border-l border-r border-white/30
       " />
 
-      {/* 사진 영역 (Inset Effect) */}
+      {/* ------------------------------------------------- */}
+      {/* 사진 영역 */}
+      {/* ------------------------------------------------- */}
       <div className="
         relative w-full aspect-square shrink-0
         bg-gray-100
@@ -118,32 +178,35 @@ export default function PolaroidPhotoWidget() {
         overflow-hidden
         z-10
       ">
-        {isLoading ? (
-          // 로딩 중 스켈레톤
+        {(isLoading || !currentPhoto.src) ? (
+          // 로딩 중 / 이미지 없음
           <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 gap-2">
-            <div className="w-8 h-8 border-4 border-gray-300 border-t-brand-retro-navy rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-brand-wish-blue rounded-full animate-spin" />
             <span className="font-pixel text-[10px] text-gray-400">Loading...</span>
           </div>
         ) : (
-          // 사진 이미지
+          // 사진 렌더링
           <>
             <Image
-              src={data.src}
-              alt={data.alt || 'Polaroid Photo'}
+              src={currentPhoto.src}
+              alt={currentPhoto.caption}
               fill
               sizes="(max-width: 768px) 192px, 256px"
               className="object-cover filter contrast-[1.05] brightness-[1.02]"
-              draggable={false} // 드래그 방지 (위젯 이동과 충돌 방지)
+              draggable={false}
             />
 
             {/* 사진 위 비네팅/질감 효과 */}
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-900/10 via-transparent to-blue-900/5 pointer-events-none mix-blend-overlay" />
+            {/* 노이즈 텍스처 (파일이 없다면 무시됨) */}
             <div className="absolute inset-0 bg-[url('/system/wallpapers/noise.png')] opacity-[0.03] pointer-events-none" />
           </>
         )}
       </div>
 
+      {/* ------------------------------------------------- */}
       {/* 캡션 영역 (손글씨) */}
+      {/* ------------------------------------------------- */}
       <div className="
         mt-4 md:mt-5 w-full
         min-h-[1.5em]
@@ -152,17 +215,21 @@ export default function PolaroidPhotoWidget() {
         -rotate-1
         flex items-center justify-center
       "
-        style={{ fontFamily: 'var(--font-hand), cursive' }}
+      // tailwind.config.js에 font-hand가 정의되어 있다고 가정, 없을 경우 대비해 cursive 폴백
+      style={{ fontFamily: 'var(--font-hand), cursive' }}
       >
         {isLoading ? (
           <span className="bg-gray-200 text-transparent rounded animate-pulse">
             Loading...
           </span>
         ) : (
-          <span>{data.caption}</span>
+          <span>{currentPhoto.caption}</span>
         )}
       </div>
 
+      {/* ------------------------------------------------- */}
+      {/* 툴팁 (Hover 시 안내) */}
+      {/* ------------------------------------------------- */}
       <div className="
         absolute -bottom-8 left-1/2 -translate-x-1/2
         text-[10px] font-pixel text-white bg-black/50 px-2 py-1 rounded-2xl

@@ -49,29 +49,37 @@ const DESKTOP_ICONS: DesktopIconConfig[] = [
 
 export default function Home() {
   // --- State ---
-  // 아이콘 선택 상태 관리
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-  // 모달 상태 관리
   const [modalOpen, setModalOpen] = useState(false);
-  // 동적 위젯 위치 및 크기 계산
   const [widgetPositions, setWidgetPositions] = useState<{ [key: string]: { x: number; y: number } }>({});
   const [widgetScale, setWidgetScale] = useState<number>(1);
   const [iconScale, setIconScale] = useState<number>(1);
-  // Viewport 크기 추적
   const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
-  // Taskbar 높이 (반응형)
-  const [taskbarHeight, setTaskbarHeight] = useState<number>(50);
-  // 위젯 준비 상태
+  const [taskbarHeight, setTaskbarHeight] = useState<number>(48);
   const [widgetsReady, setWidgetsReady] = useState(false);
-  // 최소 크기 체크
   const [isViewportTooSmall, setIsViewportTooSmall] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // --- Store ---
   const { openWindow } = useWindowStore();
 
+  // 터치 디바이스 감지
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      const hasTouchScreen = 'ontouchstart' in window ||
+                              navigator.maxTouchPoints > 0 ||
+                              ((navigator as Navigator & { msMaxTouchPoints?: number }).msMaxTouchPoints ?? 0) > 0;
+
+      setIsTouchDevice(hasTouchScreen);
+    };
+
+    checkTouchDevice();
+  }, []);
+
   // --- 위젯 설정 (viewport 크기에 따라 동적으로 변경) ---
   const WIDGET_CONFIGS = useMemo(() => {
     const isMobile = viewportWidth < 768;
+    const isTablet = viewportWidth >= 768 && viewportWidth < 1024;
 
     // 모바일: miniplayer, polaroid, quote, photocard 표시
     if (isMobile) {
@@ -101,6 +109,47 @@ export default function Home() {
           id: 'miniplayer',
           positionPercent: { x: 5, y: 75 },
           baseSize: { width: 340, height: 140 },
+          component: MiniPlayerWidget,
+          props: {},
+        },
+      ];
+    }
+
+        // 태블릿: 중간 수준의 위젯 표시
+    if (isTablet) {
+      return [
+        {
+          id: 'dday',
+          positionPercent: { x: 5, y: 5 },
+          baseSize: { width: 160, height: 70 },
+          component: DDayCounterWidget,
+          props: { targetDate: "2024-02-21", label: "Debut" },
+        },
+        {
+          id: 'photocard',
+          positionPercent: { x: 5, y: 20 },
+          baseSize: { width: 180, height: 270 },
+          component: PhotoCardWidget,
+          props: {},
+        },
+        {
+          id: 'polaroid',
+          positionPercent: { x: 30, y: 50 },
+          baseSize: { width: 220, height: 310 },
+          component: PolaroidPhotoWidget,
+          props: {},
+        },
+        {
+          id: 'quote',
+          positionPercent: { x: 60, y: 20 },
+          baseSize: { width: 260, height: 310 },
+          component: MembersQuoteWidget,
+          props: {},
+        },
+        {
+          id: 'miniplayer',
+          positionPercent: { x: 5, y: 75 },
+          baseSize: { width: 300, height: 130 },
           component: MiniPlayerWidget,
           props: {},
         },
@@ -159,7 +208,7 @@ export default function Home() {
         props: {},
       },
     ];
-  }, [viewportWidth]); // viewportWidth가 변경될 때마다 재계산
+  }, [viewportWidth]);
 
   // --- Effects ---
   // 화면 크기에 따른 위젯 위치 및 크기 계산
@@ -172,7 +221,7 @@ export default function Home() {
       setViewportWidth(currentViewportWidth);
 
       // 최소 크기 체크
-      if (currentViewportWidth < 320 || viewportHeight < 600) {
+      if (currentViewportWidth < 320 || viewportHeight < 500) {
         setIsViewportTooSmall(true);
         return;
       } else {
@@ -214,7 +263,7 @@ export default function Home() {
         // 모바일: 아이콘이 상단에 flex-wrap으로 배치됨
         // 아이콘 개수와 크기로 대략적인 높이 추정
         const iconSize = (iconScaleValue >= 1 ? 48 : 40) * iconScaleValue; // 아이콘 크기
-        const iconContainerHeight = iconSize + 16; // 아이콘 + 라벨
+        const iconContainerHeight = iconSize + 20; // 아이콘 + 라벨
         const iconsPerRow = Math.floor((currentViewportWidth - 48) / (iconSize + 24)); // 가로에 들어갈 아이콘 수
         const iconRows = Math.ceil(DESKTOP_ICONS.length / Math.max(1, iconsPerRow)); // 필요한 행 수
         ICON_AREA_HEIGHT = (iconRows * iconContainerHeight) + 48 + 24; // 행 * 높이 + 상하 패딩 + 여유
@@ -290,12 +339,17 @@ export default function Home() {
 
     // 화면 크기 변경 시 재계산
     window.addEventListener('resize', calculatePositions);
-    return () => window.removeEventListener('resize', calculatePositions);
+    window.addEventListener('orientationchange', calculatePositions);
+
+    return () => {
+      window.removeEventListener('resize', calculatePositions);
+      window.removeEventListener('orientationchange', calculatePositions);
+    };
   }, [WIDGET_CONFIGS]);
 
   // --- Handlers ---
   // 바탕화면 빈 곳 클릭 시 아이콘 선택 해제
-  const handleBackgroundClick = (e: React.MouseEvent) => {
+  const handleBackgroundClick = (e: React.MouseEvent | React.TouchEvent) => {
     // 이벤트 버블링 방지: 위젯이나 아이콘 클릭 시엔 동작 안 함
     if (e.target === e.currentTarget) {
       setSelectedIconId(null);
@@ -316,18 +370,17 @@ export default function Home() {
       icon: icon.iconSrc,
     });
 
-    if (window.innerWidth < 768) {
-      // 모바일/태블릿: 아이콘 선택 해제
+    if (isTouchDevice) {
       setSelectedIconId(null);
     }
   };
 
   // 아이콘 클릭 핸들러 (이벤트 전파 중단 필수)
-  const handleIconClick = (e: React.MouseEvent, id: string) => {
+  const handleIconClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, id: string): void => {
     e.stopPropagation();
 
-    if (window.innerWidth < 768) {
-      const icon = DESKTOP_ICONS.find(icon => icon.id === id);
+    if (isTouchDevice || viewportWidth < 768) {
+      const icon: DesktopIconConfig | undefined = DESKTOP_ICONS.find((icon: DesktopIconConfig) => icon.id === id);
       if (icon) {
         executeApp(icon);
       }
@@ -339,6 +392,7 @@ export default function Home() {
 
   // 아이콘 더블클릭 핸들러
   const handleIconDoubleClick = (icon: DesktopIconConfig) => {
+    if (isTouchDevice) return; // 터치 디바이스에서는 더블클릭 무시
     executeApp(icon);
   };
 
@@ -348,20 +402,21 @@ export default function Home() {
       className="w-full h-full relative overflow-hidden bg-cover bg-center"
       style={{
         minWidth: '320px',
-        minHeight: '600px',
+        minHeight: '500px',
+        touchAction: 'pan-y'
       }}
     >
       {/* 최소 크기 미만 경고 화면 */}
-      {isViewportTooSmall && (
+       {isViewportTooSmall && (
         <div className="absolute inset-0 z-[9999] bg-gray-900 flex flex-col items-center justify-center p-6 text-center">
           <div className="bg-white rounded-lg p-8 max-w-md shadow-2xl">
             <div className="text-6xl mb-4">⚠️</div>
             <h2 className="font-pixel text-xl mb-4 text-gray-900">화면 크기가 너무 작습니다</h2>
             <p className="font-pixel text-sm text-gray-700 leading-relaxed mb-2">
-              이 사이트는 최소 <strong>320 × 600</strong> 크기의 화면이 필요합니다.
+              이 사이트는 최소 <strong>320 x 500</strong> 크기의 화면이 필요합니다.
             </p>
             <p className="font-pixel text-xs text-gray-500">
-              브라우저 창을 키우거나 다른 기기를 사용해주세요.
+              기기를 회전하거나 브라우저 창을 키워주세요.
             </p>
           </div>
         </div>
@@ -395,7 +450,7 @@ export default function Home() {
 
           /* [Mobile] 전체 화면 채우기, 스크롤 허용 */
           flex flex-row flex-wrap content-start
-          justify-start gap-x-6 gap-y-6 p-6
+          justify-start gap-x-4 gap-y-4 p-4
           overflow-y-auto overflow-x-hidden
           pointer-events-auto
 
@@ -410,8 +465,10 @@ export default function Home() {
         style={{
           height: `calc(100vh - ${taskbarHeight}px)`,
           paddingBottom: `${taskbarHeight + 10}px`,
+          WebkitOverflowScrolling: 'touch',
         }}
         onClick={handleBackgroundClick}
+        onTouchEnd={handleBackgroundClick}
       >
         <div className="contents md:pointer-events-auto">
           {DESKTOP_ICONS.map((icon) => (
@@ -420,7 +477,7 @@ export default function Home() {
               label={icon.title}
               iconSrc={icon.iconSrc}
               isSelected={selectedIconId === icon.id}
-              onClick={(e) => handleIconClick(e, icon.id)}
+              onClick={(e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => handleIconClick(e, icon.id)}
               onDoubleClick={() => handleIconDoubleClick(icon)}
               scale={iconScale}
             />

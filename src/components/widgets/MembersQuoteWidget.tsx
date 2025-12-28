@@ -114,7 +114,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               className="text-center text-black font-pixel leading-relaxed break-keep"
-              style={{ fontSize: `${(scale >= 1 ? 16 : 14) * scale}px` }}
+              style={{ fontSize: `${(scale >= 1 ? 14 : 11) * scale}px` }}
             >
               {data.content}
             </motion.p>
@@ -126,7 +126,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
               exit={{ scale: 0 }}
               transition={{ duration: 0.3 }}
               className="font-pixel text-gray-300"
-              style={{ fontSize: `${(scale >= 1 ? 48 : 40) * scale}px` }}
+              style={{ fontSize: `${(scale >= 1 ? 40 : 32) * scale}px` }}
             >
               ?
             </motion.div>

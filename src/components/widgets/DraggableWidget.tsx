@@ -199,14 +199,17 @@ export default function DraggableWidget({
         )}
         
         {/* 실제 콘텐츠 */}
-        <div style={{ 
-          transform: `rotate(${rotation}deg)`,
-          transition: isRotating ? 'none' : 'transform 0.1s ease-out',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          overflow: 'visible',
-        }}>
+        <div 
+          className="pointer-events-auto"
+          style={{ 
+            transform: `rotate(${rotation}deg)`,
+            transition: isRotating ? 'none' : 'transform 0.1s ease-out',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            overflow: 'visible',
+          }}
+        >
           {children}
         </div>
       </div>

@@ -98,7 +98,7 @@ export default function WindowFrame({
             </span>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pointer-events-auto">
             <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} isMobile />
             <WindowControlBtn type="close" onClick={() => closeWindow(id)} isMobile />
           </div>
@@ -205,7 +205,11 @@ export default function WindowFrame({
         </div>
 
         {/* [Desktop] 윈도우 컨트롤 버튼 그룹 */}
-        <div className="flex gap-1" onMouseDown={(e) => e.stopPropagation()}>
+        <div 
+          className="flex gap-1 pointer-events-auto" 
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} />
           <WindowControlBtn
             type={windowState.isMaximized ? "restore" : "maximize"}
@@ -268,6 +272,7 @@ function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnP
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onClick(); }}
       className={`
         ${sizeClasses}
         flex items-center justify-center
@@ -277,8 +282,10 @@ function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnP
         transition-colors
         font-pixel text-black leading-none font-bold
         ${isClose ? 'hover:bg-red-500/80 hover:text-white' : 'hover:bg-white/80'}
+        pointer-events-auto
       `}
       aria-label={type}
+      style={{ touchAction: 'manipulation' }}
     >
       {label}
     </button>

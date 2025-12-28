@@ -41,19 +41,33 @@ export default function WindowFrame({
   // 반응형 상태
   const [isMobile, setIsMobile] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // 1. 마운트 및 모바일 감지
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      const hasTouchScreen = 'ontouchstart' in window || 
+                             navigator.maxTouchPoints > 0;
+      
+      setIsTouchDevice(hasTouchScreen);
+      setIsMobile(width < 768);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    window.addEventListener('orientationchange', checkDevice);
+
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('orientationchange', checkDevice);
+    };
   }, []);
 
-  if (!isMounted || !windowState ) return null;
+  if (!isMounted || !windowState) return null;
 
   const displayStyle = windowState.isMinimized ? 'none' : 'flex';
 
@@ -66,24 +80,19 @@ export default function WindowFrame({
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
 
-        className={`
-          fixed top-0 left-0 right-0
-          flex flex-col
-          bg-[#c0c0c0]
-          border-0
-          shadow-2xl
-          pt-safe
-          `}
+        className="fixed top-0 left-0 right-0 flex flex-col bg-[#c0c0c0] border-0 shadow-2xl pt-safe"
         style={{
-          height: 'calc(100dvh - 40px)',
+          height: 'calc(100dvh - 48px)',
           zIndex: windowState.zIndex,
           display: displayStyle,
+          touchAction: 'pan-y',
         }}
         onClick={() => focusWindow(id)}
+        onTouchStart={() => focusWindow(id)}
       >
         {/* 헤더 */}
         <div className="
-          h-12 shrink-0
+          h-12 min-h-[48px] shrink-0
           bg-linear-to-r from-[#ff2e93] to-[#ff8fab]
           flex items-center justify-between px-3
           border-b-2 border-white border-t-2 border-t-white/50
@@ -98,18 +107,27 @@ export default function WindowFrame({
             </span>
           </div>
 
-          <div className="flex gap-3 pointer-events-auto">
-            <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} isMobile />
-            <WindowControlBtn type="close" onClick={() => closeWindow(id)} isMobile />
+          <div className="flex gap-2 pointer-events-auto">
+            <WindowControlBtn 
+              type="minimize" 
+              onClick={() => minimizeWindow(id)} 
+              isMobile 
+            />
+            <WindowControlBtn 
+              type="close" 
+              onClick={() => closeWindow(id)} 
+              isMobile 
+            />
           </div>
         </div>
 
-        {/* [Mobile] 콘텐츠 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white custom-scrollbar relative">
+        {/* 콘텐츠 */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white custom-scrollbar relative"
+             style={{ WebkitOverflowScrolling: 'touch' }}>
           {children}
         </div>
 
-        {/* [Mobile] 상태바 */}
+        {/* 상태바 */}
         <div className="
           h-6 px-3 shrink-0
           flex justify-between items-center
@@ -131,7 +149,6 @@ export default function WindowFrame({
   // 3. [Desktop] 드래그 윈도우
   return (
     <Rnd
-      // 최대화 상태일 때는 위치(0,0)와 크기(100%) 고정, 아니면 store의 값 사용
       size={windowState.isMaximized
         ? { width: '100%', height: '100%' }
         : windowState.size
@@ -145,8 +162,8 @@ export default function WindowFrame({
       minHeight={200}
       bounds="parent"
 
-      disableDragging={windowState.isMaximized}
-      enableResizing={!windowState.isMaximized}
+      disableDragging={windowState.isMaximized || isTouchDevice}
+      enableResizing={!windowState.isMaximized && !isTouchDevice}
 
       onDragStart={() => focusWindow(id)}
       onDragStop={(e, d) => {
@@ -164,10 +181,12 @@ export default function WindowFrame({
       }}
 
       onMouseDown={() => focusWindow(id)}
+      onTouchStart={() => focusWindow(id)}
 
       style={{
         zIndex: windowState.zIndex,
-        display: displayStyle,  // Rnd의 기본 inline-block을 flex로 오버라이드
+        display: displayStyle,
+        touchAction: 'none',
       }}
 
       className={`
@@ -182,11 +201,11 @@ export default function WindowFrame({
       `}
       dragHandleClassName="window-header"
     >
-      {/* [Desktop] 헤더 */}
+      {/* 헤더 */}
       <div
-        onDoubleClick={() => maximizeWindow(id)} // 더블클릭 시 최대화 토글
+        onDoubleClick={() => !isTouchDevice && maximizeWindow(id)}
         className={`
-          window-header h-8 px-2 shrink-0
+          window-header h-10 min-h-[44px] px-2 shrink-0
           flex items-center justify-between 
           cursor-default select-none border-b-2 border-[#808080]
           transition-colors duration-150
@@ -194,6 +213,7 @@ export default function WindowFrame({
             ? 'bg-linear-to-r from-[#ff2e93] to-[#ff8fab]'
             : 'bg-gray-400'}
         `}
+        style={{ touchAction: 'none' }}
       >
         <div className="flex items-center gap-2">
           {iconSrc && (
@@ -204,30 +224,34 @@ export default function WindowFrame({
           </span>
         </div>
 
-        {/* [Desktop] 윈도우 컨트롤 버튼 그룹 */}
+        {/* 윈도우 컨트롤 버튼 그룹 */}
         <div 
           className="flex gap-1 pointer-events-auto" 
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
         >
-          <WindowControlBtn type="minimize" onClick={() => minimizeWindow(id)} />
+          <WindowControlBtn 
+            type="minimize" 
+            onClick={() => minimizeWindow(id)} 
+          />
           <WindowControlBtn
             type={windowState.isMaximized ? "restore" : "maximize"}
             onClick={() => maximizeWindow(id)}
           />
-          <WindowControlBtn type="close" onClick={() => closeWindow(id)} />
+          <WindowControlBtn 
+            type="close" 
+            onClick={() => closeWindow(id)} 
+          />
         </div>
       </div>
 
-      {/* 툴바/메뉴바 영역 (옵션 - 필요시 여기에 MenuBar 추가) */}
-      {/* <div className="h-7 bg-gray-200 border-b border-white shadow-inset">...</div> */}
-
-      {/* [Desktop] 컨텐츠 영역 (Body) */}
-      <div className="flex-1 overflow-auto custom-scrollbar bg-white relative">
+      {/* 컨텐츠 영역 */}
+      <div className="flex-1 overflow-auto custom-scrollbar bg-white relative"
+           style={{ WebkitOverflowScrolling: 'touch' }}>
         {children}
       </div>
  
-      {/* [Desktop] 상태바 */}
+      {/* 상태바 */}
       <div className="
         h-6 px-2 shrink-0
         flex justify-between items-center
@@ -242,7 +266,7 @@ export default function WindowFrame({
           <span className="text-green-600 font-bold">● Online</span>
         </div>
       </div>
-    </Rnd >
+    </Rnd>
   );
 }
 
@@ -266,8 +290,10 @@ function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnP
   }
 
   const sizeClasses = isMobile
-    ? "w-8 h-8 text-sm"
-    : "w-5 h-5 md:w-6 md:h-6 text-[10px] md:text-xs";
+    ? "w-10 h-10 text-sm"
+    : "w-6 h-6 md:w-7 md:h-7 text-[10px] md:text-xs";
+
+  const minTouchSize = isMobile ? 44 : 36;
 
   return (
     <button
@@ -278,14 +304,19 @@ function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnP
         flex items-center justify-center
         bg-[#c0c0c0] shadow-outset
         border border-white
-        active:shadow-inset active:translate-y-[1px]
-        transition-colors
+        active:shadow-inset active:translate-y-[1px] active:scale-95
+        transition-all
         font-pixel text-black leading-none font-bold
         ${isClose ? 'hover:bg-red-500/80 hover:text-white' : 'hover:bg-white/80'}
         pointer-events-auto
       `}
       aria-label={type}
-      style={{ touchAction: 'manipulation' }}
+      style={{
+        minWidth: `${minTouchSize}px`,
+        minHeight: `${minTouchSize}px`,
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
+      }}
     >
       {label}
     </button>

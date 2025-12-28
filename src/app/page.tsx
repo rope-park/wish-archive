@@ -392,26 +392,30 @@ export default function Home() {
       {/* =================================================================================
           2. 바탕화면 아이콘 그리드
       ================================================================================= */}
-      <div className="
-        absolute top-0 left-0
-        w-full h-full
-        pt-safe pl-safe
+      <div 
+        className="
+          absolute top-0 left-0
+          w-full
+          pt-safe pl-safe
 
-        /* [Mobile] 전체 화면 채우기, 스크롤 허용 */
-        flex flex-row flex-wrap content-start
-        justify-start gap-x-6 gap-y-6 p-6
-        overflow-y-auto overflow-x-hidden
-        pb-[calc(4rem+env(safe-area-inset-bottom))] /*taskbar 높이 확보*/
-        pointer-events-auto
+          /* [Mobile] 전체 화면 채우기, 스크롤 허용 */
+          flex flex-row flex-wrap content-start
+          justify-start gap-x-6 gap-y-6 p-6
+          overflow-y-auto overflow-x-hidden
+          pointer-events-auto
 
-        /* [Desktop] 세로 방향으로 정렬, 높이 부족 시 다음 열로 wrap */
-        md:w-auto md:max-h-full md:bottom-auto md:right-auto
-        md:flex-col md:flex-wrap md:content-start md:items-start md:gap-2 md:p-4
-        md:overflow-visible
-        md:pointer-events-none
+          /* [Desktop] 세로 방향으로 정렬, 높이 부족 시 다음 열로 wrap */
+          md:w-auto md:bottom-auto md:right-auto
+          md:flex-col md:flex-wrap md:content-start md:items-start md:gap-2 md:p-4
+          md:overflow-visible
+          md:pointer-events-none
 
-        z-[var(--z-desktop)]
-      "
+          z-[var(--z-desktop)]
+        "
+        style={{
+          height: `calc(100vh - ${taskbarHeight}px)`,
+          paddingBottom: `${taskbarHeight + 10}px`,
+        }}
         onClick={handleBackgroundClick}
       >
         <div className="contents md:pointer-events-auto">

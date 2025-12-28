@@ -42,18 +42,18 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-full max-h-[32px] md:max-h-[38px]
+          h-[36px] md:h-[42px]
           px-3 md:px-4
-          gap-1 md:gap-2
-          font-bold text-lg md:text-xl
+          gap-2
+          font-bold
           transition-all
-          ${isOpen ? 'bg-dither shadow-inset translate-y-[1px]' : 'bg-gray-200'} // 열리면 눌린 상태
+          ${isOpen ? 'bg-dither shadow-inset translate-y-[1px]' : 'bg-gray-200'}
         `}
         onClick={() => setIsOpen(!isOpen)}
         isActive={isOpen}
       >
-        <span className="text-brand-retro-navy drop-shadow-md text-base md:text-lg">★</span>
-        <span className="hidden md:inline font-pixel pt-1 text-sm md:text-base">START</span>
+        <span className="text-brand-retro-navy drop-shadow-md text-lg md:text-xl">★</span>
+        <span className="hidden sm:inline font-pixel pt-1 text-sm">START</span>
       </Button>
     </div>
   );
@@ -79,13 +79,13 @@ function SystemClock() {
 
   return (
     <div className="
-      h-[28px] md:h-[36px]
-      min-w-[70px] md:min-w-[110px]
-      px-1 md:px-2
+      h-[36px] md:h-[42px]
+      min-w-[80px] md:min-w-[110px]
+      px-2 md:px-3
       flex items-center justify-center
       bg-gray-300 border border-gray-400 shadow-inset
     ">
-      <span className="font-pixel text-[10px] md:text-sm pt-0.5 truncate select-none">
+      <span className="font-pixel text-xs md:text-sm pt-0.5 truncate select-none">
         {time || '--:-- --'}
       </span>
     </div>
@@ -103,7 +103,7 @@ function SystemTray() {
 
   return (
     <div className="
-      hidden md:flex items-center gap-1 px-2 h-[36px] 
+      hidden md:flex items-center gap-2 px-2 h-[42px] 
       bg-gray-200 shadow-inset border border-gray-400
       select-none
     ">
@@ -111,10 +111,10 @@ function SystemTray() {
       {/* Vaccine: 지루함 방지 시스템 */}
       <Tooltip content="Anti-Boredom 가동 중..." position="top">
         <div className="
-          w-6 h-6 flex items-center justify-center 
+          w-7 h-7 flex items-center justify-center 
           cursor-help hover:scale-110 transition-transform
         ">
-          <span className="text-sm filter drop-shadow-sm">🛡️</span>
+          <span className="text-base filter drop-shadow-sm">🛡️</span>
         </div>
       </Tooltip>
 
@@ -125,21 +125,21 @@ function SystemTray() {
         <div
           onClick={() => setHasNewMail(false)} // 클릭하면 읽음 처리
           className={`
-            w-6 h-6 flex items-center justify-center cursor-pointer
+            w-7 h-7 flex items-center justify-center cursor-pointer
             ${hasNewMail ? 'animate-bounce' : 'opacity-50 grayscale'}
           `}
         >
-          <span className="text-sm">📩</span>
+          <span className="text-base">📩</span>
         </div>
       </Tooltip>
 
       {/* Heart: 위츄 체력 상태 */}
       <Tooltip content="WICHU HP: 100%">
         <div className="
-          w-6 h-6 flex items-center justify-center 
+          w-7 h-7 flex items-center justify-center 
           cursor-default animate-pulse
         ">
-          <span className="text-xs text-green-400 drop-shadow-[1px_1px_0_#000]">
+          <span className="text-sm text-green-400 drop-shadow-[1px_1px_0_#000]">
             ❤
           </span>
         </div>
@@ -147,8 +147,8 @@ function SystemTray() {
 
       {/* Network: 연결 상태 */}
       <Tooltip content="WISH World와 연결됨">
-        <div className="w-6 h-6 flex items-center justify-center cursor-help">
-          <span className="text-sm">📶</span>
+        <div className="w-7 h-7 flex items-center justify-center cursor-help">
+          <span className="text-base">📶</span>
         </div>
       </Tooltip>
 
@@ -158,11 +158,11 @@ function SystemTray() {
         <button
           onClick={toggleMute}
           className="
-            w-6 h-6 flex items-center justify-center 
+            w-7 h-7 flex items-center justify-center 
             hover:bg-gray-300 active:translate-y-[1px] rounded-sm
           "
         >
-          <span className="text-sm">{isMuted ? '🔇' : '🔊'}</span>
+          <span className="text-base">{isMuted ? '🔇' : '🔊'}</span>
         </button>
       </Tooltip>
     </div>
@@ -187,22 +187,23 @@ export default function Taskbar() {
     <nav className="
       fixed bottom-0 left-0 right-0
       z-[var(--z-taskbar)]
-      h-11 md:h-12
+      h-[44px] md:h-[50px]
       pb-safe
       bg-[#c0c0c0]
       border-t-2 border-white
       shadow-[0_-4px_10px_rgba(0,0,0,0.1)]
+      pointer-events-auto
 
-      flex items-center px-1 gap-1 md:gap-2
+      flex items-center px-2 gap-2
     ">
 
       {/* [좌측] 시작 버튼 영역 */}
       <StartButton />
 
-      <div className="h-[28px] md:h-[36px]"><Divider orientation="vertical" /></div>
+      <div className="h-[36px] md:h-[42px]"><Divider orientation="vertical" /></div>
 
       {/* [중앙] 윈도우 태스크 탭 영역 (열린 창 목록 렌더링) */}
-      <div className="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar h-full py-1 pl-1">
+      <div className="flex-1 flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar h-full">
         {windows.map((win) => {
           // 활성 상태 조건: 현재 ID와 일치하고, 최소화 상태가 아닌 경우
           const isActive = activeWindowId === win.id && !win.isMinimized;
@@ -213,18 +214,18 @@ export default function Taskbar() {
               key={win.id}
               onClick={() => handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-full max-h-[32px] md:max-h-[36px]
-                w-9 md:w-auto md:min-w-[40px] md:max-w-[180px] md:flex-1
-                flex items-center justify-center md:justify-start gap-2 px-1 md:px-2
+                h-[36px] md:h-[42px]
+                w-10 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
+                flex items-center justify-center sm:justify-start gap-2 px-2 md:px-3
                 border rounded-sm
                 transition-all select-none
+                pointer-events-auto
 
-                /* 상태에 따른 스타일 분기 */
                 ${isActive
-                  ? 'bg-white shadow-inset border-gray-500 translate-y-[1px] font-bold' // 활성: 눌린 상태, 흰색 배경
+                  ? 'bg-white shadow-inset border-gray-500 translate-y-[1px] font-bold'
                   : isFocused 
-                    ? 'bg-gray-300 shadow-outset border-gray-400 hover:bg-gray-200' // 포커스(최소화): 회색, 약간 어두운 테두리
-                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-100' // 비활성: 기본 상태
+                    ? 'bg-gray-300 shadow-outset border-gray-400 hover:bg-gray-200'
+                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-100'
                 }
               `}
             >
@@ -254,10 +255,10 @@ export default function Taskbar() {
         })}
       </div>
 
-      <div className="h-[28px] md:h-[36px]"><Divider orientation="vertical" /></div>
+      <div className="h-[36px] md:h-[42px]"><Divider orientation="vertical" /></div>
 
       {/* [우측] 트레이 & 시계 영역 */}
-      <div className="flex gap-1 md:gap-2 shrink-0 items-center h-full py-1">
+      <div className="flex gap-2 shrink-0 items-center h-full">
         <SystemTray />
         <SystemClock />
       </div>

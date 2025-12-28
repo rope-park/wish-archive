@@ -7,13 +7,9 @@
  * - 반응형 레이아웃 (모바일/데스크탑 대응)
  */
 
-/** TODO: 이미지를 불러오는 위젯은 해당 위젯 내에서 랜덤으로 알아서 이미지 불러와야함
- * 지금은 임시로 고정된 이미지 경로를 넘겨주고 있음
- */
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
 import { Modal } from '@/components/ui';
 
@@ -47,51 +43,6 @@ const DESKTOP_ICONS: DesktopIconConfig[] = [
   { id: 'trash', type: 'RECYCLE_BIN' as AppType, title: 'Recycle Bin', iconSrc: '/system/icons/apps/recyclebin.png' },
 ];
 
-// 위젯 설정 (백분율 기반 초기 위치)
-interface WidgetConfig {
-  id: string;
-  positionPercent: { x: number; y: number }; // 화면 크기 대비 백분율 (0~100)
-  component: React.ReactNode;
-}
-
-const WIDGET_CONFIGS: WidgetConfig[] = [
-  {
-    id: 'dday',
-    positionPercent: { x: 75, y: 6 },
-    component: <DDayCounterWidget targetDate="2024-02-21" label="Debut" />,
-  },
-  {
-    id: 'photocard',
-    positionPercent: { x: 30, y: 8 },
-    component: <PhotoCardWidget />,
-  },
-  {
-    id: 'sticky_note',
-    positionPercent: { x: 78, y: 25 },
-    component: <StickyNoteWidget initialText="Welcome to WISH OS! 🍀" color="pink" />,
-  },
-  {
-    id: 'polaroid',
-    positionPercent: { x: 18, y: 60 },
-    component: <PolaroidPhotoWidget />,
-  },
-  {
-    id: 'tamagotchi',
-    positionPercent: { x: 68, y: 55 },
-    component: <WichuTamagotchiWidget />,
-  },
-  {
-    id: 'quote',
-    positionPercent: { x: 45, y: 75 },
-    component: <MembersQuoteWidget />,
-  },
-  {
-    id: 'miniplayer',
-    positionPercent: { x: 3, y: 80 },
-    component: <MiniPlayerWidget />,
-  }
-];
-
 // ----------------------------------------------------------------------
 // 2. 메인 컴포넌트
 // ----------------------------------------------------------------------
@@ -113,6 +64,52 @@ export default function Home() {
   // --- Store ---
   const { openWindow } = useWindowStore();
 
+  // --- 위젯 설정 (scale 변경 시 재생성) ---
+  const WIDGET_CONFIGS = useMemo(() => [
+    {
+      id: 'dday',
+      positionPercent: { x: 75, y: 6 },
+      baseSize: { width: 160, height: 70 },
+      component: <DDayCounterWidget targetDate="2024-02-21" label="Debut" />,
+    },
+    {
+      id: 'photocard',
+      positionPercent: { x: 30, y: 8 },
+      baseSize: { width: 200, height: 300 },
+      component: <PhotoCardWidget />,
+    },
+    {
+      id: 'sticky_note',
+      positionPercent: { x: 78, y: 25 },
+      baseSize: { width: 200, height: 200 },
+      component: <StickyNoteWidget initialText="Welcome to WISH OS! 🍀" color="pink" />,
+    },
+    {
+      id: 'polaroid',
+      positionPercent: { x: 18, y: 60 },
+      baseSize: { width: 256, height: 360 },
+      component: <PolaroidPhotoWidget />,
+    },
+    {
+      id: 'tamagotchi',
+      positionPercent: { x: 68, y: 55 },
+      baseSize: { width: 260, height: 380 },
+      component: <WichuTamagotchiWidget />,
+    },
+    {
+      id: 'quote',
+      positionPercent: { x: 45, y: 60 },
+      baseSize: { width: 288, height: 340 },
+      component: <MembersQuoteWidget />,
+    },
+    {
+      id: 'miniplayer',
+      positionPercent: { x: 3, y: 75 },
+      baseSize: { width: 340, height: 140 },
+      component: <MiniPlayerWidget />,
+    },
+  ], [widgetScale]); // widgetScale이 변경되면 위젯 컴포넌트들을 재생성
+
   // --- Effects ---
   // 화면 크기에 따른 위젯 위치 및 크기 계산
   useEffect(() => {
@@ -129,7 +126,15 @@ export default function Home() {
       }
       setTaskbarHeight(currentTaskbarHeight);
 
-      const availableHeight = viewportHeight - currentTaskbarHeight;
+      // 안전 영역 계산 (데스크톱 아이콘 영역 & 태스크바 제외)
+      const ICON_AREA_WIDTH = 120; // 좌측 아이콘 영역
+      const PADDING = 20; // 여유 공간
+
+      // 사용 가능한 영역 계산
+      const safeStartX = ICON_AREA_WIDTH + PADDING;
+      const safeWidth = viewportWidth - safeStartX - PADDING;
+      const safeStartY = PADDING;
+      const safeHeight = viewportHeight - currentTaskbarHeight - (PADDING * 2);
 
       // 화면 크기에 따른 scale 계산
       let scale = 1;
@@ -154,9 +159,25 @@ export default function Home() {
       const newPositions: { [key: string]: { x: number; y: number } } = {};
 
       WIDGET_CONFIGS.forEach(widget => {
-        // 백분율을 픽셀로 변환 (사용 가능한 높이 기준)
-        const x = Math.round((viewportWidth * widget.positionPercent.x) / 100);
-        const y = Math.round((availableHeight * widget.positionPercent.y) / 100);
+        // viewport에 맞게 위젯 크기 동적 조정 (비율 유지)
+        const scaledWidth = widget.baseSize.width * scale;
+        const scaledHeight = widget.baseSize.height * scale;
+
+        // 안전한 최대 위치 계산 (위젯이 완전히 보이도록)
+        const maxSafeX = viewportWidth - scaledWidth - PADDING;
+        const maxSafeY = viewportHeight - currentTaskbarHeight - scaledHeight - PADDING;
+
+        // 안전 영역 내에서 백분율 적용 가능한 범위 계산
+        const availableWidth = maxSafeX - safeStartX;
+        const availableHeight = maxSafeY - safeStartY;
+
+        // 백분율을 실제 픽셀로 변환
+        let x = Math.round(safeStartX + (availableWidth * widget.positionPercent.x) / 100);
+        let y = Math.round(safeStartY + (availableHeight * widget.positionPercent.y) / 100);
+
+        // 최종 안전 범위 내로 제한
+        x = Math.max(safeStartX, Math.min(x, maxSafeX));
+        y = Math.max(safeStartY, Math.min(y, maxSafeY));
 
         newPositions[widget.id] = { x, y };
       });
@@ -301,7 +322,13 @@ export default function Home() {
               defaultPosition={widgetPositions[widget.id] || { x: 0, y: 0 }}
               scale={widgetScale}
             >
-              {widget.component}
+              <div style={{
+                width: `${widget.baseSize.width * widgetScale}px`,
+                height: `${widget.baseSize.height * widgetScale}px`,
+                fontSize: `${widgetScale}rem`,
+              }}>
+                {widget.component}
+              </div>
             </DraggableWidget>
           ))}
         </div>

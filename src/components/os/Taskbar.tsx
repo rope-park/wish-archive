@@ -42,17 +42,18 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-[36px] md:h-[42px]
-          px-3 md:px-4
+          h-[40px]
+          px-4
           gap-2
           font-bold
           transition-all
+          shrink-0
           ${isOpen ? 'bg-dither shadow-inset translate-y-[1px]' : 'bg-gray-200'}
         `}
         onClick={() => setIsOpen(!isOpen)}
         isActive={isOpen}
       >
-        <span className="text-brand-retro-navy drop-shadow-md text-lg md:text-xl">★</span>
+        <span className="text-brand-retro-navy drop-shadow-md text-xl">★</span>
         <span className="hidden sm:inline font-pixel pt-1 text-sm">START</span>
       </Button>
     </div>
@@ -79,13 +80,14 @@ function SystemClock() {
 
   return (
     <div className="
-      h-[36px] md:h-[42px]
-      min-w-[80px] md:min-w-[110px]
-      px-2 md:px-3
+      h-[40px]
+      min-w-[100px]
+      px-3
       flex items-center justify-center
       bg-gray-300 border border-gray-400 shadow-inset
+      shrink-0
     ">
-      <span className="font-pixel text-xs md:text-sm pt-0.5 truncate select-none">
+      <span className="font-pixel text-sm pt-0.5 truncate select-none">
         {time || '--:-- --'}
       </span>
     </div>
@@ -103,9 +105,9 @@ function SystemTray() {
 
   return (
     <div className="
-      hidden md:flex items-center gap-2 px-2 h-[42px] 
+      hidden md:flex items-center gap-2 px-3 h-[40px] 
       bg-gray-200 shadow-inset border border-gray-400
-      select-none
+      select-none shrink-0
     ">
 
       {/* Vaccine: 지루함 방지 시스템 */}
@@ -187,7 +189,7 @@ export default function Taskbar() {
     <nav className="
       fixed bottom-0 left-0 right-0
       z-[var(--z-taskbar)]
-      h-[44px] md:h-[50px]
+      h-[48px]
       pb-safe
       bg-[#c0c0c0]
       border-t-2 border-white
@@ -200,7 +202,7 @@ export default function Taskbar() {
       {/* [좌측] 시작 버튼 영역 */}
       <StartButton />
 
-      <div className="h-[36px] md:h-[42px]"><Divider orientation="vertical" /></div>
+      <div className="h-[40px]"><Divider orientation="vertical" /></div>
 
       {/* [중앙] 윈도우 태스크 탭 영역 (열린 창 목록 렌더링) */}
       <div className="flex-1 flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar h-full">
@@ -214,18 +216,18 @@ export default function Taskbar() {
               key={win.id}
               onClick={() => handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-[36px] md:h-[42px]
+                h-[40px]
                 w-10 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
-                flex items-center justify-center sm:justify-start gap-2 px-2 md:px-3
+                flex items-center justify-center sm:justify-start gap-2 px-3
                 border rounded-sm
                 transition-all select-none
                 pointer-events-auto
 
                 ${isActive
-                  ? 'bg-white shadow-inset border-gray-500 translate-y-[1px] font-bold'
+                  ? 'bg-white shadow-inset border-gray-600 font-bold'
                   : isFocused 
-                    ? 'bg-gray-300 shadow-outset border-gray-400 hover:bg-gray-200'
-                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-100'
+                    ? 'bg-gray-300 shadow-outset border-gray-500 hover:bg-gray-200'
+                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-400'
                 }
               `}
             >
@@ -255,7 +257,7 @@ export default function Taskbar() {
         })}
       </div>
 
-      <div className="h-[36px] md:h-[42px]"><Divider orientation="vertical" /></div>
+      <div className="h-[40px]"><Divider orientation="vertical" /></div>
 
       {/* [우측] 트레이 & 시계 영역 */}
       <div className="flex gap-2 shrink-0 items-center h-full">

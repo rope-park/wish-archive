@@ -180,12 +180,7 @@ export default function Home() {
       }
 
       // Taskbar 높이 계산 (반응형)
-      let currentTaskbarHeight = 50; // 기본값
-      if (currentViewportWidth < 640) {
-        currentTaskbarHeight = 44; // 모바일: 더 작게
-      } else if (currentViewportWidth < 768) {
-        currentTaskbarHeight = 46; // 작은 태블릿
-      }
+      const currentTaskbarHeight = 48; // 고정 높이로 변경
       setTaskbarHeight(currentTaskbarHeight);
 
       // 아이콘 크기 계산 (위젯보다 먼저 계산 필요 - 아이콘 영역 높이 계산에 사용)

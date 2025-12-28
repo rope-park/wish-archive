@@ -32,9 +32,13 @@
 @layer base {
   html {
     font-size: 14px;
-
     height: 100%;
     height: 100dvh; /* 동적 뷰포트 높이 (모바일 주소창 제외) */
+
+    /* 터치 디바이스 최적화 */
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 
     @media (min-width: 768px) {
       font-size: 16px;
@@ -55,9 +59,11 @@
     /* 텍스트 드래그 선택 방지 - input/textarea는 제외 */
     user-select: none;
     -webkit-user-select: none;
-    touch-action: none;
-
+    
+    /* 터치 디바이스 최적화 */
+    touch-action: pan-y;
     -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
   /* 입력창에서는 텍스트 선택 허용 */
@@ -77,6 +83,23 @@
     pointer-events: none;
     /* 클릭 통과 (필요시 컴포넌트에서 auto로 덮어쓰기) */
   }
+
+  /* 터치 디바이스에서 버튼/링크 최소 터치 영역 확보 */
+  button,
+  a,
+  [role="button"] {
+    min-width: 44px;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* 모바일 스크롤 최적화 */
+  @media (max-width: 768px) {
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -86,6 +109,12 @@
 ::-webkit-scrollbar {
   width: 16px;
   height: 16px;
+
+  /* 모바일/태블릿 */
+  @media (max-width: 1024px) {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 /* 스크롤바 배경 (트랙) */
@@ -107,6 +136,10 @@
   border-right-color: #404040;
   border-bottom-color: #404040;
   box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+
+  @media (max-width: 1024px) {
+    min-height: 48px;
+  }
 }
 
 ::-webkit-scrollbar-corner {
@@ -186,9 +219,44 @@
     padding-top: env(safe-area-inset-top);
   }
 
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+
   .mobile-window-maximize {
     @apply fixed top-0 left-0 right-0 !w-full !transform-none rounded-none border-0;
     height: calc(100dvh - 48px) !important;
+  }
+
+  .touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
   }
 }
 
@@ -213,6 +281,23 @@
   animation: pop-in 0.15s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
+/* 슬라이드 업 */
+@keyframes slide-up {
+  from {
+    transform: translateY(20%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
 /* 흐르는 텍스트 (MP3 플레이어용) */
 @keyframes marquee {
   0% {
@@ -228,7 +313,7 @@
   animation: marquee 10s linear infinite;
 }
 
-/* 홀로그램 반짝임 (포토카드용) */
+/* 홀로그램 반짝임 */
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -241,4 +326,97 @@
 
 .animate-shimmer {
   animation: shimmer 3s linear infinite;
+}
+
+/* 스케일 인 */
+@keyframes scale-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 페이드 인 업 */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 6. 모바일/태블릿 최적화                                                   */
+/* -------------------------------------------------------------------------- */
+
+/* 터치 디바이스에서 호버 효과 제거 */
+@media (hover: none) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:bg-gray-100:hover {
+    background-color: inherit;
+  }
+  
+  /* active 효과로 대체 */
+  .hover\:scale-105:active {
+    transform: scale(0.95);
+  }
+}
+
+/* 작은 화면 최적화 */
+@media (max-width: 640px) {
+  /* 폰트 크기 약간 감소 */
+  .font-pixel {
+    font-size: 0.9em;
+  }
+  
+  /* 패딩 감소 */
+  .p-8 {
+    padding: 1rem;
+  }
+  
+  .p-6 {
+    padding: 0.75rem;
+  }
+}
+
+/* 태블릿 최적화 */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* 터치 영역 확보 */
+  button,
+  a,
+  [role="button"] {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* 가로 모드 최적화 */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 세로 공간이 부족할 때 */
+  .h-screen {
+    height: 100vh;
+  }
+  
+  /* 헤더 높이 감소 */
+  .h-12 {
+    height: 2.5rem;
+  }
 }

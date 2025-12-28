@@ -12,7 +12,7 @@ datasource db {
 // ENUM
 // ===========================
 
-// 활동 타입 (Timeline Event의 상위 분류)
+// 활동 타입
 enum EventType {
   RELEASE // 음반/싱글/디지털 발매
   MUSIC_SHOW // 음악방송 출연
@@ -40,6 +40,7 @@ enum ReleaseType {
   PARTICIPATION // OST, SMTOWN, Featuring 등 참여 음반
 }
 
+// 앨범 에디션 유형
 enum EditionType {
   CD // CD-R 등
   SMART_ALBUM // NFC 등
@@ -105,19 +106,6 @@ enum LinkType {
   OTHER
 }
 
-// 미디어 자산의 성격
-enum MediaType {
-  IMAGE // 이미지
-  VIDEO // 영상
-  MV // 뮤직비디오
-  TEASER // 티저
-  DANCE_PRACTICE // 안무 영상
-  PERFORMANCE // 퍼포먼스
-  RECORDING_BEHIND // 녹음 비하인드
-  POSTER
-  DATA_PIC // 홈마 사진
-}
-
 // 크레딧 역할 (작사/작곡/편곡/프로듀서 등)
 enum CreditRole {
   LYRICS // 작사
@@ -154,6 +142,7 @@ enum ContentType {
   BEHIND
   LIVE_STREAM
   SHORTS
+  POSTER
   CHALLENGE
   INTERVIEW
   VARIETY_CLIP
@@ -178,14 +167,6 @@ enum Currency {
   JPY
   USD
   EUR
-}
-
-// 포토카드 출처
-enum PhotoCardSource {
-  ALBUM // 앨범
-  EVENT // 행사/md
-  COLLAB // 광고/콜라보
-  OTHER // 기타 (특전 등)
 }
 
 // ===========================
@@ -224,7 +205,6 @@ model Group {
   eras          Era[]
   albums        Album[]
   externalLinks ExternalLink[]
-  medias        Media[] // 그룹 로고/휘장 등
   contents      Content[] // 그룹 단위 컨텐츠 (공식 공지 포함)
   awards        AwardWin[]
 
@@ -272,9 +252,7 @@ model Member {
   events        MemberOnEvent[]
   contents      MemberOnContent[]
   externalLinks ExternalLink[]
-  medias        Media[]
   quotes        Quote[]
-  photoCards    PhotoCard[]
   albumEditions AlbumEdition[]
   awardWins     AwardWin[]
   appearances   Appearance[]
@@ -337,7 +315,6 @@ model Album {
   editions       AlbumEdition[]
   credits        AlbumCredit[]
   externalLinks  ExternalLink[]
-  medias         Media[]
   contents       Content[]
   salesDaily     AlbumDailySales[]
   awards         AwardWin[]         @relation("AlbumAwards")
@@ -452,7 +429,6 @@ model Track {
   certifications Certification[]
   credits        TrackCredit[]
   externalLinks  ExternalLink[]
-  medias         Media[]
   contents       Content[]
   musicShowWins  MusicShowTrophy[]
   lyrics         TrackLyric[]
@@ -575,7 +551,6 @@ model Event {
   // 아카이브 데이터
   appearances   Appearance[]
   externalLinks ExternalLink[]
-  medias        Media[]
   contents      Content[]
 
   createdAt DateTime @default(now())
@@ -709,7 +684,6 @@ model Program {
   events          Event[]
 
   externalLinks ExternalLink[]
-  medias        Media[]
   contents      Content[]
 
   createdAt DateTime @default(now())
@@ -746,7 +720,6 @@ model Appearance {
 
   // 자료 연결
   externalLinks ExternalLink[] // 외부 영상
-  medias        Media[]        @relation("AppearanceMedia") // 현장 포토
   contents      Content[]      @relation("AppearanceContent") // 공식 무대 영상
 
   note String?
@@ -968,7 +941,7 @@ model AlbumCredit {
 }
 
 // ==================================
-// CONTENTS (영상/게시물) & MEDIA (이미지/영상 파일)
+// CONTENTS (영상/게시물)
 // ==================================
 
 // === 22. CONTENT (컨텐츠) ===
@@ -1021,7 +994,6 @@ model Content {
 
   // 부가 정보
   externalLinks ExternalLink[]
-  medias        Media[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1047,59 +1019,7 @@ model MemberOnContent {
   @@index([contentId])
 }
 
-// === 24. MEDIA (미디어 파일 / 사진) ===
-model Media {
-  id    String    @id @default(cuid())
-  mType MediaType
-
-  // --- a. 파일 정보 ---
-  url          String // 파일 주소
-  thumbnailUrl String? // 영상인 경우 썸네일, 이미지인 경우 저화질 버전
-
-  // 이미지 스펙
-  width    Int? // 이미지 가로 길이
-  height   Int? // 이미지 세로 길이
-  fileSize Int? // 파일 크기 (바이트)
-
-  // --- b. 메타 데이터 ---
-  title       String? // 파일명 또는제목
-  description String? // 설명
-  isMain      Boolean @default(false) // 대표 이미지(커버)로 쓸지 여부
-
-  // --- c. 소유 및 연결 ---
-  groupId String?
-  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
-
-  memberId String?
-  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
-
-  albumId String?
-  album   Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
-
-  trackId String?
-  track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
-
-  programId String?
-  program   Program? @relation(fields: [programId], references: [id], onDelete: SetNull)
-
-  eventId String?
-  event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
-
-  contentId String?
-  content   Content? @relation(fields: [contentId], references: [id], onDelete: SetNull)
-
-  appearanceId String?
-  appearance   Appearance? @relation("AppearanceMedia", fields: [appearanceId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([albumId])
-  @@index([eventId])
-  @@index([contentId])
-}
-
-// === 25. VIDEO STAT (조회수 통계) ===
+// === 24. VIDEO STAT (조회수 통계) ===
 model VideoStat {
   id        String  @id @default(cuid())
   contentId String
@@ -1121,7 +1041,7 @@ model VideoStat {
 // AWARDS (시상식/부문/수상)
 // ==================================
 
-// === 26. AWARD ORGANIZATION (시상 기관/조직) ===
+// === 25. AWARD ORGANIZATION (시상 기관/조직) ===
 model AwardOrganization {
   id String @id @default(cuid())
 
@@ -1144,7 +1064,7 @@ model AwardOrganization {
   @@index([name])
 }
 
-// === 27. AWARD EVENT (시상식 회차) ===
+// === 26. AWARD EVENT (시상식 회차) ===
 model AwardEvent {
   id             String            @id @default(cuid())
   organizationId String
@@ -1173,7 +1093,7 @@ model AwardEvent {
   @@index([heldAt])
 }
 
-// === 28. AWARD CATEGORY (수상 부문) ===
+// === 27. AWARD CATEGORY (수상 부문) ===
 model AwardCategory {
   id      String     @id @default(cuid())
   eventId String
@@ -1197,7 +1117,7 @@ model AwardCategory {
   @@index([name])
 }
 
-// === 29. AWARD WIN (수상 실적 상세) ===
+// === 28. AWARD WIN (수상 실적 상세) ===
 model AwardWin {
   id String @id @default(cuid())
 
@@ -1243,7 +1163,7 @@ model AwardWin {
 // EXTERNAL LINKS
 // ==================================
 
-// === 30. EXTERNAL LINK (외부 링크 / 바로가기) ===
+// === 29. EXTERNAL LINK (외부 링크 / 바로가기) ===
 model ExternalLink {
   id String @id @default(cuid())
 
@@ -1300,7 +1220,7 @@ model ExternalLink {
 // WIDGET
 // ==================================
 
-// === 31. [Members Quote 위젯] QUOTE ===
+// === 30. [Members Quote 위젯] QUOTE ===
 model Quote {
   id String @id @default(cuid())
 
@@ -1313,7 +1233,7 @@ model Quote {
   updatedAt DateTime @updatedAt
 }
 
-// === 32. [Wish Jar 위젯] WISH ===
+// === 31. [Wish Jar 위젯] WISH ===
 model Wish {
   id String @id @default(cuid())
 
@@ -1330,25 +1250,7 @@ model Wish {
   createdAt DateTime @default(now())
 }
 
-// === 33. [PhotoCard 위젯] PHOTOCARD ===
-model PhotoCard {
-  id       String  @id @default(cuid())
-  name     String // 카드 이름
-  imageUrl String // 앞면
-  backUrl  String? // 뒷면 (싸인 등)
-
-  // --- a. 멤버 연결 ---
-  memberId String?
-  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
-
-  // --- b. 출처 분류 ---
-  sourceType PhotoCardSource @default(ALBUM)
-  versionName   String?
-
-  createdAt DateTime @default(now())
-}
-
-// === 34. [Mini Player 위젯] PLAYLIST TRACK ===
+// === 32. [Mini Player 위젯] PLAYLIST TRACK ===
 model PlaylistTrack {
   id String @id @default(cuid())
 
@@ -1364,13 +1266,4 @@ model PlaylistTrack {
   isActive Boolean @default(true) // 노출 여부
 
   createdAt DateTime @default(now())
-}
-
-// === 35. [Polaroid 위젯] POLAROID ===
-model Polaroid {
-  id          String  @id @default(cuid())
-  imageUrl    String  // 사진 경로
-  caption     String  // 손글씨 멘트
-
-  createAt    DateTime @default(now())
 }

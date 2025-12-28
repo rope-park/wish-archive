@@ -1,4 +1,4 @@
-import { PrismaClient, PhotoCardSource } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { logger, ProgressTracker } from './utils';
 
 /**
@@ -6,8 +6,6 @@ import { logger, ProgressTracker } from './utils';
  * - Quotes (멤버 어록)
  * - Playlist (미니 플레이어)
  * - Wishes (방명록 샘플)
- * - PhotoCards (포토카드)
- * - Polaroids (폴라로이드 사진)
  */
 export async function seedWidgets(prisma: PrismaClient) {
 
@@ -120,78 +118,7 @@ export async function seedWidgets(prisma: PrismaClient) {
     logger.success(`Playlist tracks seeded: ${playlistTrack.length} items`);
 
     // =====================================================================
-    // [3] Photo Cards (포토카드) 시드
-    // =====================================================================
-    await prisma.photoCard.deleteMany();
-
-    const photoCardTemplates = {
-        'sion': [
-            { file: 'selfie_mirror.jpg', name: '연습실 거울 셀카', ver: 'Practice', source: 'OTHER' },
-            { file: 'selfie_bed.jpg', name: '자기 전 굿나잇', ver: 'Daily', source: 'OTHER' },
-            { file: 'concept_wish.jpg', name: 'WISH 자켓 비하인드', ver: 'WISH', source: 'ALBUM' },
-            { file: 'selfie_stage.jpg', name: '음방 대기실', ver: 'Stage', source: 'OTHER' },
-            { file: 'special_bday.jpg', name: '생일 기념 컷', ver: 'Special', source: 'EVENT' },
-        ],
-        'riku': [
-            { file: 'selfie_cat.jpg', name: '고양이 귀 리쿠', ver: 'Cute', source: 'OTHER' },
-            { file: 'concept_steady.jpg', name: 'Steady 컨셉 포토', ver: 'Steady', source: 'ALBUM' },
-            { file: 'selfie_hoodie.jpg', name: '후드티 꾸러기', ver: 'Daily', source: 'OTHER' },
-            { file: 'behind_mv.jpg', name: 'MV 촬영장', ver: 'Behind', source: 'EVENT' },
-        ],
-        'yushi': [
-            { file: 'selfie_close.jpg', name: '얼빡 초근접', ver: 'Daily', source: 'OTHER' },
-            { file: 'concept_songbird.jpg', name: 'Songbird 컨셉', ver: 'Songbird', source: 'ALBUM' },
-            { file: 'selfie_v.jpg', name: '브이 요정', ver: 'Daily', source: 'OTHER' },
-            { file: 'special_award.jpg', name: '신인상 트로피', ver: 'Special', source: 'EVENT' },
-        ],
-        'jaehee': [
-            { file: 'selfie_school.jpg', name: '교복 재희', ver: 'School', source: 'OTHER' },
-            { file: 'concept_wishful.jpg', name: 'WISHFUL 자켓', ver: 'WISHFUL', source: 'ALBUM' },
-            { file: 'selfie_piano.jpg', name: '피아노 앞에서', ver: 'Daily', source: 'OTHER' },
-        ],
-        'ryo': [
-            { file: 'selfie_peace.jpg', name: '말티즈 피스', ver: 'Daily', source: 'OTHER' },
-            { file: 'concept_poppop.jpg', name: 'poppop 티저', ver: 'poppop', source: 'ALBUM' },
-            { file: 'selfie_eat.jpg', name: '맛있는거 먹는 중', ver: 'Mukbang', source: 'OTHER' },
-        ],
-        'sakuya': [
-            { file: 'selfie_bread.jpg', name: '빵쿠야', ver: 'Daily', source: 'OTHER' },
-            { file: 'concept_color.jpg', name: 'COLOR 컨셉', ver: 'COLOR', source: 'ALBUM' },
-            { file: 'selfie_wink.jpg', name: '막내의 윙크', ver: 'Cute', source: 'OTHER' },
-            { file: 'special_wichu.jpg', name: '위츄와 함께', ver: 'Special', source: 'EVENT' },
-        ],
-    };
-
-    const photoCards = [];
-
-    for (const member of members) {
-        const slugName = member.nameEn?.toLowerCase();
-        const templates = photoCardTemplates[slugName as keyof typeof photoCardTemplates] || [];
-
-        for (const template of templates) {
-            photoCards.push({
-                name: `${member.nameEn} - ${member.stageName}`,
-                imageUrl: `/content/photocards/${slugName}/${template.file}`,
-                sourceType: template.source as PhotoCardSource,
-                memberId: member.id,
-                versionName: template.ver,
-            });
-        }
-    }
-
-    const pcProgress = new ProgressTracker('Photo Cards seeding', photoCards.length);
-    for (const pcData of photoCards) {
-        const { memberId, ...rest } = pcData;
-
-        await prisma.photoCard.create({ data: { ...rest, member: { connect: { id: memberId } } } });
-        pcProgress.increment();
-    }
-    pcProgress.complete();
-
-    logger.success(`Photo Cards seeded: ${photoCards.length} items`);
-
-    // =====================================================================
-    // [4] Wish Jar (방명록) 샘플 시드
+    // [3] Wish Jar (방명록) 샘플 시드
     // =====================================================================
     await prisma.wish.deleteMany();
 
@@ -219,39 +146,4 @@ export async function seedWidgets(prisma: PrismaClient) {
     });
 
     logger.success('✅ Widget Data Seeded Successfully!');
-
-
-    // ====================================================================
-    // [5] 폴라로이드 사진 시드
-    // ====================================================================
-    await prisma.polaroid.deleteMany();
-
-    const polaroids = [
-        { file: 'sion_coffee.jpg', caption: '카페인 충전 중 ☕️' },
-        { file: 'sion_practice.jpg', caption: '오늘 연습도 끝!' },
-        { file: 'riku_cat.jpg', caption: '나랑 닮았나? 🐱' },
-        { file: 'riku_tokyo.jpg', caption: '도쿄 타워 앞에서' },
-        { file: 'yushi_shy.jpg', caption: '부끄러워...' },
-        { file: 'yushi_dance.jpg', caption: '춤추는 유우시 ✨' },
-        { file: 'jaehee_tree.jpg', caption: '나무 재희 🌳' },
-        { file: 'jaehee_piano.jpg', caption: '피아노 연주 🎹' },
-        { file: 'ryo_flower.jpg', caption: '꽃보다 료 🌸' },
-        { file: 'ryo_energy.jpg', caption: '에너지 뿜뿜!!' },
-        { file: 'sakuya_bread.jpg', caption: '빵 냠냠 🥐' },
-        { file: 'sakuya_wink.jpg', caption: '사쿠야 윙크 😉' },
-        { file: 'group_debut.jpg', caption: 'WISH Debut Day 🍀' },
-        { file: 'group_travel.jpg', caption: '우리들의 여행' },
-    ];
-
-    const ppProgress = new ProgressTracker('Polaroids seeding', polaroids.length);
-    for (const ppData of polaroids) {
-
-        const imageUrl = `/system/widgets/PolaroidPhoto/${ppData.file}`;
-
-        await prisma.polaroid.create({ data: { imageUrl, caption: ppData.caption } });
-        ppProgress.increment();
-    }
-    ppProgress.complete();
-
-    logger.success(`Polaroids seeded: ${polaroids.length} items`);
 }

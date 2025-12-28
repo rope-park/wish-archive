@@ -1,7 +1,6 @@
 // prisma/seeds/06-programs.ts
 import type { PrismaClient, ProgramType } from '@prisma/client'
 import { logger, ProgressTracker } from './utils'
-import { off } from 'process'
 
 /**
  * 방송 프로그램 시드 (프로그램 정보)

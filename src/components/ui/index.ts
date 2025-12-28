@@ -34,6 +34,9 @@ export type { EmptyStateProps } from './EmptyState';
 export { default as Input } from './Input';
 export type { InputProps } from './Input';
 
+export { default as MemberProfile } from './MemberProfile';
+export type { MemberProfileProps } from './MemberProfile';
+
 export { default as MenuBar } from './MenuBar';
 export type { MenuItemType } from './MenuBar';
 

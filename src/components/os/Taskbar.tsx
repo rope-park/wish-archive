@@ -7,12 +7,13 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { StartMenu } from '../os';
 import { Button, Divider, Tooltip } from '../ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 import { useAudioStore } from '@/app/stores/useAudioStore';
+import { handler } from 'next/dist/build/templates/app-page';
 
 // [하위 컴포넌트] 시작 버튼
 function StartButton() {
@@ -20,15 +21,26 @@ function StartButton() {
   const buttonRef = useRef<HTMLDivElement>(null);
 
   // 바깥 클릭 시 메뉴 닫기
-  useEffect(() => {    
-    function handleClickOutside(event: MouseEvent) {
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
+
+  const handleToggle = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
 
   return (
     <div className="shrink-0 relative h-full flex items-center" ref={buttonRef}>
@@ -42,16 +54,21 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-full
-          px-4
+          h-full min-h-[44px]
+          px-3 md:px-4
           gap-2
           font-bold
           transition-all
           shrink-0
           ${isOpen ? 'bg-dither shadow-inset translate-y-[1px]' : 'bg-gray-200'}
         `}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
+        onTouchEnd={(e: React.TouchEvent<HTMLButtonElement>) => {
+          e.preventDefault();
+          handleToggle(e);
+        }}
         isActive={isOpen}
+        style={{ touchAction: 'manipulation' }}
       >
         <span className="text-brand-retro-navy drop-shadow-md text-xl">★</span>
         <span className="hidden sm:inline font-pixel pt-1 text-sm">START</span>
@@ -103,6 +120,12 @@ function SystemTray() {
   /** TODO: 전역 상태로 관리 */
   const [hasNewMail, setHasNewMail] = useState(true);
 
+  const handleIconClick = (handler: () => void) => (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handler();
+  }
+
   return (
     <div className="
       hidden md:flex items-center gap-2 px-3 h-full
@@ -113,9 +136,10 @@ function SystemTray() {
       {/* Vaccine: 지루함 방지 시스템 */}
       <Tooltip content="Anti-Boredom 가동 중..." position="top">
         <div className="
-          w-7 h-7 flex items-center justify-center 
+          w-9 h-9 flex items-center justify-center 
           cursor-help hover:scale-110 transition-transform
-        ">
+          active:scale-95
+        " style={{ minWidth: '44px', minHeight: '44px' }}>
           <span className="text-base filter drop-shadow-sm">🛡️</span>
         </div>
       </Tooltip>
@@ -125,11 +149,18 @@ function SystemTray() {
       {/* TODO: 실제 방명록 데이터와 연동 */}
       <Tooltip content={hasNewMail ? "새로운 방명록이 도착했습니다!" : "새로운 메시지가 없습니다."}>
         <div
-          onClick={() => setHasNewMail(false)} // 클릭하면 읽음 처리
+          onClick={handleIconClick(() => setHasNewMail(false))}
+          onTouchEnd={handleIconClick(() => setHasNewMail(false))}
           className={`
-            w-7 h-7 flex items-center justify-center cursor-pointer
+            w-9 h-9 flex items-center justify-center cursor-pointer
+            active:scale-95 transition-transform
             ${hasNewMail ? 'animate-bounce' : 'opacity-50 grayscale'}
           `}
+          style={{
+            minWidth: '44px',
+            minHeight: '44px',
+            touchAction: 'manipulation',
+          }}
         >
           <span className="text-base">📩</span>
         </div>
@@ -138,18 +169,17 @@ function SystemTray() {
       {/* Heart: 위츄 체력 상태 */}
       <Tooltip content="WICHU HP: 100%">
         <div className="
-          w-7 h-7 flex items-center justify-center 
+          w-9 h-9 flex items-center justify-center 
           cursor-default animate-pulse
-        ">
-          <span className="text-sm text-green-400 drop-shadow-[1px_1px_0_#000]">
-            ❤
-          </span>
+        " style={{ minWidth: '44px', minHeight: '44px' }}>
+          <span className="text-sm text-green-400 drop-shadow-[1px_1px_0_#000]">❤</span>
         </div>
       </Tooltip>
 
       {/* Network: 연결 상태 */}
       <Tooltip content="WISH World와 연결됨">
-        <div className="w-7 h-7 flex items-center justify-center cursor-help">
+        <div className="w-9 h-9 flex items-center justify-center cursor-help"
+          style={{ minWidth: '44px', minHeight: '44px' }}>
           <span className="text-base">📶</span>
         </div>
       </Tooltip>
@@ -158,11 +188,18 @@ function SystemTray() {
       {/* 실제 오디오 볼륨과 연동됨 */}
       <Tooltip content={isMuted ? "음소거 켜짐" : `볼륨: ${volume}%`}>
         <button
-          onClick={toggleMute}
+          onClick={handleIconClick(toggleMute)}
+          onTouchEnd={handleIconClick(toggleMute)}
           className="
-            w-7 h-7 flex items-center justify-center 
-            hover:bg-gray-300 active:translate-y-[1px] rounded-sm
+            w-9 h-9 flex items-center justify-center 
+            hover:bg-gray-300 active:translate-y-[1px] active:scale-95 rounded-sm
+            transition-transform
           "
+          style={{
+            minWidth: '44px',
+            minHeight: '44px',
+            touchAction: 'manipulation',
+          }}
         >
           <span className="text-base">{isMuted ? '🔇' : '🔊'}</span>
         </button>
@@ -177,11 +214,14 @@ export default function Taskbar() {
   const { windows, activeWindowId, focusWindow, minimizeWindow, maximizeWindow } = useWindowStore();
 
   // 탭 클릭 핸들러
-  const handleTabClick = (id: string, isMinimized: boolean) => {
+  const handleTabClick = (id: string, isMinimized: boolean) => (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (activeWindowId === id && !isMinimized) {
-      minimizeWindow(id); // 활성 창이면 최소화
+      minimizeWindow(id);
     } else {
-      focusWindow(id); // 아니면 포커스
+      focusWindow(id);
     }
   };
 
@@ -189,7 +229,7 @@ export default function Taskbar() {
     <nav className="
       fixed bottom-0 left-0 right-0
       z-[var(--z-taskbar)]
-      h-[48px]
+      h-[48px] min-h-[48px]
       pb-safe
       bg-[#c0c0c0]
       border-t-2 border-white
@@ -199,40 +239,43 @@ export default function Taskbar() {
       flex items-center px-2 gap-2
     ">
 
-      {/* [좌측] 시작 버튼 영역 */}
       <StartButton />
 
       <Divider orientation="vertical" />
 
-      {/* [중앙] 윈도우 태스크 탭 영역 (열린 창 목록 렌더링) */}
+      {/* 윈도우 태스크 탭 영역 */}
       <div className="flex-1 flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar h-full">
         {windows.map((win) => {
-          // 활성 상태 조건: 현재 ID와 일치하고, 최소화 상태가 아닌 경우
           const isActive = activeWindowId === win.id && !win.isMinimized;
-          const isFocused = activeWindowId === win.id; // 포커스 여부 (최소화 상태 무관)
 
           return (
             <button
               key={win.id}
-              onClick={() => handleTabClick(win.id, win.isMinimized)}
+              onClick={handleTabClick(win.id, win.isMinimized)}
+              onTouchEnd={handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-full
-                w-10 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
-                flex items-center justify-center sm:justify-start gap-2 px-3
+                h-full min-h-[40px]
+                w-12 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
+                flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-3
                 border rounded-sm
                 transition-all select-none
                 pointer-events-auto
+                active:scale-95
 
                 ${isActive
                   ? 'bg-white shadow-inset border-gray-600 font-bold -translate-y-[1px]'
-                  : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-400'
+                  : 'bg-gray-200 shadow-outset hover:bg-gray-100 text-gray-700 border-gray-400'
                 }
               `}
+              style={{
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+              }}
             >
               {/* 아이콘 */}
               <div className={`
                 relative flex items-center justify-center
-                w-5 h-5 md:w-4 md:h-4
+                w-6 h-6 md:w-5 md:h-5
                 ${isActive ? 'opacity-100' : 'opacity-80 grayscale-[0.3]'}
               `}>
                 {win.icon.startsWith('/') ? (
@@ -245,7 +288,7 @@ export default function Taskbar() {
               {/* 제목 */}
               <span className={`
                 font-pixel text-xs md:text-sm pt-0.5 truncate flex-1 text-left
-                ${isActive ? 'text-black': 'text-gray-700'}
+                ${isActive ? 'text-black' : 'text-gray-700'}
                 hidden sm:inline
               `}>
                 {win.title}
@@ -257,12 +300,12 @@ export default function Taskbar() {
 
       <Divider orientation="vertical" />
 
-      {/* [우측] 트레이 & 시계 영역 */}
+      {/* 트레이 & 시계 영역 */}
       <div className="flex gap-2 shrink-0 items-center h-full">
         <SystemTray />
         <SystemClock />
       </div>
 
-    </nav >
+    </nav>
   );
 }

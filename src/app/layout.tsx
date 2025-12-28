@@ -59,7 +59,9 @@ export const metadata: Metadata = {
   description: "NCT WISH Fan-made Archive & OS",
   keywords: ["NCT WISH", "NCT", "엔시티 위시", "아카이브", "WISH OS"],
   icons: {
-    icon: '/system/icons/favicon.ico', 
+    icon: '/system/icons/favicon.ico?v=3',
+    apple: '/system/icons/apple-touch-icon.png?v=3',
+    shortcut: '/system/icons/favicon.ico?v=3',
   },
   openGraph: {
     title: "Wish for Our Wish",

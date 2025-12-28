@@ -340,7 +340,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             {/* MENU 버튼 (상단) */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              onTouchEnd={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
               className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-500 hover:text-black transition-colors tracking-tighter no-drag"
               style={{
                 top: `${8 * scale}px`,
@@ -354,7 +354,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             {/* PREV 버튼 (왼쪽) */}
             <button
               onClick={playPrev}
-              onTouchEnd={(e) => { e.stopPropagation(); playPrev(); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors no-drag"
               style={{
                 left: `${8 * scale}px`,
@@ -368,7 +368,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             {/* NEXT 버튼 (오른쪽) */}
             <button
               onClick={playNext}
-              onTouchEnd={(e) => { e.stopPropagation(); playNext(); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors no-drag"
               style={{
                 right: `${8 * scale}px`,
@@ -382,7 +382,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             {/* PLAY/PAUSE 버튼 (하단) */}
             <button
               onClick={togglePlay}
-              onTouchEnd={(e) => { e.stopPropagation(); togglePlay(); }}
+              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
               className="absolute left-1/2 -translate-x-1/2 text-gray-500 hover:text-black transition-colors no-drag"
               style={{
                 bottom: `${8 * scale}px`,
@@ -398,7 +398,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
           {/* 중앙 버튼 (선택) */}
           <button
             onClick={togglePlay}
-            onTouchEnd={(e) => { e.stopPropagation(); togglePlay(); }}
+            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag"
             style={{
               width: `${38 * scale}px`,

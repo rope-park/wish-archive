@@ -99,11 +99,13 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleBubbleClick}
-        className="relative w-full flex justify-center items-center bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2),inset_2px_2px_0px_0px_rgba(255,255,255,1)] border-black cursor-pointer z-20"
+        onTouchEnd={(e) => { e.stopPropagation(); handleBubbleClick(); }}
+        className="relative w-full flex justify-center items-center bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2),inset_2px_2px_0px_0px_rgba(255,255,255,1)] border-black cursor-pointer z-20 no-drag"
         style={{
           minHeight: `${(scale >= 1 ? 120 : 100) * scale}px`,
           padding: `${(scale >= 1 ? 20 : 16) * scale}px`,
           borderWidth: `${2 * scale}px`,
+          touchAction: 'manipulation',
         }}
       >
         <AnimatePresence mode="wait">
@@ -114,7 +116,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               className="text-center text-black font-pixel leading-relaxed break-keep"
-              style={{ fontSize: `${(scale >= 1 ? 14 : 11) * scale}px` }}
+              style={{ fontSize: `${(scale >= 1 ? 16 : 14) * scale}px` }}
             >
               {data.content}
             </motion.p>
@@ -126,7 +128,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
               exit={{ scale: 0 }}
               transition={{ duration: 0.3 }}
               className="font-pixel text-gray-300"
-              style={{ fontSize: `${(scale >= 1 ? 40 : 32) * scale}px` }}
+              style={{ fontSize: `${(scale >= 1 ? 48 : 40) * scale}px` }}
             >
               ?
             </motion.div>
@@ -159,10 +161,12 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         animate={isLoading ? { scale: 0.9, opacity: 0.7, y: 5 } : { scale: 1, opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         onClick={fetchRandomQuote}
-        className="relative cursor-pointer group"
+        onTouchEnd={(e) => { e.stopPropagation(); fetchRandomQuote(); }}
+        className="relative cursor-pointer group no-drag"
         style={{
           width: `${(scale >= 1 ? 144 : 112) * scale}px`,
           height: `${(scale >= 1 ? 144 : 112) * scale}px`,
+          touchAction: 'manipulation',
         }}
       >
         {/* 멤버 상징색 오라 */}

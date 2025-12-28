@@ -106,9 +106,10 @@ export default function StickyNoteWidget({
             style={{ 
               fontFamily: 'var(--font-hand), cursive',
               fontSize: `${fontSize}px`,
+              touchAction: 'auto',
             }}
             placeholder="Write your wish..."
-            spellCheck={false} // 맞춤법 검사 비활성화
+            spellCheck={false}
           />
         ) : (
           // [뷰 모드] 텍스트 표시

@@ -10,7 +10,7 @@
 'use client';
 
 import React, { ReactNode, useRef, useState, useEffect } from 'react';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableBounds } from 'react-draggable';
 
 interface DraggableWidgetProps {
   children: ReactNode;
@@ -48,18 +48,44 @@ export default function DraggableWidget({
   const [isRotating, setIsRotating] = useState(false);
   const rotationStartRef = useRef({ angle: 0, mouseAngle: 0 });
 
+  // 태스크바 높이를 고려한 bounds 계산
+  const [dragBounds, setDragBounds] = useState<DraggableBounds | 'parent'>('parent');
+
   // 1. 마운트 및 모바일 감지
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
 
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const width = window.innerWidth;
+      // iPad도 터치 디바이스로 처리
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(width < 1024 || isTouchDevice);
+    };
+
+    const updateBounds = () => {
+      // 태스크바 높이 48px을 제외한 영역으로 제한
+      const taskbarHeight = 48;
+      const viewportHeight = window.innerHeight;
+      
+      setDragBounds({
+        left: 0,
+        top: 0,
+        right: window.innerWidth,
+        bottom: viewportHeight - taskbarHeight,
+      });
     };
 
     checkMobile();
+    updateBounds();
+    
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('resize', updateBounds);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('resize', updateBounds);
+    };
   }, []);
 
   // 2. 부모로부터 위치 변경 시 동기화 (반응형 대응)
@@ -151,7 +177,7 @@ export default function DraggableWidget({
       position={position}
       scale={scale}
       handle={dragHandle} // 특정 핸들만 잡고 끌 수 있게 설정
-      bounds="parent"     // 부모(바탕화면) 밖으로 못 나가게 제한
+      bounds={dragBounds}     // 태스크바를 제외한 영역으로 제한
       cancel='.no-drag, .rotate-handle'   // 이 클래스명이 붙은 요소는 드래그 방지
       disabled={isRotating} // 회전 중일 때만 드래그 비활성화
       
@@ -183,9 +209,13 @@ export default function DraggableWidget({
         `}
         style={{
           zIndex: currentZIndex,
-          touchAction: isMobile ? 'auto' : 'none',
+          touchAction: 'auto',
         }}
         onMouseDown={handleMouseDown}
+        onTouchStart={(e) => {
+          // 터치 시작 시 포커스
+          onFocus?.();
+        }}
       >
         {/* 회전 핸들 - 우측 상단 (호버 시에만 표시) - 회전되지 않도록 밖에 배치 */}
         {!isMobile && enableRotation && (
@@ -208,6 +238,7 @@ export default function DraggableWidget({
             display: 'flex',
             overflow: 'visible',
             pointerEvents: 'auto',
+            touchAction: 'auto',
           }}
         >
           {children}

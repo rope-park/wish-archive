@@ -9,16 +9,35 @@
 
 import Image from 'next/image';
 
-export default function WichuTamagotchiWidget() {
+export default function WichuTamagotchiWidget({ scale = 1 }: { scale?: number }) {
+  const baseWidth = 260;
+  const baseHeight = 330;
+  const containerWidth = baseWidth * scale;
+  const containerHeight = baseHeight * scale;
+
   return (
     // 전체 컨테이너 (크기 및 그림자 설정)
-    <div className="relative w-full max-w-[260px] min-w-[100px] aspect-[13/19] flex justify-center filter drop-shadow-2xl">
+    <div 
+      className="relative flex justify-center filter drop-shadow-2xl"
+      style={{
+        width: `${containerWidth}px`,
+        height: `${containerHeight}px`,
+      }}
+    >
       
       {/* ------------------------------------------------------ */}
       {/* Layer 1: 배경 구름 (Clouds) - 가장 뒤 */}
       {/* ------------------------------------------------------ */}
       {/* 왼쪽 구름 */}
-      <div className="absolute right-[150px] top-[90px] w-[110px] h-[90px] z-0 opacity-90 ">
+      <div 
+        className="absolute z-0 opacity-90"
+        style={{
+          right: `${150 * scale}px`,
+          top: `${90 * scale}px`,
+          width: `${110 * scale}px`,
+          height: `${90 * scale}px`,
+        }}
+      >
         <Image 
           src="/system/widgets/WichuTamagotchi/UnionLeft.svg" 
           alt="cloud background left" 
@@ -27,7 +46,15 @@ export default function WichuTamagotchiWidget() {
         />
       </div>
       {/* 오른쪽 구름 */}
-      <div className="absolute left-[150px] top-[90px] w-[110px] h-[90px] z-0 opacity-90 ">
+      <div 
+        className="absolute z-0 opacity-90"
+        style={{
+          left: `${150 * scale}px`,
+          top: `${90 * scale}px`,
+          width: `${110 * scale}px`,
+          height: `${90 * scale}px`,
+        }}
+      >
         <Image 
           src="/system/widgets/WichuTamagotchi/UnionRight.svg" 
           alt="cloud background right" 
@@ -39,7 +66,13 @@ export default function WichuTamagotchiWidget() {
       {/* ------------------------------------------------------ */}
       {/* Layer 2: 체인 (Chain) - 구름 앞, 몸통 뒤 */}
       {/* ------------------------------------------------------ */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[70px] h-[120px] z-10">
+      <div 
+        className="absolute top-0 left-1/2 -translate-x-1/2 z-10"
+        style={{
+          width: `${70 * scale}px`,
+          height: `${120 * scale}px`,
+        }}
+      >
         <Image 
           src="/system/widgets/WichuTamagotchi/Keyring.svg"
           alt="chain" 
@@ -51,7 +84,14 @@ export default function WichuTamagotchiWidget() {
       {/* ------------------------------------------------------ */}
       {/* Layer 3: 다마고치 메인 몸통 (Star Body) */}
       {/* ------------------------------------------------------ */}
-      <div className="relative z-20 w-[240px] h-[240px] mt-[75px]">
+      <div 
+        className="relative z-20"
+        style={{
+          width: `${240 * scale}px`,
+          height: `${240 * scale}px`,
+          marginTop: `${75 * scale}px`,
+        }}
+      >
         {/* 별 모양 몸통 이미지 */}
         <Image 
           src="/system/widgets/WichuTamagotchi/Star.svg" 
@@ -64,25 +104,37 @@ export default function WichuTamagotchiWidget() {
         {/* ------------------------------------------------------ */}
         {/* Layer 4: 스크린 (Screen) - 몸통 위에 배치 */}
         {/* ------------------------------------------------------ */}
-        <div className="
-          absolute top-[60px] left-1/2 -translate-x-1/2
-          w-[110px] h-[100px]
-          bg-[#6B6B6B] /* 스크린 회색 */
-          border-[5px] border-[#A3E292] /* 몸통과 비슷한 연두색 테두리 */
-          rounded-lg
-          flex items-center justify-center
-          overflow-hidden
-          shadow-inner
-        ">
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 bg-[#6B6B6B] border-[#A3E292] flex items-center justify-center overflow-hidden shadow-inner"
+          style={{
+            top: `${60 * scale}px`,
+            width: `${110 * scale}px`,
+            height: `${100 * scale}px`,
+            borderWidth: `${5 * scale}px`,
+            borderRadius: `${8 * scale}px`,
+          }}
+        >
 
            {/* TODO: <PixelWichu /> */}
-           <div className="font-pixel text-white/50 text-xs">WICHU OS</div>
+           <div 
+             className="font-pixel text-white/50"
+             style={{ fontSize: `${12 * scale}px` }}
+           >
+             WICHU OS
+           </div>
         </div>
 
         {/* ------------------------------------------------------ */}
         {/* Layer 5: 버튼 (Buttons) - 몸통 위, 스크린 아래 */}
         {/* ------------------------------------------------------ */}
-        <div className="absolute bottom-[40px] left-1/2 -translate-x-1/2 w-[90px] h-[35px]">
+        <div 
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{
+            bottom: `${40 * scale}px`,
+            width: `${90 * scale}px`,
+            height: `${35 * scale}px`,
+          }}
+        >
           <Image 
             src="/system/widgets/WichuTamagotchi/Button.svg" 
             alt="buttons" 

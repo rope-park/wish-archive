@@ -20,7 +20,7 @@ interface QuoteData {
   };
 }
 
-export default function MembersQuoteWidget() {
+export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
   // 상태 관리
   const [data, setData] = useState<QuoteData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,14 +76,22 @@ export default function MembersQuoteWidget() {
 
   if (!data) return null;
 
+  const baseWidth = 288;
+  const baseHeight = 340;
+  const containerWidth = baseWidth * scale;
+  const containerHeight = baseHeight * scale;
+  const gap = (scale >= 1 ? 24 : 16) * scale;
+  const paddingBottom = (scale >= 1 ? 20 : 16) * scale;
+
   return (
-    <div className="
-      relative w-full h-full
-      flex flex-col justify-end items-center
-      gap-4 md:gap-6 
-      pb-4 md:pb-5
-      select-none
-    "
+    <div 
+      className="relative flex flex-col justify-end items-center select-none"
+      style={{
+        width: `${containerWidth}px`,
+        height: `${containerHeight}px`,
+        gap: `${gap}px`,
+        paddingBottom: `${paddingBottom}px`,
+      }}
     >
 
       {/* 말풍선 영역 (클릭 시 어록 등장) */}
@@ -91,15 +99,12 @@ export default function MembersQuoteWidget() {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleBubbleClick}
-        className="
-          relative w-full min-h-[100px] md:min-h-[120px]
-          flex justify-center items-center
-          p-4 sm:p-5
-          bg-white 
-          shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2),inset_2px_2px_0px_0px_rgba(255,255,255,1)] 
-          border-2 border-black
-          cursor-pointer z-20
-        "
+        className="relative w-full flex justify-center items-center bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2),inset_2px_2px_0px_0px_rgba(255,255,255,1)] border-black cursor-pointer z-20"
+        style={{
+          minHeight: `${(scale >= 1 ? 120 : 100) * scale}px`,
+          padding: `${(scale >= 1 ? 20 : 16) * scale}px`,
+          borderWidth: `${2 * scale}px`,
+        }}
       >
         <AnimatePresence mode="wait">
           {showQuote ? (
@@ -108,10 +113,8 @@ export default function MembersQuoteWidget() {
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
-              className="
-                text-center text-black font-pixel leading-relaxed break-keep
-                text-sm md:text-base
-                "
+              className="text-center text-black font-pixel leading-relaxed break-keep"
+              style={{ fontSize: `${(scale >= 1 ? 16 : 14) * scale}px` }}
             >
               {data.content}
             </motion.p>
@@ -122,7 +125,8 @@ export default function MembersQuoteWidget() {
               animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
               exit={{ scale: 0 }}
               transition={{ duration: 0.3 }}
-              className="text-4xl md:text-5xl font-pixel text-gray-300"
+              className="font-pixel text-gray-300"
+              style={{ fontSize: `${(scale >= 1 ? 48 : 40) * scale}px` }}
             >
               ?
             </motion.div>
@@ -130,20 +134,24 @@ export default function MembersQuoteWidget() {
         </AnimatePresence>
 
         {/* 말풍선 꼬리 */}
-        <div className="
-          absolute -bottom-[14px] left-1/2 -translate-x-1/2
-          w-0 h-0 
-          border-l-[10px] border-l-transparent
-          border-r-[10px] border-r-transparent
-          border-t-[14px] border-t-black
-        " />
-        <div className="
-          absolute -bottom-[10px] left-1/2 -translate-x-1/2
-          w-0 h-0
-          border-l-[8px] border-l-transparent
-          border-r-[8px] border-r-transparent
-          border-t-[12px] border-t-white
-        " />
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 w-0 h-0 border-l-transparent border-r-transparent border-t-black"
+          style={{
+            bottom: `${-14 * scale}px`,
+            borderLeftWidth: `${10 * scale}px`,
+            borderRightWidth: `${10 * scale}px`,
+            borderTopWidth: `${14 * scale}px`,
+          }}
+        />
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 w-0 h-0 border-l-transparent border-r-transparent border-t-white"
+          style={{
+            bottom: `${-10 * scale}px`,
+            borderLeftWidth: `${8 * scale}px`,
+            borderRightWidth: `${8 * scale}px`,
+            borderTopWidth: `${12 * scale}px`,
+          }}
+        />
       </motion.div>
 
       {/* 캐릭터 영역 (클릭 시 다른 멤버/어록으로 교체) */}
@@ -151,18 +159,19 @@ export default function MembersQuoteWidget() {
         animate={isLoading ? { scale: 0.9, opacity: 0.7, y: 5 } : { scale: 1, opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         onClick={fetchRandomQuote}
-        className="
-          relative
-          w-28 h-28 md:w-36 md:h-36
-          cursor-pointer group
-          "
+        className="relative cursor-pointer group"
+        style={{
+          width: `${(scale >= 1 ? 144 : 112) * scale}px`,
+          height: `${(scale >= 1 ? 144 : 112) * scale}px`,
+        }}
       >
         {/* 멤버 상징색 오라 */}
         <div
-          className="
-            absolute inset-2 rounded-full opacity-0 group-hover:opacity-40 blur-xl transition-opacity duration-500
-            "
-          style={{ backgroundColor: data.member.colorCode || '#ddd' }}
+          className="absolute rounded-full opacity-0 group-hover:opacity-40 blur-xl transition-opacity duration-500"
+          style={{ 
+            backgroundColor: data.member.colorCode || '#ddd',
+            inset: `${8 * scale}px`,
+          }}
         />
 
         {/* 캐릭터 이미지 (없으면 이니셜) */}
@@ -175,25 +184,30 @@ export default function MembersQuoteWidget() {
             draggable={false}
           />
         ) : (
-          <div className="
-            absolute inset-0 flex items-center justify-center
-            bg-gradient-to-br from-gray-100 to-gray-200
-            rounded-full border-2 border-dashed border-gray-300
-            group-hover:border-gray-400 transition-colors
-          ">
-            <span className="font-pixel text-4xl text-gray-400">
+          <div 
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-full border-dashed border-gray-300 group-hover:border-gray-400 transition-colors"
+            style={{ borderWidth: `${2 * scale}px` }}
+          >
+            <span 
+              className="font-pixel text-gray-400"
+              style={{ fontSize: `${40 * scale}px` }}
+            >
               {data.member.stageName[0]}
             </span>
           </div>
         )}
 
-        <span className="
-          absolute -bottom-4 left-1/2 -translate-x-1/2 
-          opacity-0 group-hover:opacity-100 transition-opacity
-          font-pixel text-[10px] text-gray-500 whitespace-nowrap
-          bg-white/90 px-2 py-0.5 rounded-full border border-gray-200
-          shadow-sm
-        ">
+        <span 
+          className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity font-pixel text-gray-500 whitespace-nowrap bg-white/90 rounded-full border border-gray-200 shadow-sm"
+          style={{
+            bottom: `${-16 * scale}px`,
+            fontSize: `${10 * scale}px`,
+            paddingLeft: `${8 * scale}px`,
+            paddingRight: `${8 * scale}px`,
+            paddingTop: `${2 * scale}px`,
+            paddingBottom: `${2 * scale}px`,
+          }}
+        >
           Next Member ↻
         </span>
       </motion.div>

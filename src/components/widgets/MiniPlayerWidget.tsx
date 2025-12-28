@@ -28,7 +28,7 @@ interface PlaylistItem {
   themeColor?: string | null;
 }
 
-export default function MiniPlayer() {
+export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
   // 상태 관리
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -227,46 +227,45 @@ export default function MiniPlayer() {
 
   if (!currentSong) return null;
 
+  const baseWidth = 340;
+  const baseHeight = 140;
+  const containerWidth = baseWidth * scale;
+  const containerHeight = baseHeight * scale;
+
   return (
     <div className="relative group select-none">
 
       {/* 메인 몸체 */}
-      <div className="
-        relative z-10
-        w-[340px] h-[140px]
-        bg-gradient-to-b from-[#f0f0f0] via-[#dcdcdc] to-[#b0b0b0]
-        rounded-[24px]
-        shadow-[0_10px_20px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-2px_4px_rgba(0,0,0,0.2)]
-        shadow-[
-          0_20px_40px_-10px_rgba(0,0,0,0.5),    /* 바닥 깊은 그림자 */
-          0_5px_10px_-5px_rgba(0,0,0,0.3),      /* 근접 그림자 */
-          inset_0_1px_0_rgba(255,255,255,0.8),  /* 상단 날카로운 빛 반사 */
-          inset_0_-1px_0_rgba(0,0,0,0.3),       /* 하단 모서리 그림자 */
-          inset_1px_0_1px_rgba(255,255,255,0.1),/* 좌측 미세 광택 */
-          inset_-1px_0_1px_rgba(0,0,0,0.1)      /* 우측 미세 그림자 */
-        ]
-        flex items-center justify-between
-        px-6 py-4
-        border border-[#a0a0a0]
-        overflow-hidden
-      ">
+      <div 
+        className="relative z-10 bg-gradient-to-b from-[#f0f0f0] via-[#dcdcdc] to-[#b0b0b0] shadow-[0_10px_20px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-2px_4px_rgba(0,0,0,0.2)] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5),0_5px_10px_-5px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.3),inset_1px_0_1px_rgba(255,255,255,0.1),inset_-1px_0_1px_rgba(0,0,0,0.1)] flex items-center justify-between border border-[#a0a0a0] overflow-hidden"
+        style={{
+          width: `${containerWidth}px`,
+          height: `${containerHeight}px`,
+          borderRadius: `${24 * scale}px`,
+          paddingLeft: `${24 * scale}px`,
+          paddingRight: `${24 * scale}px`,
+          paddingTop: `${16 * scale}px`,
+          paddingBottom: `${16 * scale}px`,
+        }}
+      >
         {/* 몸체 표면 노이즈 텍스처 */}
-        <div className="absolute inset-0 rounded-[24px] bg-noise opacity-[0.07] pointer-events-none mix-blend-multiply" />
+        <div 
+          className="absolute inset-0 bg-noise opacity-[0.07] pointer-events-none mix-blend-multiply"
+          style={{ borderRadius: `${24 * scale}px` }}
+        />
         {/* 표면 그라데이션 코팅 */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none mix-blend-overlay" />
 
         {/* [왼쪽] 화면 영역 */}
-        <div className="
-          relative
-          w-[160px] h-[110px]
-          bg-[#0a0a0a]
-          rounded-[10px]
-          shadow-[inset_0_2px_6px_rgba(0,0,0,0.8),0_1px_2px_rgba(255,255,255,0.2)]
-          border-[3px] border-[#222]
-          overflow-hidden
-          flex flex-col
-          z-20
-        ">
+        <div 
+          className="relative bg-[#0a0a0a] shadow-[inset_0_2px_6px_rgba(0,0,0,0.8),0_1px_2px_rgba(255,255,255,0.2)] border-[#222] overflow-hidden flex flex-col z-20"
+          style={{
+            width: `${160 * scale}px`,
+            height: `${110 * scale}px`,
+            borderRadius: `${10 * scale}px`,
+            borderWidth: `${3 * scale}px`,
+          }}
+        >
           {/* YouTube Iframe 레이어 */}
           <div className="relative flex-1 bg-black overflow-hidden group/screen">
             <iframe
@@ -322,28 +321,30 @@ export default function MiniPlayer() {
         </div>
 
         {/* [오른쪽] 클릭 휠 영역 */}
-        <div className="relative w-[100px] h-[100px] shrink-0 flex items-center justify-center">
+        <div 
+          className="relative shrink-0 flex items-center justify-center"
+          style={{
+            width: `${100 * scale}px`,
+            height: `${100 * scale}px`,
+          }}
+        >
 
           {/* 휠 배경 (흰색/회색 그라데이션) */}
-          <div className="
-            absolute inset-0 rounded-full
-            bg-gradient-to-br from-[#f8f8f8] via-[#eeeeee] to-[#dcdcdc]
-            shadow-[0_4px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,1)]
-            shadow-[
-              0_4px_10px_rgba(0,0,0,0.3),       /* 전체적인 드롭 섀도우 */
-              inset_0_2px_3px_rgba(255,255,255,1), /* 상단 내부 하이라이트 */
-              inset_0_-2px_5px_rgba(0,0,0,0.1),    /* 하단 내부 그림자 */
-              0_0_0_1px_#d0d0d0                  /* 미세한 외곽선 정의 */
-            ]
-            border border-[#ccc]
-          ">
+          <div 
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-[#f8f8f8] via-[#eeeeee] to-[#dcdcdc] shadow-[0_4px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,1)] shadow-[0_4px_10px_rgba(0,0,0,0.3),inset_0_2px_3px_rgba(255,255,255,1),inset_0_-2px_5px_rgba(0,0,0,0.1),0_0_0_1px_#d0d0d0] border-[#ccc]"
+            style={{ borderWidth: `${1 * scale}px` }}
+          >
 
             <div className="absolute inset-0 rounded-full bg-noise opacity-[0.05] mix-blend-multiply" />
 
             {/* MENU 버튼 (상단) */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="absolute top-2 left-1/2 -translate-x-1/2 text-[9px] font-bold text-gray-500 hover:text-black transition-colors tracking-tighter"
+              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-500 hover:text-black transition-colors tracking-tighter"
+              style={{
+                top: `${8 * scale}px`,
+                fontSize: `${9 * scale}px`,
+              }}
             >
               MENU
             </button>
@@ -351,7 +352,11 @@ export default function MiniPlayer() {
             {/* PREV 버튼 (왼쪽) */}
             <button
               onClick={playPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-[14px] text-gray-500 hover:text-black transition-colors"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors"
+              style={{
+                left: `${8 * scale}px`,
+                fontSize: `${14 * scale}px`,
+              }}
             >
               ⏮
             </button>
@@ -359,7 +364,11 @@ export default function MiniPlayer() {
             {/* NEXT 버튼 (오른쪽) */}
             <button
               onClick={playNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[14px] text-gray-500 hover:text-black transition-colors"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors"
+              style={{
+                right: `${8 * scale}px`,
+                fontSize: `${14 * scale}px`,
+              }}
             >
               ⏭
             </button>
@@ -367,7 +376,12 @@ export default function MiniPlayer() {
             {/* PLAY/PAUSE 버튼 (하단) */}
             <button
               onClick={togglePlay}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[12px] text-gray-500 hover:text-black transition-colors flex gap-0.5"
+              className="absolute left-1/2 -translate-x-1/2 text-gray-500 hover:text-black transition-colors"
+              style={{
+                bottom: `${8 * scale}px`,
+                fontSize: `${12 * scale}px`,
+                gap: `${2 * scale}px`,
+              }}
             >
               {isPlaying ? '❚❚' : '▶'}
             </button>
@@ -376,20 +390,12 @@ export default function MiniPlayer() {
           {/* 중앙 버튼 (선택) */}
           <button
             onClick={togglePlay}
-            className="
-              relative z-10
-              w-[38px] h-[38px] rounded-full
-              bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)]
-              shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)]
-              border border-[#b0b0b0]
-              shadow-[
-                0_2px_5px_rgba(0,0,0,0.4),        /* 버튼 아래 그림자 */
-                inset_0_1px_1px_rgba(255,255,255,1), /* 상단 날카로운 엣지 */
-                inset_0_-1px_1px_rgba(0,0,0,0.3)     /* 하단 그림자 */
-              ]
-              active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
-              transition-transform
-            "
+            className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform"
+            style={{
+              width: `${38 * scale}px`,
+              height: `${38 * scale}px`,
+              borderWidth: `${1 * scale}px`,
+            }}
           />
         </div>
       </div>

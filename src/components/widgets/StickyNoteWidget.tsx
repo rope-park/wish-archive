@@ -19,6 +19,7 @@ interface StickyNoteProps {
   color?: NoteColor; // 메모지 색상
   className?: string;
   onSave?: (text: string, color: NoteColor) => void; // 저장 시 실행될 함수 (선택사항)
+  scale?: number;
 }
 
 export default function StickyNoteWidget({
@@ -26,6 +27,7 @@ export default function StickyNoteWidget({
   color = 'pink',
   className = '',
   onSave,
+  scale = 1,
 }: StickyNoteProps) {
   // 상태 관리
   const [text, setText] = useState(initialText);
@@ -60,36 +62,37 @@ export default function StickyNoteWidget({
     pink: 'bg-[#F5CAD4] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
   };
 
+  const baseSize = (scale >= 1 ? 208 : 160) * scale;
+  const tapeWidth = (scale >= 1 ? 90 : 70) * scale;
+  const tapeHeight = (scale >= 1 ? 40 : 32) * scale;
+  const padding = (scale >= 1 ? 40 : 32) * scale;
+  const paddingTop = (scale >= 1 ? 48 : 40) * scale;
+  const fontSize = (scale >= 1 ? 18 : 16) * scale;
+
   return (
-    <div className={`
-      relative
-      w-40 h-40 md:w-52 md:h-52
-      aspect-square
-      ${className}
-    `}>
+    <div 
+      className={`relative ${className}`}
+      style={{ width: `${baseSize}px`, height: `${baseSize}px` }}
+    >
 
       {/* 테이프 (Tape) - 상단에 붙은 느낌 */}
       {/* 본체보다 z-index를 높여서 위를 덮도록 배치 */}
-      <div className="
-        absolute -top-3 left-1/2 -translate-x-1/2 z-20
-        w-[70px] h-8 md:w-[90px] md:h-10
-        bg-white/40 backdrop-blur-sm
-        shadow-[0_1px_2px_rgba(0,0,0,0.1)]
-        rotate-[-2deg]
-        pointer-events-none
-      " />
+      <div 
+        className="absolute left-1/2 -translate-x-1/2 z-20 bg-white/40 backdrop-blur-sm shadow-[0_1px_2px_rgba(0,0,0,0.1)] rotate-[-2deg] pointer-events-none"
+        style={{
+          top: `${-12 * scale}px`,
+          width: `${tapeWidth}px`,
+          height: `${tapeHeight}px`,
+        }}
+      />
 
       {/* 메모지 본체 */}
       <div
-        className={`
-          w-full h-full
-          p-6 pt-8 md:p-6 md:pt-10
-          ${colorStyles[noteColor]}
-          shadow-[2px_4px_8px_rgba(0,0,0,0.1)]
-          transition-colors duration-300 ease-in-out
-          hover:scale-[1.02] hover:transition-transform
-          flex flex-col relative
-        `}
+        className={`w-full h-full ${colorStyles[noteColor]} shadow-[2px_4px_8px_rgba(0,0,0,0.1)] transition-colors duration-300 ease-in-out hover:scale-[1.02] hover:transition-transform flex flex-col relative`}
+        style={{
+          padding: `${padding}px`,
+          paddingTop: `${paddingTop}px`,
+        }}
         onDoubleClick={() => setIsEditing(true)} // 더블 클릭 시 편집 모드
       >
         {/* [편집 모드] 입력창 */}
@@ -99,33 +102,22 @@ export default function StickyNoteWidget({
             value={text}
             onChange={(e) => setText(e.target.value)}
             onBlur={handleBlur}
-            className="
-              no-drag
-              w-full h-full
-              bg-transparent border-none outline-none resize-none
-              font-hand text-gray-800 leading-relaxed
-              placeholder:text-gray-500/50
-              custom-scrollbar
-
-              /* [Mobile] 폰트 크기 */
-              text-base md:text-lg
-            "
-            style={{ fontFamily: 'var(--font-hand), cursive' }}
+            className="no-drag w-full h-full bg-transparent border-none outline-none resize-none font-hand text-gray-800 leading-relaxed placeholder:text-gray-500/50 custom-scrollbar"
+            style={{ 
+              fontFamily: 'var(--font-hand), cursive',
+              fontSize: `${fontSize}px`,
+            }}
             placeholder="Write your wish..."
             spellCheck={false} // 맞춤법 검사 비활성화
           />
         ) : (
           // [뷰 모드] 텍스트 표시
-          <div className="
-            w-full h-full 
-            font-hand text-gray-900 leading-relaxed 
-            break-words whitespace-pre-wrap cursor-text
-            opacity-90 overflow-y-auto custom-scrollbar
-
-            /* [Mobile] 폰트 크기 */
-            text-base md:text-lg
-          "
-            style={{ fontFamily: 'var(--font-hand), cursive' }}
+          <div 
+            className="w-full h-full font-hand text-gray-900 leading-relaxed break-words whitespace-pre-wrap cursor-text opacity-90 overflow-y-auto custom-scrollbar"
+            style={{ 
+              fontFamily: 'var(--font-hand), cursive',
+              fontSize: `${fontSize}px`,
+            }}
           >
             {text || <span className="text-gray-500/50 italic">Double click to write...</span>}
           </div>
@@ -134,14 +126,14 @@ export default function StickyNoteWidget({
 
       {isEditing && (
         // 색상 선택 칩
-        <div className="
-            absolute -bottom-12 left-1/2 -translate-x-1/2 z-30
-            flex gap-1.5 md:gap-2
-            bg-white/40 backdrop-blur-md
-            p-2 rounded-full
-            shadow-sm border border-white/80
-            animate-pop-in
-          ">
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 z-30 flex bg-white/40 backdrop-blur-md rounded-full shadow-sm border border-white/80 animate-pop-in"
+          style={{
+            bottom: `${-48 * scale}px`,
+            gap: `${(scale >= 1 ? 8 : 6) * scale}px`,
+            padding: `${8 * scale}px`,
+          }}
+        >
           {PALETTE.map((col) => (
             <ColorChip
               key={col}

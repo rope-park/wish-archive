@@ -41,7 +41,7 @@ const DEFAULT_POLAROID: PolaroidPhotoState = {
   rotate: -2,
 };
 
-export default function PolaroidPhotoWidget() {
+export default function PolaroidPhotoWidget({ scale = 1 }: { scale?: number }) {
   // 상태 관리
   const [currentPhoto, setCurrentPhoto] = useState<PolaroidPhotoState>(DEFAULT_POLAROID);
   
@@ -118,25 +118,22 @@ export default function PolaroidPhotoWidget() {
 
   if (!isMounted) return null;
 
+  const baseWidth = 256;
+  const baseHeight = 360;
+  const containerWidth = baseWidth * scale;
+  const containerHeight = baseHeight * scale;
+  const padding = (scale >= 1 ? 16 : 12) * scale;
+  const paddingBottom = (scale >= 1 ? 48 : 32) * scale;
+
   return (
     <div
-      className={`
-        relative flex flex-col items-center
-        w-full h-full
-        p-3 pb-8 md:p-4 md:pb-12
-        bg-white
-        
-        /* --- 폴라로이드 종이 질감 & 그림자 --- */
-        shadow-[2px_4px_15px_rgba(0,0,0,0.15)]
-        rounded-[2px]
-        
-        /* --- 인터랙션: 호버 시 확대 및 정렬 --- */
-        cursor-pointer
-        transition-all duration-300 ease-out
-        hover:scale-105 hover:z-50 hover:shadow-2xl hover:rotate-0
-        select-none
-      `}
+      className="relative flex flex-col items-center bg-white shadow-[2px_4px_15px_rgba(0,0,0,0.15)] cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:z-50 hover:shadow-2xl hover:rotate-0 select-none"
       style={{
+        width: `${containerWidth}px`,
+        height: `${containerHeight}px`,
+        padding: `${padding}px`,
+        paddingBottom: `${paddingBottom}px`,
+        borderRadius: `${2 * scale}px`,
         transform: `rotate(${currentPhoto.rotate}deg)`,
       }}
       onClick={handleClick}
@@ -146,26 +143,26 @@ export default function PolaroidPhotoWidget() {
       {/* ------------------------------------------------- */}
       
       {/* 왼쪽 상단 테이프 */}
-      <div className="
-        absolute -top-5 left-1 z-20
-        w-8 h-10 md:w-10 md:h-12
-        bg-white/50 backdrop-blur-[1px]
-        shadow-[1px_1px_3px_rgba(0,0,0,0.1)]
-        -rotate-[15deg]
-        pointer-events-none
-        border-l border-r border-white/30
-      " />
+      <div 
+        className="absolute z-20 bg-white/50 backdrop-blur-[1px] shadow-[1px_1px_3px_rgba(0,0,0,0.1)] -rotate-[15deg] pointer-events-none border-l border-r border-white/30"
+        style={{
+          top: `${-20 * scale}px`,
+          left: `${4 * scale}px`,
+          width: `${(scale >= 1 ? 40 : 32) * scale}px`,
+          height: `${(scale >= 1 ? 48 : 40) * scale}px`,
+        }}
+      />
 
       {/* 오른쪽 상단 테이프 */}
-      <div className="
-        absolute -top-3 right-2 z-20
-        w-12 h-6 md:w-16 md:h-8
-        bg-white/40 backdrop-blur-[1px]
-        shadow-[1px_1px_3px_rgba(0,0,0,0.1)]
-        rotate-[5deg]
-        pointer-events-none
-        border-l border-r border-white/30
-      " />
+      <div 
+        className="absolute z-20 bg-white/40 backdrop-blur-[1px] shadow-[1px_1px_3px_rgba(0,0,0,0.1)] rotate-[5deg] pointer-events-none border-l border-r border-white/30"
+        style={{
+          top: `${-12 * scale}px`,
+          right: `${8 * scale}px`,
+          width: `${(scale >= 1 ? 64 : 48) * scale}px`,
+          height: `${(scale >= 1 ? 32 : 24) * scale}px`,
+        }}
+      />
 
       {/* ------------------------------------------------- */}
       {/* 사진 영역 */}
@@ -180,9 +177,24 @@ export default function PolaroidPhotoWidget() {
       ">
         {(isLoading || !currentPhoto.src) ? (
           // 로딩 중 / 이미지 없음
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 gap-2">
-            <div className="w-8 h-8 border-4 border-gray-300 border-t-brand-wish-blue rounded-full animate-spin" />
-            <span className="font-pixel text-[10px] text-gray-400">Loading...</span>
+          <div 
+            className="w-full h-full flex flex-col items-center justify-center bg-gray-50"
+            style={{ gap: `${8 * scale}px` }}
+          >
+            <div 
+              className="border-gray-300 border-t-brand-wish-blue rounded-full animate-spin"
+              style={{
+                width: `${32 * scale}px`,
+                height: `${32 * scale}px`,
+                borderWidth: `${4 * scale}px`,
+              }}
+            />
+            <span 
+              className="font-pixel text-gray-400"
+              style={{ fontSize: `${10 * scale}px` }}
+            >
+              Loading...
+            </span>
           </div>
         ) : (
           // 사진 렌더링

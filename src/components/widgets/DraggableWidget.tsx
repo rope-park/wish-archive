@@ -153,7 +153,7 @@ export default function DraggableWidget({
       handle={dragHandle} // 특정 핸들만 잡고 끌 수 있게 설정
       bounds="parent"     // 부모(바탕화면) 밖으로 못 나가게 제한
       cancel='.no-drag, .rotate-handle'   // 이 클래스명이 붙은 요소는 드래그 방지
-      disabled={isRotating || isMobile} // 회전 중이거나 모바일 환경이면 드래그 비활성화
+      disabled={isRotating} // 회전 중일 때만 드래그 비활성화
       
       onStart={() => {
         setIsDragging(true);

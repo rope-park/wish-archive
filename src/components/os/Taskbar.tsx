@@ -42,7 +42,7 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-[40px]
+          h-full
           px-4
           gap-2
           font-bold
@@ -80,7 +80,7 @@ function SystemClock() {
 
   return (
     <div className="
-      h-[40px]
+      h-full
       min-w-[100px]
       px-3
       flex items-center justify-center
@@ -105,7 +105,7 @@ function SystemTray() {
 
   return (
     <div className="
-      hidden md:flex items-center gap-2 px-3 h-[40px] 
+      hidden md:flex items-center gap-2 px-3 h-full
       bg-gray-200 shadow-inset border border-gray-400
       select-none shrink-0
     ">
@@ -202,7 +202,7 @@ export default function Taskbar() {
       {/* [좌측] 시작 버튼 영역 */}
       <StartButton />
 
-      <div className="h-[40px]"><Divider orientation="vertical" /></div>
+      <Divider orientation="vertical" />
 
       {/* [중앙] 윈도우 태스크 탭 영역 (열린 창 목록 렌더링) */}
       <div className="flex-1 flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar h-full">
@@ -216,7 +216,7 @@ export default function Taskbar() {
               key={win.id}
               onClick={() => handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-[40px]
+                h-full
                 w-10 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
                 flex items-center justify-center sm:justify-start gap-2 px-3
                 border rounded-sm
@@ -224,10 +224,8 @@ export default function Taskbar() {
                 pointer-events-auto
 
                 ${isActive
-                  ? 'bg-white shadow-inset border-gray-600 font-bold'
-                  : isFocused 
-                    ? 'bg-gray-300 shadow-outset border-gray-500 hover:bg-gray-200'
-                    : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-400'
+                  ? 'bg-white shadow-inset border-gray-600 font-bold -translate-y-[1px]'
+                  : 'bg-gray-200 shadow-outset hover:bg-gray-100 active:shadow-inset text-gray-700 border-gray-400'
                 }
               `}
             >
@@ -257,7 +255,7 @@ export default function Taskbar() {
         })}
       </div>
 
-      <div className="h-[40px]"><Divider orientation="vertical" /></div>
+      <Divider orientation="vertical" />
 
       {/* [우측] 트레이 & 시계 영역 */}
       <div className="flex gap-2 shrink-0 items-center h-full">

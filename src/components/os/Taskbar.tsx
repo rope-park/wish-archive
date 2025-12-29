@@ -128,7 +128,7 @@ function SystemTray() {
 
   return (
     <div className="
-      hidden md:flex items-center gap-2 px-3 h-full
+      hidden md:flex items-center gap-1 px-2 h-full
       bg-gray-200 shadow-inset border border-gray-400
       select-none shrink-0
     ">
@@ -136,11 +136,11 @@ function SystemTray() {
       {/* Vaccine: 지루함 방지 시스템 */}
       <Tooltip content="Anti-Boredom 가동 중..." position="top">
         <div className="
-          w-9 h-9 flex items-center justify-center 
+          w-7 h-7 flex items-center justify-center 
           cursor-help hover:scale-110 transition-transform
           active:scale-95
-        " style={{ minWidth: '44px', minHeight: '44px' }}>
-          <span className="text-base filter drop-shadow-sm">🛡️</span>
+        " style={{ minWidth: '36px', minHeight: '36px' }}>
+          <span className="text-sm filter drop-shadow-sm">🛡️</span>
         </div>
       </Tooltip>
 
@@ -152,35 +152,35 @@ function SystemTray() {
           onClick={handleIconClick(() => setHasNewMail(false))}
           onTouchEnd={handleIconClick(() => setHasNewMail(false))}
           className={`
-            w-9 h-9 flex items-center justify-center cursor-pointer
+            w-7 h-7 flex items-center justify-center cursor-pointer
             active:scale-95 transition-transform
             ${hasNewMail ? 'animate-bounce' : 'opacity-50 grayscale'}
           `}
           style={{
-            minWidth: '44px',
-            minHeight: '44px',
+            minWidth: '36px',
+            minHeight: '36px',
             touchAction: 'manipulation',
           }}
         >
-          <span className="text-base">📩</span>
+          <span className="text-sm">📩</span>
         </div>
       </Tooltip>
 
       {/* Heart: 위츄 체력 상태 */}
       <Tooltip content="WICHU HP: 100%">
         <div className="
-          w-9 h-9 flex items-center justify-center 
+          w-7 h-7 flex items-center justify-center 
           cursor-default animate-pulse
-        " style={{ minWidth: '44px', minHeight: '44px' }}>
-          <span className="text-sm text-green-400 drop-shadow-[1px_1px_0_#000]">❤</span>
+        " style={{ minWidth: '36px', minHeight: '36px' }}>
+          <span className="text-xs text-green-400 drop-shadow-[1px_1px_0_#000]">❤</span>
         </div>
       </Tooltip>
 
       {/* Network: 연결 상태 */}
       <Tooltip content="WISH World와 연결됨">
-        <div className="w-9 h-9 flex items-center justify-center cursor-help"
-          style={{ minWidth: '44px', minHeight: '44px' }}>
-          <span className="text-base">📶</span>
+        <div className="w-7 h-7 flex items-center justify-center cursor-help"
+          style={{ minWidth: '36px', minHeight: '36px' }}>
+          <span className="text-sm">📶</span>
         </div>
       </Tooltip>
 
@@ -191,17 +191,17 @@ function SystemTray() {
           onClick={handleIconClick(toggleMute)}
           onTouchEnd={handleIconClick(toggleMute)}
           className="
-            w-9 h-9 flex items-center justify-center 
+            w-7 h-7 flex items-center justify-center 
             hover:bg-gray-300 active:translate-y-[1px] active:scale-95 rounded-sm
             transition-transform
           "
           style={{
-            minWidth: '44px',
-            minHeight: '44px',
+            minWidth: '36px',
+            minHeight: '36px',
             touchAction: 'manipulation',
           }}
         >
-          <span className="text-base">{isMuted ? '🔇' : '🔊'}</span>
+          <span className="text-sm">{isMuted ? '🔇' : '🔊'}</span>
         </button>
       </Tooltip>
     </div>

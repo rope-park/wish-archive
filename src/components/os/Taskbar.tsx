@@ -54,7 +54,7 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-full min-h-[44px]
+          h-full
           px-3 md:px-4
           gap-2
           font-bold
@@ -254,7 +254,7 @@ export default function Taskbar() {
               onClick={handleTabClick(win.id, win.isMinimized)}
               onTouchEnd={handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-full min-h-[40px]
+                h-full
                 w-12 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
                 flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-3
                 border rounded-sm

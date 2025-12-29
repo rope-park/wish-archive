@@ -1,5 +1,5 @@
 /**
- * Scrollbar 컴포넌트
+ * ScrollBar 컴포넌트
  * 
  * - 방향: 수직/수평
  * - 썸 위치 및 크기 조절 가능
@@ -9,19 +9,19 @@
 
 import { CSSProperties, useEffect, useRef, useState, useCallback  } from 'react';
 
-export interface ScrollbarProps {
+export interface ScrollBarProps {
   orientation?: 'vertical' | 'horizontal'; // 방향
   scrollContainerRef?: React.RefObject<HTMLElement | null>; // 스크롤 감지할 컨테이너
   className?: string;     // 추가 스타일
   style?: CSSProperties;  // 위치 잡아줄 때 사용
 }
 
-export default function Scrollbar({
+export default function ScrollBar({
   orientation = 'vertical',
   scrollContainerRef,
   className = '',
   style,
-}: ScrollbarProps) {
+}: ScrollBarProps) {
   
   const isVertical = orientation === 'vertical';
 
@@ -35,7 +35,7 @@ export default function Scrollbar({
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 // 1. 스크롤 동기화 (컨텐츠 -> 스크롤바)
-  const updateScrollbar = useCallback(() => {
+  const updateScrollBar = useCallback(() => {
     const container = scrollContainerRef?.current;
     const track = trackRef.current;
     if (!container || !track) return;
@@ -75,20 +75,20 @@ export default function Scrollbar({
     const container = scrollContainerRef?.current;
     if (!container) return;
 
-    const handleScroll = () => requestAnimationFrame(updateScrollbar);
+    const handleScroll = () => requestAnimationFrame(updateScrollBar);
     
     // ResizeObserver로 컨테이너 크기 변경 감지
-    const resizeObserver = new ResizeObserver(() => updateScrollbar());
+    const resizeObserver = new ResizeObserver(() => updateScrollBar());
     resizeObserver.observe(container);
 
     container.addEventListener('scroll', handleScroll);
-    updateScrollbar(); // 초기 실행
+    updateScrollBar(); // 초기 실행
 
     return () => {
       container.removeEventListener('scroll', handleScroll);
       resizeObserver.disconnect();
     };
-  }, [scrollContainerRef, updateScrollbar]);
+  }, [scrollContainerRef, updateScrollBar]);
 
   // 2. 썸 드래그 (스크롤바 -> 컨텐츠)
   const handleDragStart = (e: React.MouseEvent) => {

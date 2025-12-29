@@ -55,8 +55,8 @@ export type { ProgressBarProps } from './ProgressBar';
 export { default as Radio } from './Radio';
 export type { RadioProps } from './Radio';
 
-export { default as Scrollbar } from './ScrollBar';
-export type { ScrollbarProps } from './ScrollBar';
+export { default as ScrollBar } from './ScrollBar';
+export type { ScrollBarProps } from './ScrollBar';
 
 export { default as SearchBar } from './SearchBar';
 export type { SearchBarProps } from './SearchBar';

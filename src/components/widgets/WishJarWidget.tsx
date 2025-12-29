@@ -63,7 +63,9 @@ export default function WishJarWidget() {
         whileHover={{ scale: 1.1, rotate: 5 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsWriting(true)}
-        className="absolute top-10 -left-4 z-20 cursor-pointer"
+        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsWriting(true); }}
+        className="absolute top-10 -left-4 z-20 cursor-pointer no-drag"
+        style={{ touchAction: 'manipulation' }}
       >
         {/* 색종이 */}
         <div className="w-12 h-12 bg-[#FFD1DC] shadow-md border border-white/50 rotate-[-10deg] flex items-center justify-center">
@@ -73,8 +75,10 @@ export default function WishJarWidget() {
 
       {/* --- [2] 유리병 본체 (클릭 시 목록 보기) --- */}
       <div 
-        className="absolute left-[50px] top-[50px] w-[242px] h-60 cursor-pointer group"
+        className="absolute left-[50px] top-[50px] w-[242px] h-60 cursor-pointer group no-drag"
         onClick={() => !isAnimating && setIsViewing(true)}
+        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); !isAnimating && setIsViewing(true); }}
+        style={{ touchAction: 'manipulation' }}
       >
         {/* 2-1. 코르크 마개 (애니메이션 적용) */}
         <motion.div

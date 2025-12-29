@@ -341,10 +341,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-500 hover:text-black transition-colors tracking-tighter no-drag"
+              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center"
               style={{
-                top: `${8 * scale}px`,
+                top: `${4 * scale}px`,
                 fontSize: `${9 * scale}px`,
+                minWidth: '44px',
+                minHeight: '44px',
                 touchAction: 'manipulation',
               }}
             >
@@ -355,10 +357,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playPrev}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors no-drag"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                left: `${8 * scale}px`,
-                fontSize: `${14 * scale}px`,
+                left: `${-4 * scale}px`,
+                fontSize: `${16 * scale}px`,
+                minWidth: '44px',
+                minHeight: '44px',
                 touchAction: 'manipulation',
               }}
             >
@@ -369,10 +373,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playNext}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-500 hover:text-black transition-colors no-drag"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                right: `${8 * scale}px`,
-                fontSize: `${14 * scale}px`,
+                right: `${-4 * scale}px`,
+                fontSize: `${16 * scale}px`,
+                minWidth: '44px',
+                minHeight: '44px',
                 touchAction: 'manipulation',
               }}
             >
@@ -383,11 +389,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={togglePlay}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
-              className="absolute left-1/2 -translate-x-1/2 text-gray-500 hover:text-black transition-colors no-drag"
+              className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                bottom: `${8 * scale}px`,
-                fontSize: `${12 * scale}px`,
-                gap: `${2 * scale}px`,
+                bottom: `${4 * scale}px`,
+                fontSize: `${14 * scale}px`,
+                minWidth: '44px',
+                minHeight: '44px',
                 touchAction: 'manipulation',
               }}
             >
@@ -425,14 +432,22 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               border border-gray-300
               rounded-xl shadow-2xl
               overflow-hidden
+              pointer-events-auto
             "
+            style={{ touchAction: 'auto' }}
           >
             {/* 헤더 */}
             <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
               <span className="text-xs font-bold text-gray-600">Now Playing</span>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="text-gray-400 hover:text-red-500 transition-colors"
+                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(false); }}
+                className="text-gray-400 hover:text-red-500 active:text-red-600 transition-colors flex items-center justify-center"
+                style={{
+                  minWidth: '44px',
+                  minHeight: '44px',
+                  touchAction: 'manipulation',
+                }}
               >
                 ✖
               </button>
@@ -447,14 +462,25 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
                       changeTrack(idx);
                       setIsMenuOpen(false);
                     }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      changeTrack(idx);
+                      setIsMenuOpen(false);
+                    }}
                     className={`
-                      w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all
+                      w-full text-left px-3 py-3 rounded-lg text-xs font-medium transition-all
                       flex items-center gap-2
+                      active:scale-[0.98]
                       ${idx === currentIndex
                         ? 'bg-blue-500 text-white shadow-sm'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
                       }
                     `}
+                    style={{
+                      minHeight: '44px',
+                      touchAction: 'manipulation',
+                    }}
                   >
                     <span className="opacity-60 w-4 text-center">{idx + 1}</span>
                     <span className="truncate flex-1">{song.title}</span>

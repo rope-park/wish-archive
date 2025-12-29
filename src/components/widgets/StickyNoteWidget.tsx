@@ -46,6 +46,31 @@ export default function StickyNoteWidget({
     }
   }, [isEditing, text.length]);
 
+  // 편집 모드 진입 핸들러
+  const handleEditStart = () => {
+    setIsEditing(true);
+  };
+
+  // 터치 디바이스 감지
+  const [tapCount, setTapCount] = useState(0);
+  const [tapTimer, setTapTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const handleTouch = () => {
+    // 더블탭 감지
+    setTapCount(prev => prev + 1);
+    
+    if (tapTimer) clearTimeout(tapTimer);
+    
+    const timer = setTimeout(() => {
+      if (tapCount >= 1) { // 2번째 탭
+        handleEditStart();
+      }
+      setTapCount(0);
+    }, 300);
+    
+    setTapTimer(timer);
+  };
+
   // 편집 종료 핸들러
   const handleBlur = () => {
     setIsEditing(false);
@@ -93,7 +118,8 @@ export default function StickyNoteWidget({
           padding: `${padding}px`,
           paddingTop: `${paddingTop}px`,
         }}
-        onDoubleClick={() => setIsEditing(true)} // 더블 클릭 시 편집 모드
+        onDoubleClick={handleEditStart}
+        onTouchEnd={handleTouch}
       >
         {/* [편집 모드] 입력창 */}
         {isEditing ? (
@@ -142,6 +168,11 @@ export default function StickyNoteWidget({
               size='sm'
               selected={noteColor === col}
               onClick={() => setNoteColor(col)}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setNoteColor(col);
+              }}
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

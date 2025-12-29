@@ -144,7 +144,7 @@ export default function PhotoCardWidget({ scale = 1 }: { scale?: number }) {
   // ----------------------------------------------------------------------
 
   // 클릭 핸들러: 카드 뒤집기 -> 데이터 교체 -> 다시 뒤집기
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
 
     // 로딩 중이거나 데이터가 없으면 무시
@@ -178,6 +178,8 @@ export default function PhotoCardWidget({ scale = 1 }: { scale?: number }) {
     <div
       className="group relative cursor-pointer perspective-1000 select-none"
       onClick={handleClick}
+      onTouchEnd={handleClick}
+      style={{ touchAction: 'manipulation' }}
     >
       {/* 탑로더/슬리브 디자인 컨테이너 */}
       <div

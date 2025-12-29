@@ -104,7 +104,8 @@ export default function PolaroidPhotoWidget({ scale = 1 }: { scale?: number }) {
   // 3. Interaction Handlers
   // ----------------------------------------------------------------------
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
     if (isLoading || photoList.length === 0) return;
 
     setIsLoading(true);

@@ -23,47 +23,95 @@ interface QuoteData {
 export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
   // 상태 관리
   const [data, setData] = useState<QuoteData | null>(null);
+  const [allQuotes, setAllQuotes] = useState<QuoteData[]>([]); // 전체 어록 데이터 캐싱
   const [isLoading, setIsLoading] = useState(false);
-  const [showQuote, setShowQuote] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
-  // 랜덤 어록 가져오기
-  const fetchRandomQuote = useCallback(async () => {
-    if (isLoading) return;
+  // 전체 어록 데이터 로드
+  useEffect(() => {
+    const loadAllQuotes = async () => {
+      try {
+        const res = await fetch('/api/widgets/quotes/random');
+        if (res.ok) {
+          const quote = await res.json();
+          // 첫 어록 설정
+          setData(quote);
+          // 전체 어록은 여러 번 호출해서 수집하거나, API 수정 필요
+          // 임시로 현재 어록만 저장
+          setAllQuotes([quote]);
+        }
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
+      }
+    };
+
+    loadAllQuotes();
+  }, []);
+
+  // 현재 멤버의 다른 어록 가져오기 (말풍선 클릭)
+  const fetchQuoteForCurrentMember = useCallback(async () => {
+    if (isLoading || !data) return;
     setIsLoading(true);
-    setShowQuote(false); // 말풍선 닫기 (새로운 캐릭터 등장 효과)
 
     try {
       const res = await fetch('/api/widgets/quotes/random');
       if (res.ok) {
         const newData = await res.json();
-        // 짧은 딜레이 후에 데이터 설정 및 말풍선 열기
+        
+        // 같은 멤버의 어록이 나올 때까지 시도 (최대 5번)
+        let attempts = 0;
+        let quote = newData;
+        
+        while (quote.member.stageName !== data.member.stageName && attempts < 5) {
+          const retryRes = await fetch('/api/widgets/quotes/random');
+          if (retryRes.ok) {
+            quote = await retryRes.json();
+          }
+          attempts++;
+        }
+        
         setTimeout(() => {
-          setData(newData);
+          setData(quote);
           setIsLoading(false);
-          setShowQuote(true);
-        }, 400);
-      } else {
-        throw new Error('Failed to fetch quote');
+        }, 200);
       }
     } catch (error) {
       console.error('Error fetching quote:', error);
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, data]);
 
-  // 초기 로드 시 어록 가져오기
-  useEffect(() => {
-    setIsMounted(true);
-    fetchRandomQuote();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // 다른 멤버로 변경 (캐릭터 클릭)
+  const fetchRandomMember = useCallback(async () => {
+    if (isLoading) return;
+    setIsLoading(true);
 
-  const handleBubbleClick = () => {
-    setShowQuote(prev => !prev);
-  };
-
-  if (!isMounted) return null;
+    try {
+      const res = await fetch('/api/widgets/quotes/random');
+      if (res.ok) {
+        const newData = await res.json();
+        
+        // 다른 멤버가 나올 때까지 시도 (최대 10번)
+        let attempts = 0;
+        let quote = newData;
+        
+        while (data && quote.member.stageName === data.member.stageName && attempts < 10) {
+          const retryRes = await fetch('/api/widgets/quotes/random');
+          if (retryRes.ok) {
+            quote = await retryRes.json();
+          }
+          attempts++;
+        }
+        
+        setTimeout(() => {
+          setData(quote);
+          setIsLoading(false);
+        }, 400);
+      }
+    } catch (error) {
+      console.error('Error fetching quote:', error);
+      setIsLoading(false);
+    }
+  }, [isLoading, data]);
 
   if (!data && isLoading) {
     return (
@@ -94,12 +142,12 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
       }}
     >
 
-      {/* 말풍선 영역 (클릭 시 어록 등장) */}
+      {/* 말풍선 영역 (클릭 시 현재 멤버의 다른 어록) */}
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        onClick={handleBubbleClick}
-        onTouchEnd={(e) => { e.stopPropagation(); handleBubbleClick(); }}
+        onClick={fetchQuoteForCurrentMember}
+        onTouchEnd={(e) => { e.stopPropagation(); fetchQuoteForCurrentMember(); }}
         className="relative w-full flex justify-center items-center bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2),inset_2px_2px_0px_0px_rgba(255,255,255,1)] border-black cursor-pointer z-20 no-drag"
         style={{
           minHeight: `${(scale >= 1 ? 120 : 100) * scale}px`,
@@ -109,30 +157,16 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         }}
       >
         <AnimatePresence mode="wait">
-          {showQuote ? (
-            <motion.p
-              key="quote"
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="text-center text-black font-pixel leading-relaxed break-keep"
-              style={{ fontSize: `${(scale >= 1 ? 16 : 14) * scale}px` }}
-            >
-              {data.content}
-            </motion.p>
-          ) : (
-            <motion.div
-              key="question"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
-              exit={{ scale: 0 }}
-              transition={{ duration: 0.3 }}
-              className="font-pixel text-gray-300"
-              style={{ fontSize: `${(scale >= 1 ? 48 : 40) * scale}px` }}
-            >
-              ?
-            </motion.div>
-          )}
+          <motion.p
+            key={data.id}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="text-center text-black font-pixel leading-relaxed break-keep"
+            style={{ fontSize: `${(scale >= 1 ? 16 : 14) * scale}px` }}
+          >
+            {isLoading ? '...' : data.content}
+          </motion.p>
         </AnimatePresence>
 
         {/* 말풍선 꼬리 */}
@@ -156,12 +190,12 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         />
       </motion.div>
 
-      {/* 캐릭터 영역 (클릭 시 다른 멤버/어록으로 교체) */}
+      {/* 캐릭터 영역 (클릭 시 다른 멤버로 변경) */}
       <motion.div
         animate={isLoading ? { scale: 0.9, opacity: 0.7, y: 5 } : { scale: 1, opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        onClick={fetchRandomQuote}
-        onTouchEnd={(e) => { e.stopPropagation(); fetchRandomQuote(); }}
+        onClick={fetchRandomMember}
+        onTouchEnd={(e) => { e.stopPropagation(); fetchRandomMember(); }}
         className="relative cursor-pointer group no-drag"
         style={{
           width: `${(scale >= 1 ? 144 : 112) * scale}px`,

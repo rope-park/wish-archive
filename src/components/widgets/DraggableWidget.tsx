@@ -11,6 +11,8 @@
 
 import React, { ReactNode, useRef, useState, useEffect } from 'react';
 import Draggable, { DraggableBounds } from 'react-draggable';
+import { LAYOUT_CONSTANTS } from '@/lib/costants';
+import { Taskbar } from '../os';
 
 interface DraggableWidgetProps {
   children: ReactNode;
@@ -69,14 +71,16 @@ export default function DraggableWidget({
 
     const updateBounds = () => {
       // 태스크바 높이 48px을 제외한 영역으로 제한
-      const taskbarHeight = 48;
+      const taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT;
+      const iconAreaWidth = window.innerWidth < 768 ? 0 : LAYOUT_CONSTANTS.ICON_AREA_WIDTH_DESKTOP;
       const viewportHeight = window.innerHeight;
+      const padding = LAYOUT_CONSTANTS.PADDING;
       
       setDragBounds({
-        left: 0,
-        top: 0,
-        right: window.innerWidth,
-        bottom: viewportHeight - taskbarHeight,
+        left: iconAreaWidth + padding,
+        top: padding,
+        right: window.innerWidth - padding,
+        bottom: viewportHeight - taskbarHeight - padding,
       });
     };
 
@@ -220,7 +224,7 @@ export default function DraggableWidget({
         `}
         style={{
           zIndex: currentZIndex,
-          touchAction: 'none',
+          touchAction: isTouchDevice ? 'pan-x pan-y' : 'none',
           WebkitTouchCallout: 'none',
           WebkitUserSelect: 'none',
         }}
@@ -252,7 +256,7 @@ export default function DraggableWidget({
             display: 'flex',
             overflow: 'visible',
             pointerEvents: 'auto',
-            touchAction: 'none',
+            touchAction: isTouchDevice ? 'auto' : 'none',
           }}
         >
           {children}

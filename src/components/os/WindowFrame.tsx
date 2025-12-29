@@ -290,10 +290,10 @@ function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnP
   }
 
   const sizeClasses = isMobile
-    ? "w-10 h-10 text-sm"
+    ? "w-9 h-9 text-sm"
     : "w-6 h-6 md:w-7 md:h-7 text-[10px] md:text-xs";
 
-  const minTouchSize = isMobile ? 44 : 36;
+  const minTouchSize = isMobile ? 36 : 28;
 
   return (
     <button

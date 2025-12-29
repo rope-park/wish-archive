@@ -12,6 +12,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
 import { Modal } from '@/components/ui';
+import { LAYOUT_CONSTANTS } from '@/lib/costants';
 
 // --- 컴포넌트 Imports ---
 import { DesktopIcon } from '@/components/os';
@@ -229,7 +230,7 @@ export default function Home() {
       }
 
       // Taskbar 높이 계산 (반응형)
-      const currentTaskbarHeight = 48; // 고정 높이로 변경
+      const currentTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT;
       setTaskbarHeight(currentTaskbarHeight);
 
       // 아이콘 크기 계산 (위젯보다 먼저 계산 필요 - 아이콘 영역 높이 계산에 사용)
@@ -274,7 +275,7 @@ export default function Home() {
         ICON_AREA_HEIGHT = 0;
       }
       
-      const PADDING = 20; // 여유 공간
+      const PADDING = LAYOUT_CONSTANTS.PADDING;
 
       // 사용 가능한 영역 계산
       const safeStartX = ICON_AREA_WIDTH + PADDING;
@@ -464,6 +465,7 @@ export default function Home() {
         "
         style={{
           height: `calc(100vh - ${taskbarHeight}px)`,
+          maxHeight: `calc(100dvh - ${taskbarHeight}px)`,
           paddingBottom: `${taskbarHeight + 10}px`,
           WebkitOverflowScrolling: 'touch',
         }}

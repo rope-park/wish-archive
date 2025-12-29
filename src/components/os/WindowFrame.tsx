@@ -186,7 +186,7 @@ export default function WindowFrame({
       style={{
         zIndex: windowState.zIndex,
         display: displayStyle,
-        touchAction: 'none',
+        touchAction: isTouchDevice ? 'pan-x pan-y' : 'none',
       }}
 
       className={`
@@ -213,7 +213,7 @@ export default function WindowFrame({
             ? 'bg-linear-to-r from-[#ff2e93] to-[#ff8fab]'
             : 'bg-gray-400'}
         `}
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: isTouchDevice ? 'auto' : 'none' }}
       >
         <div className="flex items-center gap-2">
           {iconSrc && (

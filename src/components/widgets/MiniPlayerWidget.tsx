@@ -416,8 +416,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag"
             style={{
-              width: `${38 * scale}px`,
-              height: `${38 * scale}px`,
+              width: scale >= 1 ? `${38 * scale}px` : `${30 * scale}px`,
+              height: scale >= 1 ? `${38 * scale}px` : `${30 * scale}px`,
               borderWidth: `${1 * scale}px`,
               touchAction: 'manipulation',
             }}
@@ -442,7 +442,6 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               overflow-hidden
               pointer-events-auto
             "
-            style={{ touchAction: 'auto' }}
           >
             {/* 헤더 */}
             <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
@@ -492,7 +491,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
                     `}
                     style={{
                       minHeight: '44px',
-                      touchAction: 'manipulation',
+                      touchAction: 'auto',
                     }}
                   >
                     <span className="opacity-60 w-4 text-center">{idx + 1}</span>

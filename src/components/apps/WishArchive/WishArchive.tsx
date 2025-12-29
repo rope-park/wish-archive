@@ -9,7 +9,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import Image from 'next/image';
 import { Spinner, Button, Dropdown, MenuBar, MenuItemType, ToolBar } from '@/components/ui';
 
 // ----------------------------------------------------------------------

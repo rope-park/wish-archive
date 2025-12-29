@@ -63,12 +63,6 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
 
   if (!isOpen) return null;
 
-  // 네비게이션 핸들러
-  const handleNavigate = (path: string) => {
-    router.push(path);
-    onClose();
-  };
-
   // 앱 실행 핸들러
   const handleOpenApp = (appId: string, type: AppType, title: string, icon: string) => {
     openWindow({ id: appId, type, title, icon });
@@ -186,17 +180,18 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               </span>
             </div>
 
+            {/* TODO: 실제 실행을 위한 로직 변경 필요 */}
             <StartMenuItem
-              icon="📂"
+              icon="/system/icons/apps/wisharchive.png"
               label="WISH Archive"
               arrow
-              onClick={() => handleNavigate('/archive')}
+              onClick={() => handleOpenApp('archive', 'WISH_ARCHIVE', 'WISH Archive', '/system/icons/apps/wisharchive.png')}
               isMobile={isMobile}
             />
             <StartMenuItem
-              icon="💿"
+              icon="/system/icons/apps/discography.png"
               label="Discography"
-              onClick={() => handleNavigate('/releases')}
+              onClick={() => handleOpenApp('disco', 'DISCOGRAPHY', 'Discography', '/system/icons/apps/discography.png')}
               isMobile={isMobile}
             />
             {latestApp ? (
@@ -232,13 +227,13 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
             <StartMenuItem
               icon="🛠️"
               label="Settings"
-              onClick={() => handleNavigate('/settings')}
+              onClick={() => handleOpenApp('settings', 'MY_WISH', 'Settings', '🛠️')}
               isMobile={isMobile}
             />
             <StartMenuItem
               icon="❓"
               label="Help & Support"
-              onClick={() => handleNavigate('/help')}
+              onClick={() => handleOpenApp('help', 'README', 'Help & Support', '❓')}
               isMobile={isMobile}
             />
 

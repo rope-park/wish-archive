@@ -8,8 +8,8 @@
 export { default as Tooltip } from './ui/Tooltip';
 export type { TooltipProps } from './ui/Tooltip';
 
-export { default as Scrollbar } from './ui/Scrollbar';
-export type { ScrollbarProps } from './ui/Scrollbar';
+export { default as Scrollbar } from './ui/ScrollBar';
+export type { ScrollbarProps } from './ui/ScrollBar';
 
 export { default as Spinner } from './ui/Spinner';
 export type { SpinnerProps } from './ui/Spinner';

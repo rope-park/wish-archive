@@ -343,10 +343,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
               className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center"
               style={{
-                top: `${4 * scale}px`,
+                top: scale >= 1 ? `${8 * scale}px` : '2px',
                 fontSize: `${9 * scale}px`,
-                minWidth: '44px',
-                minHeight: '44px',
+                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                minWidth: scale >= 1 ? '44px' : 'auto',
+                minHeight: scale >= 1 ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -359,10 +361,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                left: `${-4 * scale}px`,
+                left: scale >= 1 ? `${8 * scale}px` : '2px',
                 fontSize: `${16 * scale}px`,
-                minWidth: '44px',
-                minHeight: '44px',
+                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                minWidth: scale >= 1 ? '44px' : 'auto',
+                minHeight: scale >= 1 ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -375,10 +379,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                right: `${-4 * scale}px`,
+                right: scale >= 1 ? `${8 * scale}px` : '2px',
                 fontSize: `${16 * scale}px`,
-                minWidth: '44px',
-                minHeight: '44px',
+                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                minWidth: scale >= 1 ? '44px' : 'auto',
+                minHeight: scale >= 1 ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -391,10 +397,12 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
               className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                bottom: `${4 * scale}px`,
+                bottom: scale >= 1 ? `${8 * scale}px` : '2px',
                 fontSize: `${14 * scale}px`,
-                minWidth: '44px',
-                minHeight: '44px',
+                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
+                minWidth: scale >= 1 ? '44px' : 'auto',
+                minHeight: scale >= 1 ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -454,7 +462,13 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             </div>
 
             {/* 리스트 */}
-            <ul className="max-h-[200px] overflow-y-auto custom-scrollbar p-1">
+            <ul 
+              className="max-h-[200px] overflow-y-auto custom-scrollbar p-1"
+              style={{ 
+                touchAction: 'pan-y',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               {playlist.map((song, idx) => (
                 <li key={song.trackId}>
                   <button
@@ -463,7 +477,6 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
                       setIsMenuOpen(false);
                     }}
                     onTouchEnd={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                       changeTrack(idx);
                       setIsMenuOpen(false);

@@ -398,13 +398,19 @@
 }
 
 /* 태블릿 최적화 */
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (min-width: 768px) and (max-width: 1024px) and (hover: none) and (pointer: coarse) {
   /* 터치 영역 확보 */
   button,
   a,
   [role="button"] {
     min-width: 48px;
     min-height: 48px;
+  }
+
+  .touch-target-expand::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
   }
 }
 
@@ -413,6 +419,12 @@
   /* 세로 공간이 부족할 때 */
   .h-screen {
     height: 100vh;
+  }
+  
+  .compact-vertical {
+    gap: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
   }
   
   /* 헤더 높이 감소 */

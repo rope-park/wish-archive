@@ -71,16 +71,21 @@ export default function DraggableWidget({
 
     const updateBounds = () => {
       // 태스크바 높이 48px을 제외한 영역으로 제한
-      const taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT;
+      const taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT; // 48px
       const iconAreaWidth = window.innerWidth < 768 ? 0 : LAYOUT_CONSTANTS.ICON_AREA_WIDTH_DESKTOP;
       const viewportHeight = window.innerHeight;
       const padding = LAYOUT_CONSTANTS.PADDING;
+      
+      // 모바일에서는 안전영역(safe area) 고려
+      const safeAreaBottom = typeof window !== 'undefined' && window.innerHeight 
+        ? window.innerHeight - document.documentElement.clientHeight 
+        : 0;
       
       setDragBounds({
         left: iconAreaWidth + padding,
         top: padding,
         right: window.innerWidth - padding,
-        bottom: viewportHeight - taskbarHeight - padding,
+        bottom: viewportHeight - taskbarHeight - padding - safeAreaBottom,
       });
     };
 

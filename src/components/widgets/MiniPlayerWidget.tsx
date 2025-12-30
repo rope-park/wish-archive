@@ -36,6 +36,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const [playerKey, setPlayerKey] = useState(0); // iframe 강제 리렌더링용
 
@@ -72,6 +73,15 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
       }
     };
     loadPlaylist();
+
+    // 터치 디바이스 감지
+    const checkTouch = () => {
+      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouchDevice(hasTouchScreen);
+    };
+    checkTouch();
+    window.addEventListener('resize', checkTouch);
+    return () => window.removeEventListener('resize', checkTouch);
   }, []);
 
   // 2. 곡 변경 시 로딩 상태 처리 (3초 후 강제 Ready)
@@ -345,8 +355,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 top: `${8 * scale}px`,
                 fontSize: `${9 * scale}px`,
-                minWidth: `${44 * scale}px`,
-                minHeight: `${44 * scale}px`,
+                minWidth: isTouchDevice ? '44px' : 'auto',
+                minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -361,8 +371,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 left: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
-                minWidth: `${44 * scale}px`,
-                minHeight: `${44 * scale}px`,
+                minWidth: isTouchDevice ? '44px' : 'auto',
+                minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -377,8 +387,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 right: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
-                minWidth: `${44 * scale}px`,
-                minHeight: `${44 * scale}px`,
+                minWidth: isTouchDevice ? '44px' : 'auto',
+                minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -393,8 +403,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 bottom: `${8 * scale}px`,
                 fontSize: `${14 * scale}px`,
-                minWidth: `${44 * scale}px`,
-                minHeight: `${44 * scale}px`,
+                minWidth: isTouchDevice ? '44px' : 'auto',
+                minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
               }}
             >
@@ -408,8 +418,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag"
             style={{
-              width: `${38 * scale}px`,
-              height: `${38 * scale}px`,
+              width: `${28 * scale}px`,
+              height: `${28 * scale}px`,
               borderWidth: `${1 * scale}px`,
               touchAction: 'manipulation',
             }}

@@ -13,8 +13,8 @@ import Image from 'next/image';
 import Draggable from 'react-draggable';
 import { Group, Member, ExternalLink } from '@prisma/client';
 import { Tabs, Button, Card, Divider, Spinner } from '@/components/ui';
-import { 
-    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer 
+import {
+    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
 } from 'recharts';
 import { Globe, Youtube, Twitter, Instagram, Network, Server, HardDrive, Minimize2, Star } from 'lucide-react';
 
@@ -158,11 +158,35 @@ const calculateAge = (birthDate: Date | string | null) => {
 function WichuAssistant({ currentTab }: { currentTab: string }) {
     const [isAnimating, setIsAnimating] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
     const message = WICHU_MESSAGES[currentTab] || "WISH for Our WISH!";
 
     const nodeRef = useRef<HTMLDivElement>(null);
 
+    // 터치 디바이스 감지
+    useEffect(() => {
+        const checkTouchDevice = () => {
+            const hasTouchScreen = 'ontouchstart' in window ||
+                navigator.maxTouchPoints > 0;
+            setIsTouchDevice(hasTouchScreen || window.innerWidth < 768);
+        };
+
+        checkTouchDevice();
+        window.addEventListener('resize', checkTouchDevice);
+        window.addEventListener('orientationchange', checkTouchDevice);
+
+        return () => {
+            window.removeEventListener('resize', checkTouchDevice);
+            window.removeEventListener('orientationchange', checkTouchDevice);
+        };
+    }, []);
+
     const handleClick = () => {
+        if (isTouchDevice && !isMinimized) {
+            setIsMinimized(true);
+            return;
+        }
+
         if (isMinimized) {
             setIsMinimized(false);
         } else {
@@ -171,9 +195,9 @@ function WichuAssistant({ currentTab }: { currentTab: string }) {
         }
     };
 
-return (
+    return (
         <Draggable bounds="parent" defaultPosition={{ x: 20, y: 380 }} nodeRef={nodeRef as React.RefObject<HTMLDivElement>}>
-            <div 
+            <div
                 ref={nodeRef}
                 className="absolute z-50 cursor-pointer group flex flex-col items-center transition-all duration-300"
                 onClick={handleClick}
@@ -201,12 +225,12 @@ return (
 
                         {/* 위츄 캐릭터 */}
                         <div className={`text-5xl transition-transform duration-200 ${isAnimating ? 'animate-bounce' : 'hover:scale-110'}`}>
-                            <Image 
-                                src="/content/etc/wichu.png" 
-                                alt="Wichu" 
-                                width={150} 
-                                height={150} 
-                                className="w-[120px] h-[150px] object-contain drop-shadow-md" 
+                            <Image
+                                src="/content/etc/wichu.png"
+                                alt="Wichu"
+                                width={150}
+                                height={150}
+                                className="w-[120px] h-[150px] object-contain drop-shadow-md"
                                 draggable={false}
                             />
                         </div>
@@ -290,13 +314,13 @@ function GeneralTab({ group }: { group: GroupWithLinks | null }) {
                 <legend className="text-xs px-1 text-black bg-[#f0f0f0] absolute -top-2 left-2 flex items-center gap-1 font-bold">
                     <Network size={12} /> Network Neighborhood
                 </legend>
-                
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                     {socialLinks.map((link) => (
-                        <a 
+                        <a
                             key={link.name}
-                            href={link.url} 
-                            target="_blank" 
+                            href={link.url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="group flex flex-col items-center gap-1 p-2 hover:bg-blue-100 border border-transparent hover:border-blue-300 hover:border-dotted rounded cursor-pointer transition-all"
                         >
@@ -337,7 +361,7 @@ function MembersTab({ members }: { members: Member[] }) {
     }, [members, selectedId]);
 
     const selectedMember = members.find(m => m.id === selectedId);
-    
+
     // 이름 매칭 (데이터에 따라 stageName이나 nameEn을 key로 사용)
     const memberKey = selectedMember?.nameEn?.toLowerCase().split(' ')[0] || '';
     const statsData = MEMBER_STATS[memberKey] || MEMBER_STATS['sion']; // fallback
@@ -390,7 +414,7 @@ function MembersTab({ members }: { members: Member[] }) {
             <div className="flex-[2] bg-[#f0f0f0] border-2 border-gray-300 rounded-sm p-1 flex flex-col h-[65%] md:h-full">
                 {selectedMember ? (
                     <div className="h-full flex flex-col border border-gray-400 bg-white shadow-sm p-3 overflow-y-auto custom-scrollbar">
-                        
+
                         {/* 헤더: 사진 및 기본 정보 */}
                         <div className="flex gap-4 mb-4">
                             <div className="w-20 h-20 shrink-0 bg-gray-200 border border-gray-400 overflow-hidden shadow-md">
@@ -428,7 +452,7 @@ function MembersTab({ members }: { members: Member[] }) {
                                 </section>
                                 <section>
                                     <h4 className="font-bold border-b border-gray-300 mb-1 pb-0.5 text-gray-600">Details</h4>
-                                    <div 
+                                    <div
                                         className="text-gray-800 leading-snug"
                                         dangerouslySetInnerHTML={{ __html: selectedMember.description || '' }}
                                     />
@@ -482,13 +506,13 @@ function DefragBlock({ type, delay }: { type: 'system' | 'album' | 'empty', dela
     };
 
     return (
-        <div 
+        <div
             className={`w-full h-full border border-gray-100 shadow-sm ${type === 'empty' ? 'bg-white' : ''}`}
         >
             {type !== 'empty' && (
-                <div 
-                    className={`w-full h-full ${getColor()} animate-scale-in`} 
-                    style={{ animationDelay: `${delay}ms` }} 
+                <div
+                    className={`w-full h-full ${getColor()} animate-scale-in`}
+                    style={{ animationDelay: `${delay}ms` }}
                 />
             )}
         </div>
@@ -497,7 +521,7 @@ function DefragBlock({ type, delay }: { type: 'system' | 'album' | 'empty', dela
 
 function PerformanceTab({ group, stats }: { group: GroupWithLinks | null, stats: SystemStats | null }) {
     const uptime = getUptime(group?.debutDate || null);
-    
+
     // 블록 그리드 생성 로직 (10x10 = 100개 블록 예시)
     // 실제 데이터 비율에 맞춰 블록 타입 결정
     const totalBlocks = 140; // 14x10 grid
@@ -505,7 +529,7 @@ function PerformanceTab({ group, stats }: { group: GroupWithLinks | null, stats:
         // 앞부분은 시스템 파일(파랑), 중간은 데이터(초록), 나머지는 빈 공간(흰색)
         if (i < 5) return 'system';
         // stats가 있으면 그에 비례해서 초록색 채우기 (최대 70%까지)
-        const fillLimit = stats ? Math.min(Math.floor((stats.tracks * 2) + 10), 100) : 20; 
+        const fillLimit = stats ? Math.min(Math.floor((stats.tracks * 2) + 10), 100) : 20;
         if (i < fillLimit + 5) return 'album';
         return 'empty';
     });
@@ -531,12 +555,12 @@ function PerformanceTab({ group, stats }: { group: GroupWithLinks | null, stats:
             <div className="border border-gray-500 bg-[#f0f0f0] p-1 shadow-sm">
                 <div className="flex justify-between mb-1 px-1 font-bold text-gray-700">
                     <div className="flex items-center gap-2">
-                        <HardDrive size={14} /> 
+                        <HardDrive size={14} />
                         <span>Disk Defragmenter (C: WISH_DRIVE)</span>
                     </div>
                     <span className="text-[10px] font-normal text-gray-500">Writing...</span>
                 </div>
-                
+
                 {/* 그리드 */}
                 <div className="border border-gray-600 border-b-white border-r-white bg-white h-48 relative overflow-hidden">
                     <div className="absolute inset-0 grid grid-cols-[repeat(auto-fill,minmax(12px,1fr))] grid-rows-[repeat(auto-fill,minmax(12px,1fr))] gap-[1px] content-start p-[1px]">
@@ -620,7 +644,7 @@ export default function MyWish({ onClose }: MyWishProps) {
 
     return (
         <div className="flex flex-col h-full w-full p-1 relative bg-gray-200">
-            
+
             {/* 위츄 시스템 도우미 */}
             <WichuAssistant currentTab={activeTab} />
 
@@ -630,10 +654,10 @@ export default function MyWish({ onClose }: MyWishProps) {
                 </div>
             )}
 
-            <Tabs 
-                items={tabItems} 
-                activeTab={activeTab} 
-                className="flex-1" 
+            <Tabs
+                items={tabItems}
+                activeTab={activeTab}
+                className="flex-1"
                 onChange={(id) => setActiveTab(id)} // 탭 변경 감지
             />
         </div>

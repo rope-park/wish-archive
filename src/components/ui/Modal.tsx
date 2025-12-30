@@ -11,7 +11,7 @@
 'use client';
 
 import { useEffect, useRef, ReactNode } from 'react';
-import { Button } from '../ui';
+import { Button } from '@/components/ui';
 
 export interface ModalProps {
   isOpen: boolean;            // 열림 여부
@@ -58,7 +58,10 @@ export default function Modal({
     }
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
 
       // Focus Trap
       if (e.key === 'Tab' && modalRef.current) {
@@ -124,10 +127,13 @@ export default function Modal({
   return (
     // [1] 배경 오버레이 (Dimmed)
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-pop-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-pop-in px-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="modal-title"
+      onClick = {(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       
       {/* [2] 모달 윈도우 본체 */}
@@ -135,10 +141,11 @@ export default function Modal({
         ref={modalRef}
         tabIndex={-1}
         className={`
-          w-[90vw] max-w-[340px] md:max-w-[400px] flex flex-col
+          w-full max-w-[90vw] sm:max-w-[400px] md:max-w-[500px]
+          flex flex-col
           bg-gray-200 
           shadow-[4px_4px_10px_rgba(0,0,0,0.5)]
-          border-2 border-white border-r-black border-b-black
+          border-2 border-[#dfdfdf] border-r-black border-b-black
           outline outline-1 outline-black
           ${className}
         `}
@@ -147,27 +154,32 @@ export default function Modal({
         
         {/* [3] 헤더 (Title Bar) */}
         <div className={`
-          h-8 px-2 flex items-center justify-between shrink-0
+          h-10 min-h-[44px] px-2 flex items-center justify-between shrink-0
           bg-gradient-to-r ${config.headerGradient}
           text-white select-none cursor-default
         `}>
-          <span 
-            id="modal-title"
-            className="font-pixel text-sm font-bold pt-[2px] tracking-wide truncate drop-shadow-md"
-          >
-            {displayTitle}
-          </span>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-lg shrink-0">{config.icon}</span>
+            <span 
+              id="modal-title"
+              className="font-pixel text-sm font-bold pt-[2px] tracking-wide truncate drop-shadow-md"
+            >
+              {displayTitle}
+            </span>
+          </div>
           
           {/* 닫기 버튼 (X) */}
           <button 
             onClick={onClose}
             className="
-              w-5 h-5 flex items-center justify-center
-              bg-gray-200 text-black 
+              w-7 h-7 md:w-6 md:h-6 flex items-center justify-center shrink-0
+              bg-[#c0c0c0] text-black 
               border-t-white border-l-white border-r-black border-b-black border
               active:border-t-black active:border-l-black active:border-r-white active:border-b-white
               hover:bg-red-500 hover:text-white group
+              transition-colors
             "
+            style={{ minWidth: '44px', minHeight: '44px', touchAction: 'manipulation' }}
             aria-label="Close modal"
           >
             <span className="font-pixel text-[10px] -mt-[2px] group-hover:text-white">✕</span>
@@ -175,20 +187,20 @@ export default function Modal({
         </div>
 
         {/* [4] 컨텐츠 영역 */}
-        <div className="p-5 flex flex-col gap-6 bg-gray-200">
+        <div className="p-4 md:p-6 flex flex-col gap-4 md:gap-6 bg-gray-200">
           
           {/* 아이콘 + 메시지 */}
-          <div className="flex items-start gap-4">
-            <div className="shrink-0 filter drop-shadow-sm select-none pt-1">
+          <div className="flex items-start gap-3 md:gap-4">
+            <div className="shrink-0 filter drop-shadow-sm select-none pt-1 text-3xl md:text-4xl">
               {config.icon}
             </div>
-            <div className="pt-1 text-sm font-body text-gray-900 leading-relaxed break-keep">
+            <div className="pt-1 text-sm md:text-base font-body text-gray-900 leading-relaxed break-keep flex-1">
               {message}
             </div>
           </div>
 
           {/* 버튼 그룹 (중앙 정렬) */}
-          <div className="flex justify-center gap-3 mt-2">
+          <div className="flex flex-col sm:flex-row justify-center gap-2 md:gap-3 mt-2">
             {/* 확인 버튼 */}
             <Button 
               size="sm" 
@@ -196,7 +208,7 @@ export default function Modal({
                 if (onConfirm) onConfirm();
                 else onClose();
               }}
-              className="min-w-[80px] font-pixel"
+              className="min-w-[100px] font-pixel order-1 sm:order-1"
               autoFocus // 모달 열리면 기본 포커스
             >
               {confirmText}
@@ -208,7 +220,7 @@ export default function Modal({
                 size="sm" 
                 variant="ghost"
                 onClick={onClose}
-                className="min-w-[80px] border border-black font-pixel"
+                className="min-w-[100px] border border-black font-pixel order-2 sm:order-2"
               >
                 {cancelText}
               </Button>

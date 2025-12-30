@@ -6,8 +6,9 @@
  * - 메타데이터 설정
  */
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/react";
 import { Taskbar } from "@/components/os"
 import "./styles/globals.css";
 
@@ -49,26 +50,49 @@ const d2coding = localFont({
 });
 
 // ----------------------------------------------------------------------
-// 2. 메타데이터 설정
+// 2. 메타데이터 및 뷰포트 설정
 // ----------------------------------------------------------------------
 export const metadata: Metadata = {
-  title: {
-    default: "Wish for Our Wish",
-    template: "%s · WISH OS"
-  },
-  description: "NCT WISH Fan-made Archive & OS",
+  title: "WISH OS | NCT WISH Archive",
+  description: "NCT WISH의 모든 순간을 담은 Windows 98 스타일 팬메이드 아카이브",
+
   keywords: ["NCT WISH", "NCT", "엔시티 위시", "아카이브", "WISH OS"],
   icons: {
     icon: '/system/icons/favicon.ico?v=3',
     apple: '/system/icons/apple-touch-icon.png?v=3',
     shortcut: '/system/icons/favicon.ico?v=3',
   },
+
   openGraph: {
-    title: "Wish for Our Wish",
+    title: "WISH OS",
     description: "NCT WISH Fan-made Archive",
+    url: "https://nct-wish-os.vercel.app",
+    siteName: "WISH OS",
+    images: [
+      {
+        url: "", // TODO: 오픈그래프 이미지 URL 삽입
+        width: 1200,
+        height: 630,
+      },
+    ],
     type: "website",
     locale: "ko_KR",
   },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "WISH OS",
+    description: "NCT WISH Fan-made Archive",
+    images: [""], // TODO: 트위터 카드 이미지 URL 삽입
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // 확대 금지 (앱처럼 느낌)
+  themeColor: "#BFDEF0", // 상단 상태바 색상 (OS 배경색에 맞추면 예쁨)
 };
 
 // ----------------------------------------------------------------------
@@ -76,17 +100,17 @@ export const metadata: Metadata = {
 // ----------------------------------------------------------------------
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html 
-      lang="ko" 
+    <html
+      lang="ko"
       // 폰트 변수들을 최상위에 주입
       className={`${neodunggeunmo.variable} ${pyeongjin.variable} ${ssshinbi.variable} ${d2coding.variable}`}
     >
       <body className="relative w-screen h-screen overflow-hidden select-none bg-[#bfdef0]">
-        
+
         {/* [A] 전역 배경화면 레이어 (Z-Index: -20) */}
         {/* layout에 두어야 페이지 이동 시에도 배경이 깜빡이지 않음 */}
         <div className="fixed inset-0 -z-20 bg-gradient-to-br from-[#E0F7FA] via-[#bfdef0] to-[#A7C7E7]" />
-        
+
         {/* [B] 노이즈 텍스처 레이어 (Z-Index: -10) */}
         <div className="fixed inset-0 -z-10 opacity-30 bg-noise-texture mix-blend-overlay pointer-events-none" />
 
@@ -94,6 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 하단 Taskbar 높이(50px)만큼 패딩을 주어 가려짐 방지 */}
         <main className="w-full h-full relative z-[var(--z-desktop)]">
           {children}
+          <Analytics />
         </main>
 
         {/* [D] 전역 태스크바 (항상 최상위 고정) */}

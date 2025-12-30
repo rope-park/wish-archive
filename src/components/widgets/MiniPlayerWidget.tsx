@@ -343,12 +343,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
               className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center"
               style={{
-                top: scale >= 1 ? `${8 * scale}px` : '2px',
+                top: `${8 * scale}px`,
                 fontSize: `${9 * scale}px`,
-                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                minWidth: scale >= 1 ? '44px' : 'auto',
-                minHeight: scale >= 1 ? '44px' : 'auto',
+                minWidth: `${44 * scale}px`,
+                minHeight: `${44 * scale}px`,
                 touchAction: 'manipulation',
               }}
             >
@@ -361,12 +359,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                left: scale >= 1 ? `${8 * scale}px` : '2px',
+                left: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
-                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                minWidth: scale >= 1 ? '44px' : 'auto',
-                minHeight: scale >= 1 ? '44px' : 'auto',
+                minWidth: `${44 * scale}px`,
+                minHeight: `${44 * scale}px`,
                 touchAction: 'manipulation',
               }}
             >
@@ -379,12 +375,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                right: scale >= 1 ? `${8 * scale}px` : '2px',
+                right: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
-                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                minWidth: scale >= 1 ? '44px' : 'auto',
-                minHeight: scale >= 1 ? '44px' : 'auto',
+                minWidth: `${44 * scale}px`,
+                minHeight: `${44 * scale}px`,
                 touchAction: 'manipulation',
               }}
             >
@@ -397,12 +391,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
               className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
               style={{
-                bottom: scale >= 1 ? `${8 * scale}px` : '2px',
+                bottom: `${8 * scale}px`,
                 fontSize: `${14 * scale}px`,
-                width: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                height: scale >= 1 ? 'auto' : `${32 * scale}px`,
-                minWidth: scale >= 1 ? '44px' : 'auto',
-                minHeight: scale >= 1 ? '44px' : 'auto',
+                minWidth: `${44 * scale}px`,
+                minHeight: `${44 * scale}px`,
                 touchAction: 'manipulation',
               }}
             >
@@ -416,8 +408,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag"
             style={{
-              width: scale >= 1 ? `${38 * scale}px` : `${28 * scale}px`,
-              height: scale >= 1 ? `${38 * scale}px` : `${28 * scale}px`,
+              width: `${38 * scale}px`,
+              height: `${38 * scale}px`,
               borderWidth: `${1 * scale}px`,
               touchAction: 'manipulation',
             }}
@@ -434,14 +426,17 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             animate={{ opacity: 1, scale: 1, y: 10 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             className="
+              no-drag
               absolute top-full right-0 z-50 mt-2
               w-[240px]
               bg-white/95 backdrop-blur-md
               border border-gray-300
               rounded-xl shadow-2xl
-              overflow-hidden
               pointer-events-auto
             "
+            style={{
+              touchAction: 'auto',
+            }}
           >
             {/* 헤더 */}
             <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
@@ -462,23 +457,37 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
 
             {/* 리스트 */}
             <ul 
-              className="max-h-[200px] overflow-y-auto custom-scrollbar p-1"
+              className="no-drag max-h-[200px] overflow-y-auto custom-scrollbar p-1"
               style={{ 
                 touchAction: 'pan-y',
                 WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
               }}
+              onTouchStart={(e) => e.stopPropagation()}
             >
-              {playlist.map((song, idx) => (
+              {playlist.map((song, idx) => {
+                const touchStartRef = { y: 0, time: 0 };
+                return (
                 <li key={song.trackId}>
                   <button
                     onClick={() => {
                       changeTrack(idx);
                       setIsMenuOpen(false);
                     }}
+                    onTouchStart={(e) => {
+                      touchStartRef.y = e.touches[0].clientY;
+                      touchStartRef.time = Date.now();
+                    }}
                     onTouchEnd={(e) => {
-                      e.stopPropagation();
-                      changeTrack(idx);
-                      setIsMenuOpen(false);
+                      const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartRef.y);
+                      const deltaTime = Date.now() - touchStartRef.time;
+                      
+                      // 스크롤이 아닌 탭으로 판단 (이동 거리 < 10px, 시간 < 500ms)
+                      if (deltaY < 10 && deltaTime < 500) {
+                        e.stopPropagation();
+                        changeTrack(idx);
+                        setIsMenuOpen(false);
+                      }
                     }}
                     className={`
                       w-full text-left px-3 py-3 rounded-lg text-xs font-medium transition-all
@@ -491,7 +500,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
                     `}
                     style={{
                       minHeight: '44px',
-                      touchAction: 'auto',
+                      touchAction: 'pan-y',
                     }}
                   >
                     <span className="opacity-60 w-4 text-center">{idx + 1}</span>
@@ -501,7 +510,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
                     )}
                   </button>
                 </li>
-              ))}
+              );
+              })}
             </ul>
           </motion.div>
         )}

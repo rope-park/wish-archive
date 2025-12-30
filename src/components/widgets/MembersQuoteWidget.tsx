@@ -72,7 +72,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         setTimeout(() => {
           setData(quote);
           setIsLoading(false);
-        }, 200);
+        }, 100);
       }
     } catch (error) {
       console.error('Error fetching quote:', error);

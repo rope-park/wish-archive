@@ -23,7 +23,7 @@ import {
     StickyNoteWidget,
     WichuTamagotchiWidget,
     WishJarWidget
-} from '../widgets';
+} from '@/components/widgets';
 
 import { MyWish, WishWorld, WishArchive, WishGallery, Discography } from '@/components/apps';
 

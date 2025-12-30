@@ -9,11 +9,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { StartMenu } from '../os';
-import { Button, Divider, Tooltip } from '../ui';
+import { StartMenu } from '@/components/os';
+import { Button, Divider, Tooltip } from '@/components/ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 import { useAudioStore } from '@/app/stores/useAudioStore';
-import { handler } from 'next/dist/build/templates/app-page';
 
 // [하위 컴포넌트] 시작 버튼
 function StartButton() {
@@ -236,7 +235,7 @@ export default function Taskbar() {
       shadow-[0_-4px_10px_rgba(0,0,0,0.1)]
       pointer-events-auto
 
-      flex items-center px-2 gap-2
+      flex items-center px-1 md:px-2 gap-1 md:gap-2
     ">
 
       <StartButton />
@@ -244,7 +243,7 @@ export default function Taskbar() {
       <Divider orientation="vertical" />
 
       {/* 윈도우 태스크 탭 영역 */}
-      <div className="flex-1 flex items-center gap-1 md:gap-2 overflow-x-auto no-scrollbar h-full">
+      <div className="flex-1 flex items-center gap-0.5 md:gap-1 lg:gap-2 overflow-x-auto no-scrollbar h-full">
         {windows.map((win) => {
           const isActive = activeWindowId === win.id && !win.isMinimized;
 

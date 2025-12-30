@@ -29,8 +29,8 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
 
   // 테마 상태 관리 (TODO: 전역 상태/Context로 교체 필요)
   //const [theme, setTheme] = useState<ThemeMode>('classic');
-  // 반응형 상태
-  const [isMobile, setIsMobile] = useState(false);
+  // 반응형 상태 - 터치 디바이스 감지
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // 창 관리 기능 (앱 실행 시 사용)
   const { openWindow, recentApps } = useWindowStore();
@@ -38,12 +38,16 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
   // 가장 최근에 실행한 앱
   const latestApp = recentApps.length > 0 ? recentApps[0] : null;
 
-  // 1. 화면 크기 감지
+  // 1. 터치 디바이스 감지 (화면 크기 + 터치 기능)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const checkTouchDevice = () => {
+      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      // 작은 화면 또는 터치 지원 기기
+      setIsTouchDevice(window.innerWidth < 768 || hasTouchScreen);
+    };
+    checkTouchDevice();
+    window.addEventListener('resize', checkTouchDevice);
+    return () => window.removeEventListener('resize', checkTouchDevice);
   }, []);
 
   // 2. 바깥 클릭 시 메뉴 닫기
@@ -186,27 +190,27 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               label="WISH Archive"
               arrow
               onClick={() => handleOpenApp('archive', 'WISH_ARCHIVE', 'WISH Archive', '/system/icons/apps/wisharchive.png')}
-              isMobile={isMobile}
+              isTouchDevice={isTouchDevice}
             />
             <StartMenuItem
               icon="/system/icons/apps/discography.png"
               label="Discography"
               onClick={() => handleOpenApp('disco', 'DISCOGRAPHY', 'Discography', '/system/icons/apps/discography.png')}
-              isMobile={isMobile}
+              isTouchDevice={isTouchDevice}
             />
             {latestApp ? (
               <StartMenuItem
                 icon={latestApp.icon}
                 label={`Recent: ${latestApp.title}`}
                 onClick={() => handleOpenApp(latestApp.id, latestApp.type, latestApp.title, latestApp.icon)}
-                isMobile={isMobile}
+                isTouchDevice={isTouchDevice}
               />
             ) : (
               <StartMenuItem
                 icon="🧩"
                 label="Programs"
                 onClick={() => handleOpenApp('programs', 'WISH_ARCHIVE', 'Programs', '🧩')}
-                isMobile={isMobile}
+                isTouchDevice={isTouchDevice}
               />
             )}
 
@@ -228,13 +232,13 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               icon="🛠️"
               label="Settings"
               onClick={() => handleOpenApp('settings', 'MY_WISH', 'Settings', '🛠️')}
-              isMobile={isMobile}
+              isTouchDevice={isTouchDevice}
             />
             <StartMenuItem
               icon="❓"
               label="Help & Support"
               onClick={() => handleOpenApp('help', 'README', 'Help & Support', '❓')}
-              isMobile={isMobile}
+              isTouchDevice={isTouchDevice}
             />
 
             <div className="mt-auto">
@@ -243,7 +247,7 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
                 icon="🔌"
                 label="Shut Down..."
                 onClick={() => setShutdownModalOpen(true)}
-                isMobile={isMobile}
+                isTouchDevice={isTouchDevice}
               />
             </div>
 
@@ -274,13 +278,13 @@ function StartMenuItem({
   label,
   onClick,
   arrow = false,
-  isMobile = false,
+  isTouchDevice = false,
 }: {
   icon: string;
   label: string;
   onClick?: () => void;
   arrow?: boolean;
-  isMobile?: boolean;
+  isTouchDevice?: boolean;
 }) {
 
   const isImageIcon = icon.startsWith('/') || icon.startsWith('http');
@@ -295,13 +299,13 @@ function StartMenuItem({
         active:bg-brand-retro-navy active:text-white
         transition-none
 
-        /* [Mobile] 크기 조정 */
-        ${isMobile ? 'py-3 px-4 border-b border-gray-300 last:border-0' : 'py-1.5 px-2'}
+        /* [Touch Device] 크기 조정 */
+        ${isTouchDevice ? 'py-3 px-4 border-b border-gray-300 last:border-0' : 'py-1.5 px-2'}
       `}
     >
       <span className={`
         filter drop-shadow-sm group-hover:drop-shadow-none flex justify-center items-center
-        ${isMobile ? 'w-8 h-8' : 'w-6 h-6'}
+        ${isTouchDevice ? 'w-8 h-8' : 'w-6 h-6'}
       `}>
         {isImageIcon ? (
           <div className="relative w-full h-full">
@@ -313,13 +317,13 @@ function StartMenuItem({
             />
           </div>
         ) : (
-          <span className={isMobile ? 'text-2xl' : 'text-lg'}>{icon}</span>
+          <span className={isTouchDevice ? 'text-2xl' : 'text-lg'}>{icon}</span>
         )}
       </span>
 
       <span className={`
         font-pixel flex-1 truncate
-        ${isMobile ? 'text-base pt-1 font-bold text-gray-800 group-hover:text-white' : 'text-sm pt-0.5'}
+        ${isTouchDevice ? 'text-base pt-1 font-bold text-gray-800 group-hover:text-white' : 'text-sm pt-0.5'}
       `}>
         {label}
       </span>
@@ -327,7 +331,7 @@ function StartMenuItem({
       {arrow && (
         <span className={`
           font-pixel text-black group-hover:text-white
-          ${isMobile ? 'text-xs' : 'text-[8px]'}
+          ${isTouchDevice ? 'text-xs' : 'text-[8px]'}
         `}>
           ▶
         </span>

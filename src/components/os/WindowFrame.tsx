@@ -39,11 +39,10 @@ export default function WindowFrame({
   const isFocused = activeWindowId === id;
 
   // 반응형 상태
-  const [isMobile, setIsMobile] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // 1. 마운트 및 모바일 감지
+  // 1. 마운트 및 터치 디바이스 감지
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
@@ -53,8 +52,8 @@ export default function WindowFrame({
       const hasTouchScreen = 'ontouchstart' in window || 
                              navigator.maxTouchPoints > 0;
       
-      setIsTouchDevice(hasTouchScreen);
-      setIsMobile(width < 768);
+      // 작은 화면 또는 터치 지원 기기
+      setIsTouchDevice(width < 768 || hasTouchScreen);
     };
 
     checkDevice();
@@ -71,8 +70,8 @@ export default function WindowFrame({
 
   const displayStyle = windowState.isMinimized ? 'none' : 'flex';
 
-  // 2. [Mobile] 최대화 상태로 고정
-  if (isMobile) {
+  // 2. [Touch Device] 최대화 상태로 고정
+  if (isTouchDevice) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -111,12 +110,10 @@ export default function WindowFrame({
             <WindowControlBtn 
               type="minimize" 
               onClick={() => minimizeWindow(id)} 
-              isMobile 
             />
             <WindowControlBtn 
               type="close" 
               onClick={() => closeWindow(id)} 
-              isMobile 
             />
           </div>
         </div>
@@ -162,8 +159,8 @@ export default function WindowFrame({
       minHeight={200}
       bounds="parent"
 
-      disableDragging={windowState.isMaximized || isTouchDevice}
-      enableResizing={!windowState.isMaximized && !isTouchDevice}
+      disableDragging={windowState.isMaximized}
+      enableResizing={!windowState.isMaximized}
 
       onDragStart={() => focusWindow(id)}
       onDragStop={(e, d) => {
@@ -274,10 +271,9 @@ export default function WindowFrame({
 interface WindowControlBtnProps {
   type: 'minimize' | 'maximize' | 'restore' | 'close';
   onClick: () => void;
-  isMobile?: boolean;
 }
 
-function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnProps) {
+function WindowControlBtn({ type, onClick }: WindowControlBtnProps) {
   // 버튼 타입별 라벨 및 스타일
   const isClose = type === 'close';
 
@@ -289,11 +285,24 @@ function WindowControlBtn({ type, onClick, isMobile = false }: WindowControlBtnP
     case 'close': label = '✕'; break;
   }
 
-  const sizeClasses = isMobile
+  // 터치 디바이스 감지
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  
+  useEffect(() => {
+    const checkTouch = () => {
+      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouchDevice(window.innerWidth < 768 || hasTouchScreen);
+    };
+    checkTouch();
+    window.addEventListener('resize', checkTouch);
+    return () => window.removeEventListener('resize', checkTouch);
+  }, []);
+
+  const sizeClasses = isTouchDevice
     ? "w-9 h-9 text-sm"
     : "w-6 h-6 md:w-7 md:h-7 text-[10px] md:text-xs";
 
-  const minTouchSize = isMobile ? 36 : 28;
+  const minTouchSize = isTouchDevice ? 36 : 28;
 
   return (
     <button

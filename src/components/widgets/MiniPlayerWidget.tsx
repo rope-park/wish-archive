@@ -351,13 +351,14 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center"
+              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center z-20"
               style={{
                 top: `${8 * scale}px`,
                 fontSize: `${9 * scale}px`,
                 minWidth: isTouchDevice ? '44px' : 'auto',
                 minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
+                pointerEvents: 'auto',
               }}
             >
               MENU
@@ -367,13 +368,14 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playPrev}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
                 left: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
                 minWidth: isTouchDevice ? '44px' : 'auto',
                 minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
+                pointerEvents: 'auto',
               }}
             >
               ⏮
@@ -383,13 +385,14 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playNext}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
                 right: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
                 minWidth: isTouchDevice ? '44px' : 'auto',
                 minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
+                pointerEvents: 'auto',
               }}
             >
               ⏭
@@ -399,13 +402,14 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={togglePlay}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
-              className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center"
+              className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
                 bottom: `${8 * scale}px`,
                 fontSize: `${14 * scale}px`,
                 minWidth: isTouchDevice ? '44px' : 'auto',
                 minHeight: isTouchDevice ? '44px' : 'auto',
                 touchAction: 'manipulation',
+                pointerEvents: 'auto',
               }}
             >
               {isPlaying ? '❚❚' : '▶'}
@@ -418,8 +422,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag"
             style={{
-              width: `${28 * scale}px`,
-              height: `${28 * scale}px`,
+              width: `${20 * scale}px`,
+              height: `${20 * scale}px`,
               borderWidth: `${1 * scale}px`,
               touchAction: 'manipulation',
             }}
@@ -438,13 +442,13 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             className="
               no-drag
               absolute top-full right-0 z-50 mt-2
-              w-[240px]
               bg-white/95 backdrop-blur-md
               border border-gray-300
               rounded-xl shadow-2xl
               pointer-events-auto
             "
             style={{
+              width: `${Math.max(200, 240 * scale)}px`,
               touchAction: 'auto',
             }}
           >

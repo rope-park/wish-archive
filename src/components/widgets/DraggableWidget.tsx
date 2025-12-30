@@ -41,7 +41,6 @@ export default function DraggableWidget({
 
   // 상태 관리
   const [isMounted, setIsMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -65,8 +64,8 @@ export default function DraggableWidget({
                               navigator.maxTouchPoints > 0 ||
                               ((navigator as Navigator & { msMaxTouchPoints?: number }).msMaxTouchPoints ?? 0) > 0;
 
-      setIsTouchDevice(hasTouchScreen);
-      setIsMobile(width < 1024 || hasTouchScreen);
+      // 작은 화면 또는 터치 기능 있으면 터치 디바이스로 간주
+      setIsTouchDevice(width < 1024 || hasTouchScreen);
     };
 
     const updateBounds = () => {
@@ -114,7 +113,7 @@ export default function DraggableWidget({
 
   // 3. 회전 기능: 회전 핸들 드래그
   useEffect(() => {
-    if (!isMounted || !enableRotation || isMobile) return;
+    if (!isMounted || !enableRotation || isTouchDevice) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isRotating || !nodeRef.current) return;
@@ -144,11 +143,11 @@ export default function DraggableWidget({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isRotating, isMounted, enableRotation, isMobile]);
+  }, [isRotating, isMounted, enableRotation, isTouchDevice]);
 
   // 회전 시작 핸들러
   const handleRotateStart = (e: React.MouseEvent) => {
-    if (isMobile || isTouchDevice) return; // 모바일에서는 회전 비활성화
+    if (isTouchDevice) return; // 터치 디바이스에서는 회전 비활성화
 
     e.preventDefault();
     e.stopPropagation();
@@ -223,7 +222,7 @@ export default function DraggableWidget({
           overflow-visible
           
           ${dragHandle ? '' : (isDragging ? 'cursor-grabbing' : isRotating ? 'cursor-crosshair' : 'cursor-grab')}
-          ${isMobile ? 'cursor-default' : ''}
+          ${isTouchDevice ? 'cursor-default' : ''}
 
           ${className}
         `}
@@ -237,7 +236,7 @@ export default function DraggableWidget({
         onTouchStart={handleInteractionStart}
       >
         {/* 회전 핸들 - 우측 상단 (호버 시에만 표시) - 회전되지 않도록 밖에 배치 */}
-        {!isMobile && !isTouchDevice && enableRotation && (
+        {!isTouchDevice && enableRotation && (
           <div
             className="rotate-handle absolute -top-3 -right-3 w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-full cursor-grab active:cursor-grabbing shadow-lg flex items-center justify-center text-white text-sm font-bold z-50 opacity-0 group-hover:opacity-100 transition-opacity"
             onMouseDown={handleRotateStart}

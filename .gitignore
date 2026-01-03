@@ -43,3 +43,5 @@ next-env.d.ts
 /generated/prisma
 /3D_asset
 /reference
+/scripts
+/nctwish_official

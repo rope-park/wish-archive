@@ -498,7 +498,10 @@ export default function Home() {
       {widgetsReady && (
         <div
           className="absolute inset-0 pointer-events-none z-[var(--z-desktop)]"
-          style={{ bottom: `${taskbarHeight}px` }}
+          style={{ 
+            bottom: `${taskbarHeight}px`,
+            paddingBottom: `${taskbarHeight}px`,
+          }}
         >
           {WIDGET_CONFIGS.map((widget) => {
             const WidgetComponent = widget.component;
@@ -507,6 +510,7 @@ export default function Home() {
                 key={widget.id}
                 defaultPosition={widgetPositions[widget.id] || { x: 0, y: 0 }}
                 scale={widgetScale}
+                taskbarHeight={taskbarHeight}
               >
                 <WidgetComponent {...widget.props} scale={widgetScale} />
               </DraggableWidget>

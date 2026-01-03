@@ -24,6 +24,7 @@ interface DraggableWidgetProps {
   className?: string;
   dragHandle?: string;                        // 특정 부분만 잡고 끌게 할 때 (CSS 클래스명)
   enableRotation?: boolean;                   // 회전 기능 활성화 여부
+  taskbarHeight?: number;                     // Taskbar 높이 (반응형 고려)
 }
 
 export default function DraggableWidget({
@@ -36,6 +37,7 @@ export default function DraggableWidget({
   className = '',
   dragHandle,
   enableRotation = true,
+  taskbarHeight = 48, // 기본값 48px
 }: DraggableWidgetProps) {
   const nodeRef = useRef<HTMLElement>(null);
 
@@ -71,12 +73,15 @@ export default function DraggableWidget({
     const updateBounds = () => {
       // 태스크바 높이를 화면 크기에 따라 동적으로 계산
       const width = window.innerWidth;
-      let taskbarHeight: number = LAYOUT_CONSTANTS.TASKBAR_HEIGHT; // 기본 48px
+      let calculatedTaskbarHeight: number = LAYOUT_CONSTANTS.TASKBAR_HEIGHT; // 기본 48px
       if (width < 768) {
-        taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_MOBILE; // 64px
+        calculatedTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_MOBILE; // 64px
       } else if (width < 1024) {
-        taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_TABLET; // 56px
+        calculatedTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_TABLET; // 56px
       }
+      
+      // prop으로 전달받은 taskbarHeight가 있으면 우선 사용
+      const finalTaskbarHeight = taskbarHeight || calculatedTaskbarHeight;
       
       const iconAreaWidth = width < 768 ? 0 : LAYOUT_CONSTANTS.ICON_AREA_WIDTH_DESKTOP;
       const viewportHeight = window.innerHeight;
@@ -91,7 +96,7 @@ export default function DraggableWidget({
         left: iconAreaWidth + padding,
         top: padding,
         right: window.innerWidth - padding,
-        bottom: viewportHeight - taskbarHeight - padding - safeAreaBottom,
+        bottom: viewportHeight - finalTaskbarHeight - padding - safeAreaBottom,
       });
     };
 
@@ -109,7 +114,7 @@ export default function DraggableWidget({
       window.removeEventListener('resize', updateBounds);
       window.removeEventListener('orientationchange', updateBounds);
     };
-  }, []);
+  }, [taskbarHeight]); // taskbarHeight가 변경되면 bounds 재계산
 
   // 2. 부모로부터 위치 변경 시 동기화 (반응형 대응)
   const { x, y } = defaultPosition;

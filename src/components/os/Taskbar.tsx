@@ -209,6 +209,31 @@ export default function Taskbar() {
   // Store 구독: 열린 창 목록과 현재 활성 창 ID 가져오기
   const { windows, activeWindowId, focusWindow, minimizeWindow, maximizeWindow } = useWindowStore();
 
+  // 화면 크기에 따라 Taskbar 높이 계산
+  const [taskbarHeight, setTaskbarHeight] = useState(48);
+
+  useEffect(() => {
+    const updateHeight = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setTaskbarHeight(64); // 모바일
+      } else if (width < 1024) {
+        setTaskbarHeight(56); // 태블릿
+      } else {
+        setTaskbarHeight(48); // 데스크톱
+      }
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    window.addEventListener('orientationchange', updateHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('orientationchange', updateHeight);
+    };
+  }, []);
+
   // 탭 클릭 핸들러
   const handleTabClick = (id: string, isMinimized: boolean) => (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -222,19 +247,22 @@ export default function Taskbar() {
   };
 
   return (
-    <nav className="
-      fixed bottom-0 left-0 right-0
-      z-[var(--z-taskbar)]
-      h-16 md:h-14 lg:h-12
-      min-h-[64px] md:min-h-[56px] lg:min-h-[48px]
-      pb-safe
-      bg-[#c0c0c0]
-      border-t-2 border-white
-      shadow-[0_-4px_10px_rgba(0,0,0,0.1)]
-      pointer-events-auto
-
-      flex items-center px-1 md:px-2 gap-1 md:gap-2
-    ">
+    <nav 
+      className="
+        fixed bottom-0 left-0 right-0
+        z-[var(--z-taskbar)]
+        pb-safe
+        bg-[#c0c0c0]
+        border-t-2 border-white
+        shadow-[0_-4px_10px_rgba(0,0,0,0.1)]
+        pointer-events-auto
+        flex items-center px-1 md:px-2 gap-1 md:gap-2
+      "
+      style={{
+        height: `${taskbarHeight}px`,
+        minHeight: `${taskbarHeight}px`,
+      }}
+    >
 
       <StartButton />
 

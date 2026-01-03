@@ -365,9 +365,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag z-20"
+              className="absolute font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag z-20"
               style={{
                 top: '8px',
+                left: 'calc(50% - 15px)',
                 fontSize: '9px',
                 width: '30px',
                 height: '14px',
@@ -385,9 +386,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playPrev}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
+              className="absolute text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
               style={{
                 left: '8px',
+                top: 'calc(50% - 10px)',
                 fontSize: '16px',
                 width: '20px',
                 height: '20px',
@@ -405,9 +407,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playNext}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
+              className="absolute text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
               style={{
                 right: '8px',
+                top: 'calc(50% - 10px)',
                 fontSize: '16px',
                 width: '20px',
                 height: '20px',
@@ -425,9 +428,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={togglePlay}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
-              className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
+              className="absolute text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
               style={{
                 bottom: '8px',
+                left: 'calc(50% - 10px)',
                 fontSize: '14px',
                 width: '20px',
                 height: '16px',
@@ -446,8 +450,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
           <button
             onClick={togglePlay}
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag z-30"
+            className="absolute rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag z-30"
             style={{
+              top: 'calc(50% - 10px)',
+              left: 'calc(50% - 10px)',
               width: '20px',
               height: '20px',
               borderWidth: '1px',

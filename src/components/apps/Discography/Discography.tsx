@@ -1038,6 +1038,10 @@ declare global {
       destroy(): void;
       setPlaybackQuality(suggestedQuality: string): void;
       getPlaybackQuality(): string;
+      getCurrentTime(): number;
+      getDuration(): number;
+      seekTo(seconds: number, allowSeekAhead: boolean): void;
+      getPlayerState(): number;
     }
 
     interface PlayerOptions {

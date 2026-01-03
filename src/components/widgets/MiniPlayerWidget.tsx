@@ -237,31 +237,40 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
 
   if (!currentSong) return null;
 
+  // transform: scale()을 사용하므로 외부 컨테이너의 실제 크기 계산
   const baseWidth = 340;
   const baseHeight = 140;
-  const containerWidth = baseWidth * scale;
-  const containerHeight = baseHeight * scale;
+  const scaledWidth = baseWidth * scale;
+  const scaledHeight = baseHeight * scale;
 
   return (
-    <div className="relative group select-none">
+    <div 
+      className="relative group select-none"
+      style={{
+        width: `${scaledWidth}px`,
+        height: `${scaledHeight}px`,
+      }}
+    >
 
       {/* 메인 몸체 */}
       <div 
         className="relative z-10 bg-gradient-to-b from-[#f0f0f0] via-[#dcdcdc] to-[#b0b0b0] shadow-[0_10px_20px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-2px_4px_rgba(0,0,0,0.2)] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5),0_5px_10px_-5px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.3),inset_1px_0_1px_rgba(255,255,255,0.1),inset_-1px_0_1px_rgba(0,0,0,0.1)] flex items-center justify-between border border-[#a0a0a0] overflow-hidden"
         style={{
-          width: `${containerWidth}px`,
-          height: `${containerHeight}px`,
-          borderRadius: `${24 * scale}px`,
-          paddingLeft: `${24 * scale}px`,
-          paddingRight: `${24 * scale}px`,
-          paddingTop: `${16 * scale}px`,
-          paddingBottom: `${16 * scale}px`,
+          width: '340px',
+          height: '140px',
+          borderRadius: '24px',
+          paddingLeft: '24px',
+          paddingRight: '24px',
+          paddingTop: '16px',
+          paddingBottom: '16px',
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
         }}
       >
         {/* 몸체 표면 노이즈 텍스처 */}
         <div 
           className="absolute inset-0 bg-noise opacity-[0.07] pointer-events-none mix-blend-multiply"
-          style={{ borderRadius: `${24 * scale}px` }}
+          style={{ borderRadius: '24px' }}
         />
         {/* 표면 그라데이션 코팅 */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none mix-blend-overlay" />
@@ -270,10 +279,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
         <div 
           className="relative bg-[#0a0a0a] shadow-[inset_0_2px_6px_rgba(0,0,0,0.8),0_1px_2px_rgba(255,255,255,0.2)] border-[#222] overflow-hidden flex flex-col z-20"
           style={{
-            width: `${160 * scale}px`,
-            height: `${110 * scale}px`,
-            borderRadius: `${10 * scale}px`,
-            borderWidth: `${3 * scale}px`,
+            width: '160px',
+            height: '110px',
+            borderRadius: '10px',
+            borderWidth: '3px',
           }}
         >
           {/* YouTube Iframe 레이어 */}
@@ -334,15 +343,17 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
         <div 
           className="relative shrink-0"
           style={{
-            width: `${100 * scale}px`,
-            height: `${100 * scale}px`,
+            width: '100px',
+            height: '100px',
+            transform: `scale(${scale})`,
+            transformOrigin: 'center center',
           }}
         >
 
           {/* 휠 배경 (흰색/회색 그라데이션) */}
           <div 
             className="absolute inset-0 rounded-full bg-gradient-to-br from-[#f8f8f8] via-[#eeeeee] to-[#dcdcdc] shadow-[0_4px_8px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,1)] shadow-[0_4px_10px_rgba(0,0,0,0.3),inset_0_2px_3px_rgba(255,255,255,1),inset_0_-2px_5px_rgba(0,0,0,0.1),0_0_0_1px_#d0d0d0] border-[#ccc]"
-            style={{ borderWidth: `${1 * scale}px` }}
+            style={{ borderWidth: '1px' }}
           >
 
             <div className="absolute inset-0 rounded-full bg-noise opacity-[0.05] mix-blend-multiply" />
@@ -353,10 +364,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
               className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center z-20"
               style={{
-                top: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
-                fontSize: `${(scale < 0.7 ? 8 : 9) * scale}px`,
-                minWidth: isTouchDevice ? '32px' : 'auto',
-                minHeight: isTouchDevice ? '32px' : 'auto',
+                top: '8px',
+                fontSize: '9px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -370,10 +379,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
-                left: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
-                fontSize: `${(scale < 0.7 ? 12 : 16) * scale}px`,
-                minWidth: isTouchDevice ? '32px' : 'auto',
-                minHeight: isTouchDevice ? '32px' : 'auto',
+                left: '8px',
+                fontSize: '16px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -387,10 +394,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
-                right: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
-                fontSize: `${(scale < 0.7 ? 12 : 16) * scale}px`,
-                minWidth: isTouchDevice ? '32px' : 'auto',
-                minHeight: isTouchDevice ? '32px' : 'auto',
+                right: '8px',
+                fontSize: '16px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -404,10 +409,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
               className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
-                bottom: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
-                fontSize: `${(scale < 0.7 ? 12 : 14) * scale}px`,
-                minWidth: isTouchDevice ? '32px' : 'auto',
-                minHeight: isTouchDevice ? '32px' : 'auto',
+                bottom: '8px',
+                fontSize: '14px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -422,9 +425,9 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag z-30"
             style={{
-              width: `${(scale < 0.7 ? 14 : 20) * scale}px`,
-              height: `${(scale < 0.7 ? 14 : 20) * scale}px`,
-              borderWidth: `${1 * scale}px`,
+              width: '20px',
+              height: '20px',
+              borderWidth: '1px',
               touchAction: 'manipulation',
             }}
           />
@@ -448,7 +451,9 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               pointer-events-auto
             "
             style={{
-              width: `${Math.max(200, 240 * scale)}px`,
+              width: `${Math.max(200, 240)}px`,
+              transform: `scale(${Math.max(0.8, scale)})`,
+              transformOrigin: 'top right',
               touchAction: 'auto',
             }}
           >

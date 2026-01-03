@@ -40,7 +40,14 @@ function YouTubeBackground({
 
     // 1. YouTube IFrame API 로드 및 플레이어 초기화
     useEffect(() => {
-        if (!videoId) return;
+        if (!videoId) {
+            // videoId가 없으면 플레이어 정리
+            if (playerInstanceRef.current && typeof playerInstanceRef.current.destroy === 'function') {
+                playerInstanceRef.current.destroy();
+                playerInstanceRef.current = null;
+            }
+            return;
+        }
 
         // API 스크립트가 없으면 로드
         if (!window.YT) {
@@ -54,12 +61,18 @@ function YouTubeBackground({
             if (!containerRef.current || !window.YT) return;
 
             // 이미 플레이어가 있으면 곡만 로드
-            if (playerInstanceRef.current) {
-                // loadVideoById 메서드가 있는지 확인 후 호출
-                if (typeof playerInstanceRef.current.loadVideoById === 'function') {
+            if (playerInstanceRef.current && typeof playerInstanceRef.current.loadVideoById === 'function') {
+                try {
                     playerInstanceRef.current.loadVideoById(videoId);
+                    return;
+                } catch (e) {
+                    // 플레이어가 손상된 경우 재생성
+                    console.log('Player error, recreating...', e);
+                    if (typeof playerInstanceRef.current.destroy === 'function') {
+                        playerInstanceRef.current.destroy();
+                    }
+                    playerInstanceRef.current = null;
                 }
-                return;
             }
 
             // 새 플레이어 생성
@@ -100,6 +113,14 @@ function YouTubeBackground({
             window.onYouTubeIframeAPIReady = initPlayer;
         }
 
+        // 클린업: 컴포넌트 언마운트 시 플레이어 정리
+        return () => {
+            if (playerInstanceRef.current && typeof playerInstanceRef.current.destroy === 'function') {
+                playerInstanceRef.current.destroy();
+                playerInstanceRef.current = null;
+            }
+        };
+
     }, [videoId, setPlayerRef]);
 
     // 2. 스토어 상태(isPlaying) 변경에 따른 반응
@@ -114,9 +135,7 @@ function YouTubeBackground({
         }
     }, [isPlaying]);
 
-    // 3. 비디오가 없을 때 처리
-    if (!videoId) return null;
-
+    // videoId가 없어도 컨테이너는 유지 (플레이어 재초기화를 위해)
     return (
         <div className={`absolute inset-0 w-full h-full transition-all duration-700 pointer-events-none overflow-hidden
       ${isFullscreen ? 'z-50 opacity-100 bg-black' : 'z-0 opacity-60 blur-md scale-110'}`}
@@ -125,7 +144,10 @@ function YouTubeBackground({
             <div
                 ref={containerRef}
                 className="w-full h-full"
-                style={{ pointerEvents: isFullscreen ? 'auto' : 'none' }}
+                style={{ 
+                    pointerEvents: isFullscreen ? 'auto' : 'none',
+                    display: videoId ? 'block' : 'none' // videoId가 없으면 숨김
+                }}
             />
         </div>
     );

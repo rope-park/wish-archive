@@ -332,7 +332,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
 
         {/* [오른쪽] 클릭 휠 영역 */}
         <div 
-          className="relative shrink-0 flex items-center justify-center"
+          className="relative shrink-0"
           style={{
             width: `${100 * scale}px`,
             height: `${100 * scale}px`,
@@ -420,7 +420,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
           <button
             onClick={togglePlay}
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
-            className="relative z-10 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag z-30"
             style={{
               width: `${20 * scale}px`,
               height: `${20 * scale}px`,

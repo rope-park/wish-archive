@@ -319,20 +319,20 @@ export default function Home() {
         const scaledHeight = widget.baseSize.height * scale;
 
         // 안전한 최대 위치 계산 (위젯이 완전히 보이도록)
-        const maxSafeX = currentViewportWidth - scaledWidth - PADDING;
-        const maxSafeY = viewportHeight - currentTaskbarHeight - scaledHeight - PADDING;
+        const maxSafeX = Math.max(safeStartX, currentViewportWidth - scaledWidth - PADDING);
+        const maxSafeY = Math.max(safeStartY, viewportHeight - currentTaskbarHeight - scaledHeight - PADDING);
 
         // 안전 영역 내에서 백분율 적용 가능한 범위 계산
-        const availableWidth = maxSafeX - safeStartX;
-        const availableHeight = maxSafeY - safeStartY;
+        const availableWidth = Math.max(0, maxSafeX - safeStartX);
+        const availableHeight = Math.max(0, maxSafeY - safeStartY);
 
         // 백분율을 실제 픽셀로 변환
         let x = Math.round(safeStartX + (availableWidth * widget.positionPercent.x) / 100);
         let y = Math.round(safeStartY + (availableHeight * widget.positionPercent.y) / 100);
 
-        // 최종 안전 범위 내로 제한
-        x = Math.max(safeStartX, Math.min(x, maxSafeX));
-        y = Math.max(safeStartY, Math.min(y, maxSafeY));
+        // 최종 안전 범위 내로 제한 (화면이 너무 작을 때 최소값 보장)
+        x = Math.max(PADDING, Math.min(x, Math.max(PADDING, maxSafeX)));
+        y = Math.max(PADDING, Math.min(y, Math.max(PADDING, maxSafeY)));
 
         newPositions[widget.id] = { x, y };
       });
@@ -497,10 +497,10 @@ export default function Home() {
       ================================================================================= */}
       {widgetsReady && (
         <div
-          className="absolute inset-0 pointer-events-none z-[var(--z-desktop)]"
+          className="absolute top-0 left-0 right-0 pointer-events-none z-[var(--z-desktop)] overflow-hidden"
           style={{ 
-            bottom: `${taskbarHeight}px`,
-            paddingBottom: `${taskbarHeight}px`,
+            height: `calc(100vh - ${taskbarHeight}px)`,
+            maxHeight: `calc(100dvh - ${taskbarHeight}px)`,
           }}
         >
           {WIDGET_CONFIGS.map((widget) => {

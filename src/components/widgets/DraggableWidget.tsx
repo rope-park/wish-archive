@@ -92,11 +92,14 @@ export default function DraggableWidget({
         ? window.innerHeight - document.documentElement.clientHeight 
         : 0;
       
+      // Taskbar를 확실하게 피하기 위해 추가 마진 적용
+      const taskbarSafeMargin = 10; // 10px 추가 마진
+      
       setDragBounds({
         left: iconAreaWidth + padding,
         top: padding,
         right: window.innerWidth - padding,
-        bottom: viewportHeight - finalTaskbarHeight - padding - safeAreaBottom,
+        bottom: viewportHeight - finalTaskbarHeight - padding - safeAreaBottom - taskbarSafeMargin,
       });
     };
 

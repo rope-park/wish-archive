@@ -238,10 +238,13 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
   if (!currentSong) return null;
 
   // transform: scale()을 사용하므로 외부 컨테이너의 실제 크기 계산
+  // 최소 크기 0.7 설정 (너무 작아지지 않도록)
   const baseWidth = 340;
   const baseHeight = 140;
-  const scaledWidth = baseWidth * scale;
-  const scaledHeight = baseHeight * scale;
+  const minScale = 0.7;
+  const effectiveScale = Math.max(minScale, scale);
+  const scaledWidth = baseWidth * effectiveScale;
+  const scaledHeight = baseHeight * effectiveScale;
 
   return (
     <div 
@@ -263,7 +266,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
           paddingRight: '24px',
           paddingTop: '16px',
           paddingBottom: '16px',
-          transform: `scale(${scale})`,
+          transform: `scale(${effectiveScale})`,
           transformOrigin: 'center center',
         }}
       >
@@ -345,7 +348,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
           style={{
             width: '100px',
             height: '100px',
-            transform: `scale(${scale})`,
+            transform: `scale(${effectiveScale})`,
             transformOrigin: 'center center',
           }}
         >
@@ -362,7 +365,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center z-20"
+              className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag z-20"
               style={{
                 top: '8px',
                 fontSize: '9px',
@@ -377,10 +380,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playPrev}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
               style={{
                 left: '8px',
                 fontSize: '16px',
+                lineHeight: '1',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -392,10 +396,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={playNext}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
-              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
+              className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
               style={{
                 right: '8px',
                 fontSize: '16px',
+                lineHeight: '1',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -407,10 +412,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             <button
               onClick={togglePlay}
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
-              className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
+              className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag z-20"
               style={{
                 bottom: '8px',
                 fontSize: '14px',
+                lineHeight: '1',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -452,7 +458,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             "
             style={{
               width: `${Math.max(200, 240)}px`,
-              transform: `scale(${Math.max(0.8, scale)})`,
+              transform: `scale(${Math.max(0.8, effectiveScale)})`,
               transformOrigin: 'top right',
               touchAction: 'auto',
             }}

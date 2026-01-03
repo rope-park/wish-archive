@@ -88,6 +88,7 @@ function YouTubeBackground({
                     modestbranding: 1,
                     playsinline: 1,
                     rel: 0,
+                    vq: 'hd1080', // 화질 설정: hd1080 우선
                 },
                 events: {
                     onReady: (event: YT.OnReadyEvent) => {
@@ -95,6 +96,10 @@ function YouTubeBackground({
                         setPlayerRef(player); // Store에 제어 권한 위임
                         if (typeof player.setVolume === 'function') {
                             player.setVolume(isMuted ? 0 : volume);
+                        }
+                        // 화질 설정 (hd1080 우선, 없으면 hd720)
+                        if (typeof player.setPlaybackQuality === 'function') {
+                            player.setPlaybackQuality('hd1080');
                         }
                         if (isPlaying && typeof player.playVideo === 'function') {
                             player.playVideo();
@@ -547,6 +552,8 @@ declare global {
       loadVideoById(videoId: string): void;
       getIframe(): HTMLIFrameElement;
       destroy(): void;
+      setPlaybackQuality(suggestedQuality: string): void;
+      getPlaybackQuality(): string;
     }
 
     interface PlayerOptions {

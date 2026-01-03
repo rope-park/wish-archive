@@ -19,11 +19,28 @@
   --z-cursor: 9999;
   /* 커스텀 커서 (최상위) */
 
+  /* --- Taskbar 높이 변수 (반응형) --- */
+  --taskbar-height: 48px; /* 데스크탑 기본 */
+
   /* --- 브랜드 컬러 변수 --- */
   --color-win-gray: #c0c0c0;
   --color-win-gray-dark: #808080;
   --color-win-gray-light: #ffffff;
   --color-win-blue: #000080;
+}
+
+/* 태블릿: Taskbar 높이 증가 */
+@media (max-width: 1023px) and (min-width: 768px) {
+  :root {
+    --taskbar-height: 56px;
+  }
+}
+
+/* 모바일: Taskbar 높이 더 증가 */
+@media (max-width: 767px) {
+  :root {
+    --taskbar-height: 64px;
+  }
 }
 
 /* -------------------------------------------------------------------------- */

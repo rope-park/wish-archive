@@ -546,6 +546,7 @@ declare global {
       isMuted(): boolean;
       loadVideoById(videoId: string): void;
       getIframe(): HTMLIFrameElement;
+      destroy(): void;
     }
 
     interface PlayerOptions {

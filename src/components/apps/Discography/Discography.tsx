@@ -1066,9 +1066,9 @@ declare global {
     }
 
     interface Events {
-      onReady?: (event: OnReadyEvent | OnStateChangeEvent) => void;
-      onStateChange?: (event: OnReadyEvent | OnStateChangeEvent) => void;
-      [key: string]: ((event: OnReadyEvent | OnStateChangeEvent) => void) | undefined;
+      onReady?: (event: OnReadyEvent) => void;
+      onStateChange?: (event: OnStateChangeEvent) => void;
+      onError?: (event: OnErrorEvent) => void;
     }
 
     interface OnReadyEvent {
@@ -1078,6 +1078,11 @@ declare global {
     interface OnStateChangeEvent {
       target: Player;
       data: number; // PlayerState
+    }
+
+    interface OnErrorEvent {
+      target: Player;
+      data: number; // Error code
     }
   }
 }

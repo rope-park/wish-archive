@@ -369,6 +369,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 top: '8px',
                 fontSize: '9px',
+                width: '30px',
+                height: '14px',
+                display: 'block',
+                textAlign: 'center',
+                lineHeight: '14px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -384,7 +389,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 left: '8px',
                 fontSize: '16px',
-                lineHeight: '1',
+                width: '20px',
+                height: '20px',
+                display: 'block',
+                textAlign: 'center',
+                lineHeight: '20px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -400,7 +409,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 right: '8px',
                 fontSize: '16px',
-                lineHeight: '1',
+                width: '20px',
+                height: '20px',
+                display: 'block',
+                textAlign: 'center',
+                lineHeight: '20px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -416,7 +429,11 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 bottom: '8px',
                 fontSize: '14px',
-                lineHeight: '1',
+                width: '20px',
+                height: '16px',
+                display: 'block',
+                textAlign: 'center',
+                lineHeight: '16px',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}

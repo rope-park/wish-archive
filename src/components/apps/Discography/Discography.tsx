@@ -163,14 +163,15 @@ export default function Discography({ onClose }: DiscographyProps) {
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-8 h-full overflow-y-auto content-start custom-scrollbar">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8 h-full overflow-y-auto content-start custom-scrollbar">
             {albums.map((album, idx) => (
                 <div
                     key={album.id}
-                    className="group cursor-pointer flex flex-col items-center gap-3"
+                    className="group cursor-pointer flex flex-col items-center gap-2 sm:gap-3 active:scale-95 transition-transform"
                     onClick={() => setSelectedAlbumIndex(idx)}
+                    style={{ touchAction: 'manipulation' }}
                 >
-                    <div className="relative w-40 h-40 rounded-lg shadow-lg overflow-hidden transition-transform group-hover:scale-105">
+                    <div className="relative w-full aspect-square max-w-[200px] mx-auto rounded-lg shadow-lg overflow-hidden transition-all group-hover:scale-105 group-hover:shadow-2xl group-active:scale-100">
                         {album.coverImageUrl ? (
                             <Image
                                 src={album.coverImageUrl}
@@ -181,13 +182,19 @@ export default function Discography({ onClose }: DiscographyProps) {
                         ) : (
                             <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400">No Image</div>
                         )}
-                        <div className="absolute top-1/2 -right-4 w-36 h-36 -translate-y-1/2 bg-black rounded-full -z-10 group-hover:-right-8 transition-all duration-500 flex items-center justify-center">
-                            <div className="w-12 h-12 bg-gray-800 rounded-full border-2 border-gray-600" />
+                        {/* 비닐 디스크 효과 - 크기 및 위시 개선 */}
+                        <div className="absolute top-1/2 -right-6 sm:-right-8 w-32 h-32 sm:w-40 sm:h-40 -translate-y-1/2 bg-gradient-to-br from-black via-gray-900 to-black rounded-full -z-10 group-hover:-right-10 sm:group-hover:-right-12 transition-all duration-500 flex items-center justify-center shadow-2xl">
+                            {/* 비닐 그루브 */}
+                            <div className="absolute inset-0 rounded-full" style={{
+                                background: 'repeating-radial-gradient(circle at center, transparent 0%, transparent 3px, rgba(255,255,255,0.05) 3px, rgba(255,255,255,0.05) 6px)'
+                            }} />
+                            {/* 중앙 구멍 */}
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full border-2 border-gray-600 shadow-inner" />
                         </div>
                     </div>
-                    <div className="text-center">
-                        <h3 className="text-white font-bold text-sm truncate w-32">{album.title}</h3>
-                        <p className="text-gray-400 text-xs">{new Date(album.releaseDate).getFullYear()}</p>
+                    <div className="text-center w-full px-2">
+                        <h3 className="text-white font-bold text-xs sm:text-sm truncate">{album.title}</h3>
+                        <p className="text-gray-400 text-[10px] sm:text-xs">{new Date(album.releaseDate).getFullYear()}</p>
                     </div>
                 </div>
             ))}
@@ -269,16 +276,22 @@ function AlbumDetailView({
             {!currentYoutubeId && (
                 <div className="absolute inset-0 z-0">
                     {currentAlbum.coverImageUrl && (
-                        <Image
-                            src={currentAlbum.coverImageUrl}
-                            alt="Background"
-                            fill
-                            className="object-cover blur-xl opacity-50"
-                        />
+                        <>
+                            <Image
+                                src={currentAlbum.coverImageUrl}
+                                alt="Background"
+                                fill
+                                className="object-cover blur-2xl opacity-40"
+                            />
+                            {/* 그라데이션 오버레이 */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-transparent to-black/60" />
+                        </>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-64 h-64 bg-white/10 rounded-full animate-pulse flex items-center justify-center backdrop-blur-sm">
-                            <Music size={64} className="text-white/50" />
+                        <div className="w-48 h-48 sm:w-64 sm:h-64 bg-white/10 rounded-full animate-pulse flex items-center justify-center backdrop-blur-sm shadow-2xl">
+                            <div className="w-32 h-32 sm:w-40 sm:h-40 bg-white/5 rounded-full animate-pulse flex items-center justify-center" style={{ animationDelay: '0.5s' }}>
+                                <Music size={64} className="text-white/50" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -288,39 +301,62 @@ function AlbumDetailView({
             {isFullscreen && (
                 <button
                     onClick={() => setIsFullscreen(false)}
-                    className="absolute top-4 right-4 z-[60] p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+                    className="absolute top-4 right-4 z-[60] p-2 bg-black/50 hover:bg-black/80 active:bg-black/90 text-white rounded-full transition-colors active:scale-95"
+                    style={{ minWidth: '44px', minHeight: '44px' }}
                 >
-                    <Minimize2 size={24} />
+                    <Minimize2 size={24} className="mx-auto" />
                 </button>
             )}
 
             {/* 2. Left Side Panels (3 Cards) */}
-            <div className={`relative z-10 w-full md:w-[420px] h-full p-4 flex flex-col gap-4 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
+            <div className={`relative z-10 w-full md:w-[360px] lg:w-[400px] xl:w-[440px] h-full p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
 
                 {/* Card 1: Player Control */}
-                <div className="flex-none h-[200px] bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-5 flex flex-col justify-between shadow-xl">
-                    <div className="flex items-center gap-5">
-                        <div className={`relative w-24 h-24 rounded-full bg-black flex-shrink-0 border-4 border-gray-900 shadow-xl ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
-                            <div className="absolute inset-[32%] bg-orange-500 rounded-full border border-red-700 opacity-80" />
-                            <div className="absolute inset-[46%] bg-black rounded-full" />
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
+                <div className="flex-none h-[180px] sm:h-[200px] bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-5 flex flex-col justify-between shadow-xl">
+                    <div className="flex items-center gap-3 sm:gap-5">
+                        <div className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-black flex-shrink-0 border-3 sm:border-4 border-gray-900 shadow-xl shadow-black/50 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
+                            {/* 비닐 표면 그루브 */}
+                            <div className="absolute inset-0 rounded-full" style={{
+                                background: 'repeating-radial-gradient(circle at center, transparent 0%, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)'
+                            }} />
+                            {/* 레이블 (Orange) */}
+                            <div className="absolute inset-[32%] bg-gradient-to-br from-orange-400 via-orange-500 to-red-600 rounded-full border border-red-700 opacity-90 shadow-lg shadow-orange-500/30" />
+                            {/* 중앙 구멍 */}
+                            <div className="absolute inset-[46%] bg-black rounded-full border border-gray-800" />
+                            {/* 반사 효과 */}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-transparent pointer-events-none" />
+                            {/* 글로우 */}
+                            {isPlaying && (
+                                <div className="absolute -inset-1 rounded-full bg-orange-500/20 blur-md animate-pulse" />
+                            )}
                         </div>
 
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
-                            <div className="mb-2">
-                                <h2 className="text-white font-bold text-lg truncate leading-tight">{currentTrack?.title || "Select a track"}</h2>
-                                <p className="text-gray-300 text-sm truncate">NCT WISH</p>
+                            <div className="mb-1 sm:mb-2">
+                                <h2 className="text-white font-bold text-base sm:text-lg truncate leading-tight">{currentTrack?.title || "Select a track"}</h2>
+                                <p className="text-gray-300 text-xs sm:text-sm truncate">NCT WISH</p>
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                <button className="text-gray-300 hover:text-white transition"><SkipBack size={20} /></button>
+                            <div className="flex items-center gap-2 sm:gap-4">
+                                <button 
+                                    className="text-gray-300 hover:text-white transition active:scale-95 p-2 -m-2"
+                                    style={{ minWidth: '44px', minHeight: '44px' }}
+                                >
+                                    <SkipBack size={18} className="sm:w-5 sm:h-5 mx-auto" />
+                                </button>
                                 <button
                                     onClick={togglePlay}
-                                    className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition shadow-lg shadow-white/20"
+                                    className="w-9 h-9 sm:w-10 sm:h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-100 transition shadow-lg shadow-white/20"
+                                    style={{ minWidth: '44px', minHeight: '44px' }}
                                 >
-                                    {isPlaying ? <Pause size={18} fill="black" /> : <Play size={18} fill="black" className="ml-1" />}
+                                    {isPlaying ? <Pause size={16} className="sm:w-[18px] sm:h-[18px]" fill="black" /> : <Play size={16} className="sm:w-[18px] sm:h-[18px] ml-0.5" fill="black" />}
                                 </button>
-                                <button className="text-gray-300 hover:text-white transition"><SkipForward size={20} /></button>
+                                <button 
+                                    className="text-gray-300 hover:text-white transition active:scale-95 p-2 -m-2"
+                                    style={{ minWidth: '44px', minHeight: '44px' }}
+                                >
+                                    <SkipForward size={18} className="sm:w-5 sm:h-5 mx-auto" />
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -328,7 +364,8 @@ function AlbumDetailView({
                     <button
                         onClick={() => setIsFullscreen(true)}
                         disabled={!currentYoutubeId}
-                        className="mt-1 w-full py-2 bg-black/40 hover:bg-black/60 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed border border-white/5"
+                        className="mt-1 w-full py-2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed border border-white/5 active:scale-[0.98]"
+                        style={{ minHeight: '44px' }}
                     >
                         <Maximize2 size={14} />
                         {currentYoutubeId ? 'WATCH OFFICIAL MV' : 'NO MV AVAILABLE'}
@@ -337,16 +374,23 @@ function AlbumDetailView({
 
                 {/* Card 2: Tracklist */}
                 <div className="flex-1 min-h-0 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-0 flex flex-col shadow-xl overflow-hidden">
-                    <div className="p-4 pb-2 flex items-center gap-4 border-b border-white/10">
-                        <div className="relative w-14 h-14 flex-shrink-0 group">
-                            <div className="absolute top-0 right-0 w-12 h-12 bg-black rounded-full ml-6 mt-1 transition-transform group-hover:translate-x-2" />
+                    <div className="p-3 sm:p-4 pb-2 flex items-center gap-3 sm:gap-4 border-b border-white/10">
+                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 group">
+                            {/* 비닐 디스크 */}
+                            <div className="absolute top-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-black via-gray-900 to-black rounded-full ml-6 mt-1 transition-transform group-hover:translate-x-2 shadow-xl">
+                                <div className="absolute inset-0 rounded-full" style={{
+                                    background: 'repeating-radial-gradient(circle at center, transparent 0%, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)'
+                                }} />
+                                <div className="absolute inset-[35%] bg-gray-700 rounded-full border border-gray-600" />
+                            </div>
+                            {/* 앨범 커버 */}
                             {currentAlbum.coverImageUrl && (
                                 <Image src={currentAlbum.coverImageUrl} alt="cover" fill className="relative z-10 rounded-md shadow-lg object-cover" />
                             )}
                         </div>
                         <div className="min-w-0 pt-1">
-                            <h3 className="text-white font-bold text-base truncate">{currentAlbum.title}</h3>
-                            <p className="text-gray-400 text-xs">{sortedTracks.length} Songs</p>
+                            <h3 className="text-white font-bold text-sm sm:text-base truncate">{currentAlbum.title}</h3>
+                            <p className="text-gray-400 text-[10px] sm:text-xs">{sortedTracks.length} Songs</p>
                         </div>
                     </div>
 
@@ -357,7 +401,8 @@ function AlbumDetailView({
                                 <div
                                     key={track.id}
                                     onClick={() => { playTrack(track); setPlaylist(sortedTracks); }}
-                                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition group hover:bg-white/5 ${isActive ? 'bg-white/10 border border-white/5' : ''}`}
+                                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition group hover:bg-white/5 active:bg-white/10 active:scale-[0.98] ${isActive ? 'bg-white/10 border border-white/5 shadow-lg shadow-wish-green/10' : ''}`}
+                                    style={{ minHeight: '44px', touchAction: 'manipulation' }}
                                 >
                                     <span className={`text-xs w-5 text-center flex justify-center ${isActive ? 'text-wish-green' : 'text-gray-500'}`}>
                                         {isActive ? <Volume2 size={14} className="animate-pulse" /> : track.trackNumber}
@@ -377,30 +422,41 @@ function AlbumDetailView({
                 </div>
 
                 {/* Card 3: Album Navigation */}
-                <div className="flex-none h-28 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2 flex items-center justify-between shadow-xl">
+                <div className="flex-none h-20 sm:h-24 md:h-28 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-1.5 sm:p-2 flex items-center justify-between shadow-xl">
                     <button
                         onClick={() => currentIndex > 0 && onNavigate(currentIndex - 1)}
                         disabled={currentIndex === 0}
-                        className="p-2 hover:bg-white/10 rounded-full disabled:opacity-30 transition text-white"
+                        className="p-2 hover:bg-white/10 active:bg-white/15 rounded-full disabled:opacity-30 transition text-white active:scale-95"
+                        style={{ minWidth: '44px', minHeight: '44px' }}
                     >
-                        <ChevronLeft size={20} />
+                        <ChevronLeft size={20} className="mx-auto" />
                     </button>
 
-                    <div className="flex-1 flex items-center justify-center gap-6 overflow-hidden h-full px-2">
-                        <div className="relative w-14 h-14 opacity-40 blur-[1px] scale-90 grayscale transition-all">
+                    <div className="flex-1 flex items-center justify-center gap-3 sm:gap-4 md:gap-6 overflow-hidden h-full px-1 sm:px-2">
+                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 opacity-40 blur-[1px] scale-90 grayscale transition-all">
                             {albums[currentIndex - 1]?.coverImageUrl && (
                                 <Image src={albums[currentIndex - 1].coverImageUrl!} alt="prev" fill className="object-cover rounded-md" />
                             )}
                         </div>
 
-                        <div className="relative w-20 h-20 z-10 transition-transform duration-300 hover:scale-105">
-                            <div className="absolute top-1/2 -right-3 w-16 h-16 -translate-y-1/2 bg-black rounded-full -z-10 shadow-lg" />
+                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 z-10 transition-transform duration-300 hover:scale-105">
+                            {/* 비닐 디스크 - 크기 및 위치 개선 */}
+                            <div className="absolute top-1/2 -right-3 sm:-right-4 w-12 h-12 sm:w-14 sm:h-14 md:w-18 md:h-18 -translate-y-1/2 bg-gradient-to-br from-black via-gray-900 to-black rounded-full -z-10 shadow-2xl">
+                                <div className="absolute inset-0 rounded-full" style={{
+                                    background: 'repeating-radial-gradient(circle at center, transparent 0%, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)'
+                                }} />
+                                <div className="absolute inset-[35%] bg-gray-700 rounded-full border border-gray-600" />
+                            </div>
                             {currentAlbum.coverImageUrl && (
-                                <Image src={currentAlbum.coverImageUrl} alt="current" fill className="object-cover rounded-md shadow-xl border border-white/10" />
+                                <>
+                                    <Image src={currentAlbum.coverImageUrl} alt="current" fill className="object-cover rounded-md shadow-xl border border-white/10" />
+                                    {/* 글로우 효과 */}
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-wish-green/20 to-blue-500/20 rounded-md blur-md -z-10 animate-pulse" />
+                                </>
                             )}
                         </div>
 
-                        <div className="relative w-14 h-14 opacity-40 blur-[1px] scale-90 grayscale transition-all">
+                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 opacity-40 blur-[1px] scale-90 grayscale transition-all">
                             {albums[currentIndex + 1]?.coverImageUrl && (
                                 <Image src={albums[currentIndex + 1].coverImageUrl!} alt="next" fill className="object-cover rounded-md" />
                             )}
@@ -410,16 +466,18 @@ function AlbumDetailView({
                     <button
                         onClick={() => currentIndex < albums.length - 1 && onNavigate(currentIndex + 1)}
                         disabled={currentIndex === albums.length - 1}
-                        className="p-2 hover:bg-white/10 rounded-full disabled:opacity-30 transition text-white"
+                        className="p-2 hover:bg-white/10 active:bg-white/15 rounded-full disabled:opacity-30 transition text-white active:scale-95"
+                        style={{ minWidth: '44px', minHeight: '44px' }}
                     >
-                        <ChevronRight size={20} />
+                        <ChevronRight size={20} className="mx-auto" />
                     </button>
                 </div>
             </div>
 
             <button
                 onClick={onBack}
-                className="absolute top-4 left-4 z-20 md:hidden bg-black/50 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md"
+                className="absolute top-4 left-4 z-20 md:hidden bg-black/50 hover:bg-black/70 active:bg-black/80 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md active:scale-95 transition"
+                style={{ minHeight: '44px', minWidth: '60px' }}
             >
                 ← List
             </button>

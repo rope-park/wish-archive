@@ -229,8 +229,13 @@ export default function Home() {
         setIsViewportTooSmall(false);
       }
 
-      // Taskbar 높이 계산 (반응형)
-      const currentTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT;
+      // Taskbar 높이 계산 (반응형 - 화면 크기에 따라 달라짐)
+      let currentTaskbarHeight: number = LAYOUT_CONSTANTS.TASKBAR_HEIGHT; // 기본 48px
+      if (currentViewportWidth < 768) {
+        currentTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_MOBILE; // 64px
+      } else if (currentViewportWidth < 1024) {
+        currentTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_TABLET; // 56px
+      }
       setTaskbarHeight(currentTaskbarHeight);
 
       // 아이콘 크기 계산 (위젯보다 먼저 계산 필요 - 아이콘 영역 높이 계산에 사용)

@@ -69,9 +69,16 @@ export default function DraggableWidget({
     };
 
     const updateBounds = () => {
-      // 태스크바 높이 48px을 제외한 영역으로 제한
-      const taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT; // 48px
-      const iconAreaWidth = window.innerWidth < 768 ? 0 : LAYOUT_CONSTANTS.ICON_AREA_WIDTH_DESKTOP;
+      // 태스크바 높이를 화면 크기에 따라 동적으로 계산
+      const width = window.innerWidth;
+      let taskbarHeight: number = LAYOUT_CONSTANTS.TASKBAR_HEIGHT; // 기본 48px
+      if (width < 768) {
+        taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_MOBILE; // 64px
+      } else if (width < 1024) {
+        taskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_TABLET; // 56px
+      }
+      
+      const iconAreaWidth = width < 768 ? 0 : LAYOUT_CONSTANTS.ICON_AREA_WIDTH_DESKTOP;
       const viewportHeight = window.innerHeight;
       const padding = LAYOUT_CONSTANTS.PADDING;
       

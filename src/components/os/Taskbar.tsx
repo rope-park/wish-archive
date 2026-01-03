@@ -135,11 +135,11 @@ function SystemTray() {
       {/* Vaccine: 지루함 방지 시스템 */}
       <Tooltip content="Anti-Boredom 가동 중..." position="top">
         <div className="
-          w-7 h-7 flex items-center justify-center 
+          w-8 h-8 md:w-7 md:h-7 flex items-center justify-center 
           cursor-help hover:scale-110 transition-transform
           active:scale-95
-        " style={{ minWidth: '36px', minHeight: '36px' }}>
-          <span className="text-sm filter drop-shadow-sm">🛡️</span>
+        ">
+          <span className="text-base md:text-sm filter drop-shadow-sm">🛡️</span>
         </div>
       </Tooltip>
 
@@ -168,18 +168,17 @@ function SystemTray() {
       {/* Heart: 위츄 체력 상태 */}
       <Tooltip content="WICHU HP: 100%">
         <div className="
-          w-7 h-7 flex items-center justify-center 
+          w-8 h-8 md:w-7 md:h-7 flex items-center justify-center 
           cursor-default animate-pulse
-        " style={{ minWidth: '36px', minHeight: '36px' }}>
-          <span className="text-xs text-green-400 drop-shadow-[1px_1px_0_#000]">❤</span>
+        ">
+          <span className="text-sm md:text-xs text-green-400 drop-shadow-[1px_1px_0_#000]">❤</span>
         </div>
       </Tooltip>
 
       {/* Network: 연결 상태 */}
       <Tooltip content="WISH World와 연결됨">
-        <div className="w-7 h-7 flex items-center justify-center cursor-help"
-          style={{ minWidth: '36px', minHeight: '36px' }}>
-          <span className="text-sm">📶</span>
+        <div className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center cursor-help">
+          <span className="text-base md:text-sm">📶</span>
         </div>
       </Tooltip>
 
@@ -190,17 +189,15 @@ function SystemTray() {
           onClick={handleIconClick(toggleMute)}
           onTouchEnd={handleIconClick(toggleMute)}
           className="
-            w-7 h-7 flex items-center justify-center 
+            w-8 h-8 md:w-7 md:h-7 flex items-center justify-center 
             hover:bg-gray-300 active:translate-y-[1px] active:scale-95 rounded-sm
             transition-transform
           "
           style={{
-            minWidth: '36px',
-            minHeight: '36px',
             touchAction: 'manipulation',
           }}
         >
-          <span className="text-sm">{isMuted ? '🔇' : '🔊'}</span>
+          <span className="text-base md:text-sm">{isMuted ? '🔇' : '🔊'}</span>
         </button>
       </Tooltip>
     </div>
@@ -228,7 +225,8 @@ export default function Taskbar() {
     <nav className="
       fixed bottom-0 left-0 right-0
       z-[var(--z-taskbar)]
-      h-[48px] min-h-[48px]
+      h-16 md:h-14 lg:h-12
+      min-h-[64px] md:min-h-[56px] lg:min-h-[48px]
       pb-safe
       bg-[#c0c0c0]
       border-t-2 border-white
@@ -243,7 +241,7 @@ export default function Taskbar() {
       <Divider orientation="vertical" />
 
       {/* 윈도우 태스크 탭 영역 */}
-      <div className="flex-1 flex items-center gap-0.5 md:gap-1 lg:gap-2 overflow-x-auto no-scrollbar h-full">
+      <div className="flex-1 flex items-center gap-0.5 md:gap-1 lg:gap-2 overflow-x-auto overflow-y-hidden no-scrollbar h-full">
         {windows.map((win) => {
           const isActive = activeWindowId === win.id && !win.isMinimized;
 
@@ -260,6 +258,7 @@ export default function Taskbar() {
                 transition-all select-none
                 pointer-events-auto
                 active:scale-95
+                shrink-0
 
                 ${isActive
                   ? 'bg-white shadow-inset border-gray-600 font-bold -translate-y-[1px]'

@@ -355,8 +355,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 top: `${8 * scale}px`,
                 fontSize: `${9 * scale}px`,
-                minWidth: isTouchDevice ? '44px' : 'auto',
-                minHeight: isTouchDevice ? '44px' : 'auto',
+                padding: isTouchDevice ? `${Math.max(12, 8 * scale)}px` : `${4 * scale}px`,
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -372,8 +371,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 left: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
-                minWidth: isTouchDevice ? '44px' : 'auto',
-                minHeight: isTouchDevice ? '44px' : 'auto',
+                padding: isTouchDevice ? `${Math.max(10, 6 * scale)}px` : `${4 * scale}px`,
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -389,8 +387,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 right: `${8 * scale}px`,
                 fontSize: `${16 * scale}px`,
-                minWidth: isTouchDevice ? '44px' : 'auto',
-                minHeight: isTouchDevice ? '44px' : 'auto',
+                padding: isTouchDevice ? `${Math.max(10, 6 * scale)}px` : `${4 * scale}px`,
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -406,8 +403,7 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               style={{
                 bottom: `${8 * scale}px`,
                 fontSize: `${14 * scale}px`,
-                minWidth: isTouchDevice ? '44px' : 'auto',
-                minHeight: isTouchDevice ? '44px' : 'auto',
+                padding: isTouchDevice ? `${Math.max(10, 6 * scale)}px` : `${4 * scale}px`,
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -424,6 +420,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             style={{
               width: `${20 * scale}px`,
               height: `${20 * scale}px`,
+              maxWidth: isTouchDevice ? `${Math.min(44, 20 * scale)}px` : undefined,
+              maxHeight: isTouchDevice ? `${Math.min(44, 20 * scale)}px` : undefined,
               borderWidth: `${1 * scale}px`,
               touchAction: 'manipulation',
             }}

@@ -223,6 +223,21 @@ function AlbumDetailView({
     const { currentTrack, isPlaying, playTrack, togglePlay, setPlaylist, playlist } = useAudioStore();
     const [isFullscreen, setIsFullscreen] = useState(false);
 
+    // 이전/다음 트랙 이동 함수
+    const playPrevTrack = () => {
+        if (sortedTracks.length === 0) return;
+        const currentIdx = sortedTracks.findIndex(t => t.id === currentTrack?.id);
+        const prevIdx = currentIdx <= 0 ? sortedTracks.length - 1 : currentIdx - 1;
+        playTrack(sortedTracks[prevIdx]);
+    };
+
+    const playNextTrack = () => {
+        if (sortedTracks.length === 0) return;
+        const currentIdx = sortedTracks.findIndex(t => t.id === currentTrack?.id);
+        const nextIdx = currentIdx >= sortedTracks.length - 1 ? 0 : currentIdx + 1;
+        playTrack(sortedTracks[nextIdx]);
+    };
+
     // 자동 재생 및 동기화 로직
     useEffect(() => {
         if (sortedTracks.length === 0) return;
@@ -339,6 +354,7 @@ function AlbumDetailView({
 
                             <div className="flex items-center gap-2 sm:gap-4">
                                 <button 
+                                    onClick={playPrevTrack}
                                     className="text-gray-300 hover:text-white transition active:scale-95 p-2 -m-2"
                                     style={{ minWidth: '44px', minHeight: '44px' }}
                                 >
@@ -352,6 +368,7 @@ function AlbumDetailView({
                                     {isPlaying ? <Pause size={16} className="sm:w-[18px] sm:h-[18px]" fill="black" /> : <Play size={16} className="sm:w-[18px] sm:h-[18px] ml-0.5" fill="black" />}
                                 </button>
                                 <button 
+                                    onClick={playNextTrack}
                                     className="text-gray-300 hover:text-white transition active:scale-95 p-2 -m-2"
                                     style={{ minWidth: '44px', minHeight: '44px' }}
                                 >

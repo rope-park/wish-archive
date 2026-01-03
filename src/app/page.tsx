@@ -286,7 +286,8 @@ export default function Home() {
       const safeStartX = ICON_AREA_WIDTH + PADDING;
       const safeWidth = currentViewportWidth - safeStartX - PADDING;
       const safeStartY = ICON_AREA_HEIGHT + PADDING;
-      const safeHeight = viewportHeight - currentTaskbarHeight - ICON_AREA_HEIGHT - (PADDING * 2);
+      const taskbarBuffer = 100; // 추가 여유 공간
+      const safeHeight = viewportHeight - currentTaskbarHeight - ICON_AREA_HEIGHT - (PADDING * 2) - taskbarBuffer;
 
       // 화면 크기에 따른 scale 계산 (더 넓은 범위로 동적 조정)
       let scale = 1;

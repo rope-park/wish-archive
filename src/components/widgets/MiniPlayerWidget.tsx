@@ -353,10 +353,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
               className="absolute left-1/2 -translate-x-1/2 font-bold text-gray-600 hover:text-black active:text-black transition-colors tracking-tighter no-drag flex items-center justify-center z-20"
               style={{
-                top: `${8 * scale}px`,
-                fontSize: `${9 * scale}px`,
-                minWidth: isTouchDevice ? '36px' : 'auto',
-                minHeight: isTouchDevice ? '36px' : 'auto',
+                top: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
+                fontSize: `${(scale < 0.7 ? 8 : 9) * scale}px`,
+                minWidth: isTouchDevice ? '32px' : 'auto',
+                minHeight: isTouchDevice ? '32px' : 'auto',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -370,10 +370,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playPrev(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
-                left: `${8 * scale}px`,
-                fontSize: `${16 * scale}px`,
-                minWidth: isTouchDevice ? '36px' : 'auto',
-                minHeight: isTouchDevice ? '36px' : 'auto',
+                left: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
+                fontSize: `${(scale < 0.7 ? 12 : 16) * scale}px`,
+                minWidth: isTouchDevice ? '32px' : 'auto',
+                minHeight: isTouchDevice ? '32px' : 'auto',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -387,10 +387,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); playNext(); }}
               className="absolute top-1/2 -translate-y-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
-                right: `${8 * scale}px`,
-                fontSize: `${16 * scale}px`,
-                minWidth: isTouchDevice ? '36px' : 'auto',
-                minHeight: isTouchDevice ? '36px' : 'auto',
+                right: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
+                fontSize: `${(scale < 0.7 ? 12 : 16) * scale}px`,
+                minWidth: isTouchDevice ? '32px' : 'auto',
+                minHeight: isTouchDevice ? '32px' : 'auto',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -404,10 +404,10 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
               onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
               className="absolute left-1/2 -translate-x-1/2 text-gray-600 hover:text-black active:text-black transition-colors no-drag flex items-center justify-center z-20"
               style={{
-                bottom: `${8 * scale}px`,
-                fontSize: `${14 * scale}px`,
-                minWidth: isTouchDevice ? '36px' : 'auto',
-                minHeight: isTouchDevice ? '36px' : 'auto',
+                bottom: scale < 0.7 ? `${6 * scale}px` : `${8 * scale}px`,
+                fontSize: `${(scale < 0.7 ? 12 : 14) * scale}px`,
+                minWidth: isTouchDevice ? '32px' : 'auto',
+                minHeight: isTouchDevice ? '32px' : 'auto',
                 touchAction: 'manipulation',
                 pointerEvents: 'auto',
               }}
@@ -422,8 +422,8 @@ export default function MiniPlayer({ scale = 1 }: { scale?: number }) {
             onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); togglePlay(); }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_30%,#ffffff_0%,#d0d0d0_60%,#a0a0a0_100%)] shadow-[0_2px_4px_rgba(0,0,0,0.2),inset_0_1px_2px_rgba(255,255,255,0.8)] border-[#b0b0b0] shadow-[0_2px_5px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.3)] active:scale-95 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-transform no-drag z-30"
             style={{
-              width: `${20 * scale}px`,
-              height: `${20 * scale}px`,
+              width: `${(scale < 0.7 ? 14 : 20) * scale}px`,
+              height: `${(scale < 0.7 ? 14 : 20) * scale}px`,
               borderWidth: `${1 * scale}px`,
               touchAction: 'manipulation',
             }}

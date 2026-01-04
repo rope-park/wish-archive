@@ -13,8 +13,6 @@ import { PrismaClient, Language, ScriptType } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 
-const prisma = new PrismaClient();
-
 // LRC 파일 읽기
 function readLRCFile(fileName: string): string | null {
   const lrcPath = path.join(process.cwd(), 'content', 'lyrics', fileName);
@@ -31,7 +29,7 @@ function generatePlaceholderLRC(language: string): string {
 [00:10.00][ALL] This is just a placeholder`;
 }
 
-export async function seedLyrics() {
+export async function seedLyrics(prisma: PrismaClient) {
   console.log('🎵 Seeding lyrics structure...');
 
   // 모든 트랙 가져오기
@@ -47,8 +45,11 @@ export async function seedLyrics() {
     // 트랙의 언어 확인
     const primaryLanguage = track.language;
     
+    console.log(`\n🎵 Processing: ${track.title} (${primaryLanguage})`);
+    console.log(`  → trackId: ${track.id}`);
+    
     // 트랙 타이틀을 파일명으로 변환 (버전 정보 처리 포함)
-    const trackSlug = track.title.toLowerCase()
+    let trackSlug = track.title.toLowerCase()
       // 버전 표기 변환
       .replace(/\(japanese\s*ver\.?\)/gi, '-jpver')
       .replace(/\(korean\s*ver\.?\)/gi, '-krver')
@@ -65,10 +66,19 @@ export async function seedLyrics() {
       // 앞뒤 하이픈 제거
       .replace(/^-|-$/g, '');
     
+    // 타이틀에 버전 정보가 없지만 JAPANESE 언어인 경우 -jpver 추가
+    if (primaryLanguage === Language.JAPANESE && !trackSlug.includes('jpver') && !trackSlug.includes('krver')) {
+      trackSlug = trackSlug + '-jpver';
+    }
+    
+    console.log(`  → trackSlug: ${trackSlug}`);
+    
     // 기본 언어 가사 생성 (일본어 또는 한국어)
     const primaryLRCFileName = `${trackSlug}-${primaryLanguage.toLowerCase()}.lrc`;
     const primaryLRCContent = readLRCFile(primaryLRCFileName) || generatePlaceholderLRC(primaryLanguage);
+    console.log(`  → Primary LRC: ${primaryLRCFileName} (${primaryLRCContent ? 'FOUND' : 'PLACEHOLDER'})`);
     
+    console.log(`  → Upserting primary lyrics...`);
     const primaryLyric = await prisma.trackLyric.upsert({
       where: {
         trackId_language_script: {
@@ -89,10 +99,13 @@ export async function seedLyrics() {
         lrcContent: primaryLRCContent,
       }
     });
+    console.log(`  → Primary upserted: ${primaryLyric.id}`);
 
-    // 로마자 표기 생성
+    // 로마자 표기 생성 (버전 정보 포함)
     const romanizedLRCFileName = `${trackSlug}-romanized.lrc`;
     const romanizedLRCContent = readLRCFile(romanizedLRCFileName) || generatePlaceholderLRC('Romanized');
+    console.log(`  → Romanized LRC: ${romanizedLRCFileName} (${romanizedLRCContent ? 'FOUND' : 'PLACEHOLDER'})`);
+    console.log(`  → Upserting romanized with trackId=${track.id}, language=${primaryLanguage}, script=ROMANTIZED`);
     
     const romanizedLyric = await prisma.trackLyric.upsert({
       where: {
@@ -119,51 +132,57 @@ export async function seedLyrics() {
     if (primaryLanguage === Language.KOREAN) {
       const japaneseLRCFileName = `${trackSlug}-japanese.lrc`;
       const japaneseLRCContent = readLRCFile(japaneseLRCFileName);
+      console.log(`  → Translation (JP): ${japaneseLRCFileName} (${japaneseLRCContent ? 'FOUND' : 'NOT FOUND'})`);
       
-      await prisma.trackLyric.upsert({
-        where: {
-          trackId_language_script: {
+      if (japaneseLRCContent) {
+        await prisma.trackLyric.upsert({
+          where: {
+            trackId_language_script: {
+              trackId: track.id,
+              language: Language.JAPANESE,
+              script: ScriptType.NATIVE
+            }
+          },
+          update: {
+            lrcContent: japaneseLRCContent,
+          },
+          create: {
             trackId: track.id,
             language: Language.JAPANESE,
-            script: ScriptType.NATIVE
+            script: ScriptType.NATIVE,
+            isOfficial: false,
+            text: `Japanese translation for ${track.title} (optional)`,
+            lrcContent: japaneseLRCContent,
           }
-        },
-        update: {
-          lrcContent: japaneseLRCContent,
-        },
-        create: {
-          trackId: track.id,
-          language: Language.JAPANESE,
-          script: ScriptType.NATIVE,
-          isOfficial: false,
-          text: `Japanese translation for ${track.title} (optional)`,
-          lrcContent: japaneseLRCContent,
-        }
-      });
+        });
+      }
     } else if (primaryLanguage === Language.JAPANESE) {
       const koreanLRCFileName = `${trackSlug}-korean.lrc`;
       const koreanLRCContent = readLRCFile(koreanLRCFileName);
+      console.log(`  → Translation (KR): ${koreanLRCFileName} (${koreanLRCContent ? 'FOUND' : 'NOT FOUND'})`);
       
-      await prisma.trackLyric.upsert({
-        where: {
-          trackId_language_script: {
+      if (koreanLRCContent) {
+        await prisma.trackLyric.upsert({
+          where: {
+            trackId_language_script: {
+              trackId: track.id,
+              language: Language.KOREAN,
+              script: ScriptType.NATIVE
+            }
+          },
+          update: {
+            lrcContent: koreanLRCContent,
+          },
+          create: {
             trackId: track.id,
             language: Language.KOREAN,
-            script: ScriptType.NATIVE
+            script: ScriptType.NATIVE,
+            isOfficial: false,
+            text: `Korean translation for ${track.title} (optional)`,
+            lrcContent: koreanLRCContent,
           }
-        },
-        update: {
-          lrcContent: koreanLRCContent,
-        },
-        create: {
-          trackId: track.id,
-          language: Language.KOREAN,
-          script: ScriptType.NATIVE,
-          isOfficial: false,
-          text: `Korean translation for ${track.title} (optional)`,
-          lrcContent: koreanLRCContent,
-        }
-      });
+        });
+      }
     }
 
     created++;

@@ -23,6 +23,8 @@ interface YouTubePlayer {
   getCurrentTime: () => number;
   getDuration: () => number;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  setPlaybackQuality: (quality: string) => void;
+  getPlaybackQuality: () => string;
 }
 
 interface AudioStore {
@@ -38,6 +40,14 @@ interface AudioStore {
   playMode: PlayMode; // 재생 모드
   shuffledPlaylist: Track[]; // 셔플된 플레이리스트
   isLoading: boolean; // 로딩 상태
+  queue: Track[]; // 재생 큐
+  playbackRate: number; // 재생 속도 (0.5 ~ 2.0)
+  sleepTimer: number | null; // 수면 타이머 (milliseconds)
+  showQueue: boolean; // 큐 보기 여부
+  showMiniPlayer: boolean; // 미니 플레이어 표시 여부
+  miniPlayerExpanded: boolean; // 미니 플레이어 확장 상태
+  miniPlayerPosition: { x: number; y: number }; // 미니 플레이어 위치
+  themeColor: string | null; // 앨범 아트 기반 테마 색상
   
   // 액션
   setMuted: (muted: boolean) => void;
@@ -54,6 +64,19 @@ interface AudioStore {
   playNext: () => void;
   playPrev: () => void;
   setLoading: (loading: boolean) => void;
+  addToQueue: (track: Track) => void;
+  addNextInQueue: (track: Track) => void;
+  removeFromQueue: (index: number) => void;
+  reorderQueue: (fromIndex: number, toIndex: number) => void;
+  clearQueue: () => void;
+  setQueue: (tracks: Track[]) => void;
+  toggleQueue: () => void;
+  setPlaybackRate: (rate: number) => void;
+  setSleepTimer: (minutes: number | null) => void;
+  toggleMiniPlayer: () => void;
+  setMiniPlayerExpanded: (expanded: boolean) => void;
+  setMiniPlayerPosition: (position: { x: number; y: number }) => void;
+  setThemeColor: (color: string | null) => void;
 }
 
 export const useAudioStore = create<AudioStore>((set, get) => ({
@@ -69,6 +92,14 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
   playMode: 'normal',
   shuffledPlaylist: [],
   isLoading: false,
+  queue: [],
+  playbackRate: 1.0,
+  sleepTimer: null,
+  showQueue: false,
+  showMiniPlayer: false,
+  miniPlayerExpanded: false,
+  miniPlayerPosition: { x: 20, y: 20 },
+  themeColor: null,
   
   // 음소거 설정
   setMuted: (muted) => {
@@ -148,7 +179,17 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
 
   // 다음 곡 재생
   playNext: () => {
-    const { playlist, shuffledPlaylist, currentTrack, playMode } = get();
+    const { playlist, shuffledPlaylist, currentTrack, playMode, queue } = get();
+    
+    // 1. 큐에 곡이 있으면 큐에서 재생
+    if (queue.length > 0) {
+      const nextTrack = queue[0];
+      get().playTrack(nextTrack);
+      get().removeFromQueue(0); // 큐에서 제거
+      return;
+    }
+    
+    // 2. 큐가 비어있으면 플레이리스트에서 재생
     if (playlist.length === 0) return;
 
     const activeList = playMode === 'shuffle' ? shuffledPlaylist : playlist;
@@ -188,5 +229,95 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
   // 로딩 상태 설정
   setLoading: (loading) => {
     set({ isLoading: loading });
+  },
+
+  // 재생 큐 끝에 추가
+  addToQueue: (track) => {
+    set((state) => ({ queue: [...state.queue, track] }));
+  },
+
+  // 다음에 재생 (큐 맨 앞에 추가)
+  addNextInQueue: (track) => {
+    set((state) => ({ queue: [track, ...state.queue] }));
+  },
+
+  // 큐에서 제거
+  removeFromQueue: (index) => {
+    set((state) => ({
+      queue: state.queue.filter((_, i) => i !== index)
+    }));
+  },
+
+  // 큐 순서 변경
+  reorderQueue: (fromIndex, toIndex) => {
+    set((state) => {
+      const newQueue = [...state.queue];
+      const [removed] = newQueue.splice(fromIndex, 1);
+      newQueue.splice(toIndex, 0, removed);
+      return { queue: newQueue };
+    });
+  },
+
+  // 큐 비우기
+  clearQueue: () => {
+    set({ queue: [] });
+  },
+
+  // 큐 설정
+  setQueue: (tracks) => {
+    set({ queue: tracks });
+  },
+
+  // 큐 보기 토글
+  toggleQueue: () => {
+    set((state) => ({ showQueue: !state.showQueue }));
+  },
+
+  // 재생 속도 설정
+  setPlaybackRate: (rate) => {
+    const clampedRate = Math.max(0.5, Math.min(2.0, rate));
+    set({ playbackRate: clampedRate });
+    const { playerRef } = get();
+    if (playerRef && typeof (playerRef as any).setPlaybackRate === 'function') {
+      (playerRef as any).setPlaybackRate(clampedRate);
+    }
+  },
+
+  // 수면 타이머 설정
+  setSleepTimer: (minutes) => {
+    if (minutes === null) {
+      set({ sleepTimer: null });
+      return;
+    }
+    const timer = Date.now() + minutes * 60 * 1000;
+    set({ sleepTimer: timer });
+    
+    setTimeout(() => {
+      const { sleepTimer } = get();
+      if (sleepTimer && Date.now() >= sleepTimer) {
+        get().togglePlay(); // 일시정지
+        set({ sleepTimer: null });
+      }
+    }, minutes * 60 * 1000);
+  },
+
+  // 미니 플레이어 토글
+  toggleMiniPlayer: () => {
+    set((state) => ({ showMiniPlayer: !state.showMiniPlayer }));
+  },
+
+  // 미니 플레이어 확장/축소
+  setMiniPlayerExpanded: (expanded) => {
+    set({ miniPlayerExpanded: expanded });
+  },
+
+  // 미니 플레이어 위치 설정
+  setMiniPlayerPosition: (position) => {
+    set({ miniPlayerPosition: position });
+  },
+
+  // 테마 색상 설정
+  setThemeColor: (color) => {
+    set({ themeColor: color });
   },
 }));

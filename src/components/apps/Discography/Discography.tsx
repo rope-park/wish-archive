@@ -7,11 +7,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Album, Track } from '@prisma/client';
 import { useAudioStore } from '@/app/stores/useAudioStore';
+import { parseLRC, getCurrentLyricIndex, searchLyrics, type LyricLine } from '@/lib/lrc-parser';
 import Image from 'next/image';
 import {
     Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2,
     Music, ChevronLeft, ChevronRight, Volume2, Shuffle, Repeat, Repeat1, Loader2, Search, Filter,
-    Heart, Share2, BarChart2, List
+    Heart, Share2, BarChart2, List, X, Clock, Gauge, ListMusic, Plus, GripVertical, MonitorPlay, Settings
 } from 'lucide-react';
 
 // ------------------------------------------------------------------
@@ -25,15 +26,22 @@ interface DiscographyProps {
     onClose?: () => void;
 }
 
+interface Member {
+    nameEn: string;
+    colorCode: string;
+}
+
 // ------------------------------------------------------------------
 // YouTube API용 컴포넌트
 // ------------------------------------------------------------------
 function YouTubeBackground({
     videoId,
-    isFullscreen
+    isFullscreen,
+    playbackRate
 }: {
     videoId: string | null,
-    isFullscreen: boolean
+    isFullscreen: boolean,
+    playbackRate: number
 }) {
     const { setPlayerRef, isPlaying, volume, isMuted, setLoading } = useAudioStore();
     const playerInstanceRef = useRef<YT.Player | null>(null); // YT.Player 인스턴스
@@ -157,6 +165,14 @@ function YouTubeBackground({
             }
         }
     }, [isPlaying]);
+
+    // 3. 재생 속도 변경 시 플레이어에 적용
+    useEffect(() => {
+        const player = playerInstanceRef.current;
+        if (player && typeof player.setPlaybackRate === 'function') {
+            player.setPlaybackRate(playbackRate);
+        }
+    }, [playbackRate]);
 
     // videoId가 없어도 컨테이너는 유지 (플레이어 재초기화를 위해)
     return (
@@ -463,11 +479,55 @@ function AlbumDetailView({
         currentTrack, isPlaying, playTrack, togglePlay, setPlaylist, playlist, 
         playerRef, setCurrentTime, setDuration, seekTo, currentTime, duration, 
         volume, isMuted, setVolume, setMuted,
-        playMode, setPlayMode, playNext, playPrev, isLoading
+        playMode, setPlayMode, playNext, playPrev, isLoading,
+        queue, showQueue, toggleQueue, addToQueue, addNextInQueue, removeFromQueue, clearQueue,
+        playbackRate, setPlaybackRate, sleepTimer, setSleepTimer, toggleMiniPlayer
     } = useAudioStore();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [favorites, setFavorites] = useState<Set<string>>(new Set());
     const [showLyrics, setShowLyrics] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    const [showQuality, setShowQuality] = useState(false);
+    const [quality, setQuality] = useState<'hd1080' | 'hd720' | 'large' | 'medium'>('hd1080');
+    const [lyrics, setLyrics] = useState<LyricLine[]>([]);
+    const [lyricLanguage, setLyricLanguage] = useState<'native' | 'translation' | 'romanized'>('native');
+    const [showRomanized, setShowRomanized] = useState(false);
+    const [lyricSearch, setLyricSearch] = useState('');
+    const [searchResults, setSearchResults] = useState<number[]>([]);
+    const [currentTimestamp, setCurrentTimestamp] = useState(0);
+    const [allLyrics, setAllLyrics] = useState<Record<string, { language: string; script: string; lrcContent?: string; text?: string }>>({});
+    const [memberColors, setMemberColors] = useState<Record<string, string>>({});
+    const lyricContainerRef = useRef<HTMLDivElement>(null);
+
+    // 멤버 컬러 로드
+    useEffect(() => {
+        fetch('/api/members')
+            .then(res => res.json())
+            .then((members: Member[]) => {
+                const colors: Record<string, string> = {};
+                members.forEach((member) => {
+                    colors[member.nameEn] = member.colorCode;
+                });
+                setMemberColors(colors);
+            })
+            .catch(err => console.error('Failed to load member colors:', err));
+    }, []);
+
+    // 멤버별 컬러 가져오기
+    const getMemberColor = (memberName: string): string => {
+        if (memberName === 'ALL') return '#FFFFFF';
+        
+        // 여러 멤버인 경우 (쉼표로 구분)
+        const members = memberName.split(',').map(m => m.trim());
+        
+        if (members.length === 1) {
+            return memberColors[members[0]] || '#FFFFFF';
+        }
+        
+        // 여러 멤버: 그라데이션 생성
+        const colors = members.map(m => memberColors[m] || '#FFFFFF');
+        return `linear-gradient(90deg, ${colors.join(', ')})`;
+    };
 
     // localStorage에서 즐겨찾기 로드
     useEffect(() => {
@@ -528,6 +588,87 @@ function AlbumDetailView({
         }, 500);
         return () => clearInterval(interval);
     }, [playerRef, isPlaying, setCurrentTime, setDuration]);
+
+    // 가사 로딩
+    useEffect(() => {
+        if (currentTrack && showLyrics) {
+            fetch(`/api/lyrics/${currentTrack.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        // 모든 가사 저장
+                        const lyricsMap: Record<string, { language: string; script: string; lrcContent?: string; text?: string }> = {};
+                        data.forEach((l: { language: string; script: string; lrcContent?: string; text?: string }) => {
+                            const key = `${l.language}_${l.script}`;
+                            lyricsMap[key] = l;
+                        });
+                        setAllLyrics(lyricsMap);
+
+                        // 기본 언어 가사 설정 (트랙 언어)
+                        const primaryKey = `${currentTrack.language}_NATIVE`;
+                        const primaryLyric = lyricsMap[primaryKey];
+                        
+                        if (primaryLyric && primaryLyric.lrcContent) {
+                            const parsedLyrics = parseLRC(primaryLyric.lrcContent);
+                            setLyrics(parsedLyrics);
+                        } else if (primaryLyric && primaryLyric.text) {
+                            const lines = primaryLyric.text.split('\n').map((text: string, idx: number) => ({
+                                time: idx * 2,
+                                text
+                            }));
+                            setLyrics(lines);
+                        } else {
+                            setLyrics([]);
+                        }
+                    } else {
+                        setLyrics([]);
+                        setAllLyrics({});
+                    }
+                })
+                .catch(() => {
+                    setLyrics([]);
+                    setAllLyrics({});
+                });
+        }
+    }, [currentTrack, showLyrics]);
+
+    // 가사 자동 스크롤
+    useEffect(() => {
+        if (!showLyrics || lyrics.length === 0 || !lyricContainerRef.current) return;
+
+        const currentIndex = getCurrentLyricIndex(lyrics, currentTime);
+        if (currentIndex >= 0) {
+            const lyricElements = lyricContainerRef.current.querySelectorAll('.lyric-line');
+            const currentElement = lyricElements[currentIndex] as HTMLElement;
+            if (currentElement) {
+                currentElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+    }, [currentTime, lyrics, showLyrics]);
+
+    // 가사 검색
+    useEffect(() => {
+        if (lyricSearch && lyrics.length > 0) {
+            const results = searchLyrics(lyrics, lyricSearch);
+            // eslint-disable-next-line
+            setSearchResults(results);
+        } else {
+            setSearchResults([]);
+        }
+    }, [lyricSearch, lyrics]);
+
+    // 타이머 표시를 위한 timestamp 업데이트 (1초마다)
+    useEffect(() => {
+        if (sleepTimer) {
+            const interval = setInterval(() => {
+                setCurrentTimestamp(Date.now());
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [sleepTimer]);
 
     // 키보드 단축키
     useEffect(() => {
@@ -603,8 +744,77 @@ function AlbumDetailView({
     return (
         <div className="relative w-full h-full overflow-hidden flex flex-col md:flex-row">
 
+            {/* Queue Panel - Slide from right */}
+            <div className={`absolute top-0 right-0 z-50 h-full w-full sm:w-80 bg-black/95 backdrop-blur-xl border-l border-white/20 shadow-2xl transition-transform duration-300 ${showQueue ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+                <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <ListMusic size={18} className="text-wish-green" />
+                        <h3 className="text-white font-bold text-sm">Play Queue</h3>
+                        <span className="text-xs text-gray-400">({queue.length})</span>
+                    </div>
+                    <button
+                        onClick={toggleQueue}
+                        className="p-2 hover:bg-white/10 rounded-lg transition active:scale-95"
+                        style={{ minWidth: '44px', minHeight: '44px' }}
+                    >
+                        <X size={18} className="text-gray-400" />
+                    </button>
+                </div>
+
+                {queue.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-gray-500 text-sm px-6 text-center">
+                        Queue is empty. Add tracks to play next!
+                    </div>
+                ) : (
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                        {queue.map((track, idx) => (
+                            <div
+                                key={`${track.id}-${idx}`}
+                                className={`group flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition ${currentTrack?.id === track.id ? 'bg-wish-green/20 border border-wish-green/30' : 'bg-white/5'}`}
+                            >
+                                <div className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-white transition" title="Drag to reorder">
+                                    <GripVertical size={16} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white text-xs font-medium truncate">{track.title}</p>
+                                    <p className="text-gray-400 text-[10px] truncate">Track {track.trackNumber}</p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => playTrack(track)}
+                                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded transition"
+                                        title="Play Now"
+                                    >
+                                        <Play size={14} className="text-wish-green" />
+                                    </button>
+                                    <button
+                                        onClick={() => removeFromQueue(idx)}
+                                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded transition"
+                                        title="Remove"
+                                    >
+                                        <X size={14} className="text-red-400" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {queue.length > 0 && (
+                    <div className="p-4 border-t border-white/10">
+                        <button
+                            onClick={clearQueue}
+                            className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 text-red-400 text-xs font-medium rounded-lg transition active:scale-[0.98]"
+                            style={{ minHeight: '44px' }}
+                        >
+                            Clear All
+                        </button>
+                    </div>
+                )}
+            </div>
+
             {/* 1. Background Player (Controlled via Store) */}
-            <YouTubeBackground videoId={currentYoutubeId} isFullscreen={isFullscreen} />
+            <YouTubeBackground videoId={currentYoutubeId} isFullscreen={isFullscreen} playbackRate={playbackRate} />
 
             {/* Fallback Background if no video */}
             {!currentYoutubeId && (
@@ -827,6 +1037,126 @@ function AlbumDetailView({
                         </button>
                     </div>
 
+                    {/* 추가 컨트롤: 재생속도, 수면타이머, 큐 */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => {
+                                const rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+                                const currentIdx = rates.indexOf(playbackRate);
+                                const nextRate = rates[(currentIdx + 1) % rates.length];
+                                setPlaybackRate(nextRate);
+                            }}
+                            className="flex-1 py-2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border border-white/5 active:scale-[0.98]"
+                            style={{ minHeight: '44px' }}
+                            title="Playback Speed"
+                        >
+                            <Gauge size={14} />
+                            {playbackRate}x
+                        </button>
+                        <button
+                            onClick={() => setShowSettings(!showSettings)}
+                            className={`flex-1 py-2 ${sleepTimer ? 'bg-orange-500/30 border-orange-500/50' : 'bg-black/40 border-white/5'} hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border active:scale-[0.98]`}
+                            style={{ minHeight: '44px' }}
+                            title="Sleep Timer"
+                        >
+                            <Clock size={14} />
+                            {sleepTimer ? Math.ceil((sleepTimer - currentTimestamp) / 60000) + 'm' : 'TIMER'}
+                        </button>
+                        <button
+                            onClick={toggleQueue}
+                            className={`flex-1 py-2 ${showQueue ? 'bg-wish-green/30 border-wish-green/50' : 'bg-black/40 border-white/5'} hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border active:scale-[0.98]`}
+                            style={{ minHeight: '44px' }}
+                            title="Queue"
+                        >
+                            <ListMusic size={14} />
+                            QUEUE{queue.length > 0 && ` (${queue.length})`}
+                        </button>
+                    </div>
+
+                    {/* 설정 패널 (수면 타이머) */}
+                    {showSettings && (
+                        <div className="p-3 bg-black/60 rounded-lg border border-white/10">
+                            <p className="text-white text-xs font-bold mb-2">Sleep Timer</p>
+                            <div className="grid grid-cols-3 gap-2">
+                                {[15, 30, 45, 60].map(min => (
+                                    <button
+                                        key={min}
+                                        onClick={() => {
+                                            setSleepTimer(min);
+                                            setShowSettings(false);
+                                        }}
+                                        className="py-1.5 bg-white/10 hover:bg-white/20 rounded text-white text-xs transition"
+                                    >
+                                        {min}m
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => {
+                                        setSleepTimer(null);
+                                        setShowSettings(false);
+                                    }}
+                                    className="py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded text-white text-xs transition"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 품질 선택 패널 */}
+                    {showQuality && (
+                        <div className="p-3 bg-black/60 rounded-lg border border-white/10">
+                            <p className="text-white text-xs font-bold mb-2">Streaming Quality</p>
+                            <div className="space-y-1">
+                                {[
+                                    { value: 'hd1080', label: '1080p (Best)' },
+                                    { value: 'hd720', label: '720p (High)' },
+                                    { value: 'large', label: '480p (Medium)' },
+                                    { value: 'medium', label: '360p (Low)' }
+                                ].map(q => (
+                                    <button
+                                        key={q.value}
+                                        onClick={() => {
+                                            setQuality(q.value as typeof quality);
+                                            if (playerRef && typeof playerRef.setPlaybackQuality === 'function') {
+                                                playerRef.setPlaybackQuality(q.value);
+                                            }
+                                            setShowQuality(false);
+                                        }}
+                                        className={`w-full py-1.5 px-3 rounded text-left text-xs transition ${
+                                            quality === q.value 
+                                                ? 'bg-wish-green/30 text-white font-bold' 
+                                                : 'bg-white/10 hover:bg-white/20 text-gray-300'
+                                        }`}
+                                    >
+                                        {q.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowQuality(!showQuality)}
+                            className={`flex-1 py-2 ${showQuality ? 'bg-blue-500/30 border-blue-500/50' : 'bg-black/40 border-white/5'} hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border active:scale-[0.98]`}
+                            style={{ minHeight: '44px' }}
+                            title="Video Quality"
+                        >
+                            <Settings size={14} />
+                            {quality === 'hd1080' ? '1080p' : quality === 'hd720' ? '720p' : quality === 'large' ? '480p' : '360p'}
+                        </button>
+                        <button
+                            onClick={() => toggleMiniPlayer()}
+                            className="flex-1 py-2 bg-purple-500/20 hover:bg-purple-500/30 active:bg-purple-500/40 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border border-purple-500/30 active:scale-[0.98]"
+                            style={{ minHeight: '44px' }}
+                            title="Open Mini Player"
+                        >
+                            <MonitorPlay size={14} />
+                            MINI PLAYER
+                        </button>
+                    </div>
+
                     <button
                         onClick={() => setIsFullscreen(true)}
                         disabled={!currentYoutubeId}
@@ -881,13 +1211,158 @@ function AlbumDetailView({
                     <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
                         {showLyrics ? (
                             // 가사 표시 모드
-                            <div className="p-4 text-center">
-                                <h3 className="text-white font-bold mb-4">{currentTrack?.title || "No track selected"}</h3>
-                                <div className="text-gray-300 text-sm leading-relaxed space-y-3">
-                                    <p className="text-gray-500 italic">Lyrics coming soon...</p>
-                                    <p className="text-xs text-gray-600 mt-6">
-                                        가사는 향후 업데이트될 예정입니다.
-                                    </p>
+                            <div className="p-4 flex flex-col h-full">
+                                <div className="mb-4">
+                                    <h3 className="text-white font-bold text-center mb-3">{currentTrack?.title || "No track selected"}</h3>
+                                    
+                                    {/* 가사 검색 */}
+                                    <div className="relative mb-3">
+                                        <input
+                                            type="text"
+                                            placeholder="Search lyrics..."
+                                            value={lyricSearch}
+                                            onChange={(e) => setLyricSearch(e.target.value)}
+                                            className="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-wish-green/50"
+                                        />
+                                        {lyricSearch && (
+                                            <button
+                                                onClick={() => setLyricSearch('')}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded"
+                                            >
+                                                <X size={14} className="text-gray-400" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* 언어 및 로마자 토글 */}
+                                    {lyrics.length > 0 && (
+                                        <div className="space-y-2">
+                                            <div className="flex gap-2">
+                                                {/* 기본 언어 */}
+                                                <button
+                                                    onClick={() => {
+                                                        setLyricLanguage('native');
+                                                        const key = `${currentTrack?.language}_NATIVE`;
+                                                        const lyric = allLyrics[key];
+                                                        if (lyric?.lrcContent) {
+                                                            setLyrics(parseLRC(lyric.lrcContent));
+                                                        }
+                                                    }}
+                                                    className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition ${
+                                                        lyricLanguage === 'native'
+                                                            ? 'bg-wish-green/30 text-wish-green border border-wish-green/50' 
+                                                            : 'bg-black/40 text-gray-300 border border-white/10'
+                                                    }`}
+                                                >
+                                                    {currentTrack?.language === 'KOREAN' ? '한국어' : '日本語'}
+                                                </button>
+                                                
+                                                {/* 번역 */}
+                                                <button
+                                                    onClick={() => {
+                                                        setLyricLanguage('translation');
+                                                        const translationLang = currentTrack?.language === 'KOREAN' ? 'JAPANESE' : 'KOREAN';
+                                                        const key = `${translationLang}_NATIVE`;
+                                                        const lyric = allLyrics[key];
+                                                        if (lyric?.lrcContent) {
+                                                            setLyrics(parseLRC(lyric.lrcContent));
+                                                        }
+                                                    }}
+                                                    className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition ${
+                                                        lyricLanguage === 'translation'
+                                                            ? 'bg-wish-green/30 text-wish-green border border-wish-green/50' 
+                                                            : 'bg-black/40 text-gray-300 border border-white/10'
+                                                    }`}
+                                                >
+                                                    {currentTrack?.language === 'KOREAN' ? '日本語' : '한국어'}
+                                                </button>
+                                                
+                                                {/* 로마자 */}
+                                                <button
+                                                    onClick={() => setShowRomanized(!showRomanized)}
+                                                    className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition ${
+                                                        showRomanized
+                                                            ? 'bg-blue-500/30 text-blue-300 border border-blue-500/50' 
+                                                            : 'bg-black/40 text-gray-300 border border-white/10'
+                                                    }`}
+                                                >
+                                                    로마자
+                                                </button>
+                                            </div>
+                                            {searchResults.length > 0 && (
+                                                <span className="py-1.5 px-3 bg-wish-green/20 text-wish-green text-xs rounded border border-wish-green/30 inline-block">
+                                                    {searchResults.length} results
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 가사 내용 */}
+                                <div 
+                                    ref={lyricContainerRef}
+                                    className="flex-1 overflow-y-auto custom-scrollbar space-y-3"
+                                >
+                                    {lyrics.length > 0 ? (
+                                        lyrics.map((line, idx) => {
+                                            const isActive = getCurrentLyricIndex(lyrics, currentTime) === idx;
+                                            const isSearchResult = searchResults.includes(idx);
+                                            
+                                            // 가사에서 멤버 정보 추출 (만약 있다면)
+                                            const memberMatch = line.text.match(/^\[([A-Z,\s]+)\]/);
+                                            const memberName = memberMatch ? memberMatch[1] : 'ALL';
+                                            const lyricText = memberMatch ? line.text.replace(/^\[[A-Z,\s]+\]\s*/, '') : line.text;
+                                            const memberColor = getMemberColor(memberName);
+                                            
+                                            // 그라데이션인지 단색인지 확인
+                                            const isGradient = memberColor.startsWith('linear-gradient');
+                                            
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className={`lyric-line px-3 py-2 rounded-lg cursor-pointer transition-all ${
+                                                        isActive 
+                                                            ? 'bg-wish-green/20 font-bold scale-105' 
+                                                            : isSearchResult
+                                                            ? 'bg-yellow-500/20'
+                                                            : 'hover:bg-white/5'
+                                                    }`}
+                                                    onClick={() => {
+                                                        seekTo(line.time);
+                                                        if (!isPlaying) togglePlay();
+                                                    }}
+                                                >
+                                                    <p 
+                                                        className="text-sm leading-relaxed text-center"
+                                                        style={isGradient ? {
+                                                            background: memberColor,
+                                                            WebkitBackgroundClip: 'text',
+                                                            WebkitTextFillColor: 'transparent',
+                                                            backgroundClip: 'text'
+                                                        } : {
+                                                            color: memberColor
+                                                        }}
+                                                    >
+                                                        {lyricText || '♪'}
+                                                    </p>
+                                                    {showRomanized && currentTrack && (
+                                                        <p className="text-xs text-blue-300/70 text-center mt-1 italic font-mono">
+                                                            {/* 로마자 표기는 ROMANIZED script에서 가져오기 */}
+                                                            {allLyrics[`${currentTrack.language}_ROMANIZED`]?.text?.split('\n')[idx] || 'Romanization available'}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-center">
+                                            <List size={48} className="text-gray-600 mb-4" />
+                                            <p className="text-gray-500 italic mb-2">No lyrics available</p>
+                                            <p className="text-xs text-gray-600">
+                                                가사는 향후 업데이트될 예정입니다.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : (
@@ -921,6 +1396,7 @@ function AlbumDetailView({
                                                 toggleFavorite(track.id);
                                             }}
                                             className="p-1.5 hover:bg-white/10 rounded-full transition active:scale-95 flex-shrink-0"
+                                            title="Favorite"
                                         >
                                             <Heart 
                                                 size={14} 
@@ -930,9 +1406,20 @@ function AlbumDetailView({
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                addNextInQueue(track);
+                                            }}
+                                            className="p-1.5 hover:bg-white/10 rounded-full transition active:scale-95 flex-shrink-0"
+                                            title="Play Next"
+                                        >
+                                            <Plus size={14} className="text-gray-500 hover:text-wish-green" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 shareTrack(track);
                                             }}
                                             className="p-1.5 hover:bg-white/10 rounded-full transition active:scale-95 flex-shrink-0"
+                                            title="Share"
                                         >
                                             <Share2 size={14} className="text-gray-500 hover:text-wish-green" />
                                         </button>
@@ -1042,6 +1529,9 @@ declare global {
       getDuration(): number;
       seekTo(seconds: number, allowSeekAhead: boolean): void;
       getPlayerState(): number;
+      setPlaybackRate(rate: number): void;
+      getPlaybackRate(): number;
+      getAvailablePlaybackRates(): number[];
     }
 
     interface PlayerOptions {

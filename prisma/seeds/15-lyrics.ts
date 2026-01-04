@@ -1,0 +1,178 @@
+/**
+ * Lyrics Seed with Multi-language Support
+ * 
+ * 구조:
+ * - content/lyrics/ 폴더에 LRC 파일로 저장
+ * - 한국어/일본어/로마자 표기 지원
+ * - 멤버별 컬러 파트 정보 포함 ([MEMBER] 형식)
+ * 
+ * 실제 가사는 저작권 보호를 위해 직접 추가해주세요.
+ */
+
+import { PrismaClient, Language, ScriptType } from '@prisma/client';
+import fs from 'fs';
+import path from 'path';
+
+const prisma = new PrismaClient();
+
+// LRC 파일 읽기
+function readLRCFile(fileName: string): string | null {
+  const lrcPath = path.join(process.cwd(), 'content', 'lyrics', fileName);
+  if (fs.existsSync(lrcPath)) {
+    return fs.readFileSync(lrcPath, 'utf-8');
+  }
+  return null;
+}
+
+// LRC 생성 헬퍼 (placeholder)
+function generatePlaceholderLRC(language: string): string {
+  return `[00:00.00][ALL] ${language} lyrics will be added here
+[00:05.00][ALL] Please add the actual lyrics
+[00:10.00][ALL] This is just a placeholder`;
+}
+
+export async function seedLyrics() {
+  console.log('🎵 Seeding lyrics structure...');
+
+  // 모든 트랙 가져오기
+  const tracks = await prisma.track.findMany({
+    orderBy: { trackNumber: 'asc' }
+  });
+
+  console.log(`Found ${tracks.length} tracks`);
+
+  let created = 0;
+
+  for (const track of tracks) {
+    // 트랙의 언어 확인
+    const primaryLanguage = track.language;
+    
+    // 트랙 타이틀을 파일명으로 변환 (버전 정보 처리 포함)
+    const trackSlug = track.title.toLowerCase()
+      // 버전 표기 변환
+      .replace(/\(japanese\s*ver\.?\)/gi, '-jpver')
+      .replace(/\(korean\s*ver\.?\)/gi, '-krver')
+      .replace(/\(english\s*ver\.?\)/gi, '-enver')
+      .replace(/\(chinese\s*ver\.?\)/gi, '-cnver')
+      // 괄호 제거 및 정리
+      .replace(/[()]/g, '')
+      // 공백을 하이픈으로
+      .replace(/\s+/g, '-')
+      // 특수문자 제거 (하이픈과 숫자만 남김)
+      .replace(/[^a-z0-9-]/g, '')
+      // 연속된 하이픈 제거
+      .replace(/-+/g, '-')
+      // 앞뒤 하이픈 제거
+      .replace(/^-|-$/g, '');
+    
+    // 기본 언어 가사 생성 (일본어 또는 한국어)
+    const primaryLRCFileName = `${trackSlug}-${primaryLanguage.toLowerCase()}.lrc`;
+    const primaryLRCContent = readLRCFile(primaryLRCFileName) || generatePlaceholderLRC(primaryLanguage);
+    
+    const primaryLyric = await prisma.trackLyric.upsert({
+      where: {
+        trackId_language_script: {
+          trackId: track.id,
+          language: primaryLanguage,
+          script: ScriptType.NATIVE
+        }
+      },
+      update: {
+        lrcContent: primaryLRCContent,
+      },
+      create: {
+        trackId: track.id,
+        language: primaryLanguage,
+        script: ScriptType.NATIVE,
+        isOfficial: false,
+        text: `Lyrics for ${track.title} will be added here. Please update with actual content.`,
+        lrcContent: primaryLRCContent,
+      }
+    });
+
+    // 로마자 표기 생성
+    const romanizedLRCFileName = `${trackSlug}-romanized.lrc`;
+    const romanizedLRCContent = readLRCFile(romanizedLRCFileName) || generatePlaceholderLRC('Romanized');
+    
+    const romanizedLyric = await prisma.trackLyric.upsert({
+      where: {
+        trackId_language_script: {
+          trackId: track.id,
+          language: primaryLanguage,
+          script: ScriptType.ROMANTIZED
+        }
+      },
+      update: {
+        lrcContent: romanizedLRCContent,
+      },
+      create: {
+        trackId: track.id,
+        language: primaryLanguage,
+        script: ScriptType.ROMANTIZED,
+        isOfficial: false,
+        text: `Romanized lyrics for ${track.title} will be added here.`,
+        lrcContent: romanizedLRCContent,
+      }
+    });
+
+    // 한국어곡이면 일본어 번역 추가, 일본어곡이면 한국어 번역 추가
+    if (primaryLanguage === Language.KOREAN) {
+      const japaneseLRCFileName = `${trackSlug}-japanese.lrc`;
+      const japaneseLRCContent = readLRCFile(japaneseLRCFileName);
+      
+      await prisma.trackLyric.upsert({
+        where: {
+          trackId_language_script: {
+            trackId: track.id,
+            language: Language.JAPANESE,
+            script: ScriptType.NATIVE
+          }
+        },
+        update: {
+          lrcContent: japaneseLRCContent,
+        },
+        create: {
+          trackId: track.id,
+          language: Language.JAPANESE,
+          script: ScriptType.NATIVE,
+          isOfficial: false,
+          text: `Japanese translation for ${track.title} (optional)`,
+          lrcContent: japaneseLRCContent,
+        }
+      });
+    } else if (primaryLanguage === Language.JAPANESE) {
+      const koreanLRCFileName = `${trackSlug}-korean.lrc`;
+      const koreanLRCContent = readLRCFile(koreanLRCFileName);
+      
+      await prisma.trackLyric.upsert({
+        where: {
+          trackId_language_script: {
+            trackId: track.id,
+            language: Language.KOREAN,
+            script: ScriptType.NATIVE
+          }
+        },
+        update: {
+          lrcContent: koreanLRCContent,
+        },
+        create: {
+          trackId: track.id,
+          language: Language.KOREAN,
+          script: ScriptType.NATIVE,
+          isOfficial: false,
+          text: `Korean translation for ${track.title} (optional)`,
+          lrcContent: koreanLRCContent,
+        }
+      });
+    }
+
+    created++;
+    if (created % 10 === 0) {
+      console.log(`✅ Processed ${created}/${tracks.length} tracks`);
+    }
+  }
+
+  console.log(`✅ Lyrics structure created for ${created} tracks`);
+  console.log('📝 Please add actual lyrics to content/lyrics/ folder in LRC format');
+  console.log('📝 Example: hands-up-japanese.lrc, hands-up-romanized.lrc');
+}

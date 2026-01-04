@@ -23,6 +23,7 @@ import { seedMusicShowTrophies } from './seeds/11-music-show'
 import { seedAlbumSales } from './seeds/12-sales'
 import { seedContents } from './seeds/13-contents'
 import { seedAwards } from './seeds/14-awards'
+import { seedLyrics } from './seeds/15-lyrics'
 
 const prisma = new PrismaClient({
   log: process.env.DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : ['info', 'warn', 'error'],
@@ -44,6 +45,7 @@ type SeedResults = {
   AlbumSales?: unknown[];
   Contents?: unknown[];
   Awards?: unknown[];
+  Lyrics?: unknown[];
 };
 
 // 시드 단계 정의
@@ -63,6 +65,7 @@ const SEED_STEPS = [
   { name: 'AlbumSales', fn: seedAlbumSales, deps: ['Albums'] },
   { name: 'Contents', fn: seedContents, deps: [] },
   { name: 'Awards', fn: seedAwards, deps: [] },
+  { name: 'Lyrics', fn: seedLyrics, deps: ['Tracks'] },
 ] as const
 
 // 메인 시드 함수

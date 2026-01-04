@@ -13,7 +13,7 @@ import Image from 'next/image';
 import {
     Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2,
     Music, ChevronLeft, ChevronRight, Volume2, Shuffle, Repeat, Repeat1, Loader2, Search, Filter,
-    Heart, Share2, BarChart2, List, X, Clock, Gauge, ListMusic, Plus, GripVertical, MonitorPlay, Settings
+    Heart, Share2, List, X, Clock, Gauge, ListMusic, Plus, GripVertical, MonitorPlay, Settings
 } from 'lucide-react';
 
 // ------------------------------------------------------------------
@@ -44,7 +44,7 @@ function YouTubeBackground({
     isFullscreen: boolean,
     playbackRate: number
 }) {
-    const { setPlayerRef, isPlaying, volume, isMuted, setLoading } = useAudioStore();
+    const { setPlayerRef, isPlaying, volume, isMuted, setLoading, showMiniPlayer } = useAudioStore();
     const playerInstanceRef = useRef<YT.Player | null>(null); // YT.Player 인스턴스
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -186,7 +186,7 @@ function YouTubeBackground({
                 className="w-full h-full"
                 style={{ 
                     pointerEvents: isFullscreen ? 'auto' : 'none',
-                    display: videoId ? 'block' : 'none' // videoId가 없으면 숨김
+                    display: (videoId && !showMiniPlayer) ? 'block' : 'none' // showMiniPlayer가 true면 숨김
                 }}
             />
         </div>
@@ -406,7 +406,7 @@ export default function Discography({ onClose: _onClose }: DiscographyProps) {
                         <p className="text-sm">Try a different search term</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8 pt-2 content-start custom-scrollbar">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8 pt-2 auto-rows-max">
                         {filteredAlbums.map((album) => {
                             // 원본 albums 배열에서의 인덱스 찾기
                             const originalIdx = albums.findIndex(a => a.id === album.id);
@@ -497,7 +497,6 @@ function AlbumDetailView({
     const [lyrics, setLyrics] = useState<LyricLine[]>([]);
     const [lyricLanguage, setLyricLanguage] = useState<'native' | 'translation' | 'romanized'>('native');
     const [showRomanized, setShowRomanized] = useState(false);
-    const [lyricSearch, setLyricSearch] = useState('');
     const [searchResults, setSearchResults] = useState<number[]>([]);
     const [currentTimestamp, setCurrentTimestamp] = useState(0);
     const [allLyrics, setAllLyrics] = useState<Record<string, { language: string; script: string; lrcContent?: string; text?: string }>>({});
@@ -604,19 +603,40 @@ function AlbumDetailView({
         }
         
         const detectQuality = async () => {
-            if (playerRef && typeof (playerRef as unknown as YouTubePlayerWithQuality).getAvailableQualityLevels === 'function') {
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 100)); // 잠시 대기
-                    const qualities = (playerRef as unknown as YouTubePlayerWithQuality).getAvailableQualityLevels();
-                    if (qualities && qualities.length > 0) {
-                        setAvailableQualities(qualities);
-                        // 현재 화질 가져오기
-                        const currentQuality = (playerRef as unknown as YouTubePlayerWithQuality).getPlaybackQuality();
+            if (!playerRef) return;
+            
+            const player = playerRef as unknown as YouTubePlayerWithQuality;
+            
+            if (typeof player.getAvailableQualityLevels !== 'function') {
+                console.log('Quality detection: getAvailableQualityLevels not available');
+                return;
+            }
+            
+            try {
+                // YouTube 플레이어가 완전히 준비될 때까지 대기
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const qualities = player.getAvailableQualityLevels();
+                console.log('Available qualities detected:', qualities);
+                
+                if (qualities && qualities.length > 0) {
+                    setAvailableQualities(qualities);
+                    
+                    // 현재 화질 가져오기
+                    if (typeof player.getPlaybackQuality === 'function') {
+                        const currentQuality = player.getPlaybackQuality();
+                        console.log('Current quality:', currentQuality);
                         if (currentQuality) {
                             setQuality(currentQuality);
                         }
                     }
-                } catch {}
+                } else {
+                    console.log('No qualities available yet, retrying...');
+                    // 다시 시도
+                    setTimeout(detectQuality, 1000);
+                }
+            } catch (error) {
+                console.error('Quality detection error:', error);
             }
         };
         
@@ -682,17 +702,6 @@ function AlbumDetailView({
             }
         }
     }, [currentTime, lyrics, showLyrics]);
-
-    // 가사 검색
-    useEffect(() => {
-        if (lyricSearch && lyrics.length > 0) {
-            const results = searchLyrics(lyrics, lyricSearch);
-            // eslint-disable-next-line
-            setSearchResults(results);
-        } else {
-            setSearchResults([]);
-        }
-    }, [lyricSearch, lyrics]);
 
     // 타이머 표시를 위한 timestamp 업데이트 (1초마다)
     useEffect(() => {
@@ -1121,40 +1130,15 @@ function AlbumDetailView({
                         <span className="text-[10px] text-white/50 font-mono w-8 text-right flex-shrink-0">{volume}</span>
                     </div>
 
-                    {/* 가사/이퀄라이저 토글 버튼 */}
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setShowLyrics(!showLyrics)}
-                            className={`flex-1 py-2 ${showLyrics ? 'bg-wish-green/30 border-wish-green/50' : 'bg-black/40 border-white/5'} hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border active:scale-[0.98]`}
-                            style={{ minHeight: '44px' }}
-                        >
-                            <List size={14} />
-                            LYRICS
-                        </button>
-                        <button
-                            className="flex-1 py-2 bg-black/40 hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border border-white/5 active:scale-[0.98] relative overflow-hidden"
-                            style={{ minHeight: '44px' }}
-                        >
-                            {/* 간단한 이퀄라이저 애니메이션 */}
-                            {isPlaying && (
-                                <div className="absolute inset-0 flex items-center justify-center gap-0.5">
-                                    {[...Array(5)].map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="w-0.5 bg-wish-green rounded-full animate-pulse"
-                                            style={{
-                                                height: '40%',
-                                                animationDelay: `${i * 0.1}s`,
-                                                animationDuration: '0.6s'
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                            <BarChart2 size={14} className={isPlaying ? 'opacity-0' : ''} />
-                            <span className={isPlaying ? 'opacity-0' : ''}>EQ</span>
-                        </button>
-                    </div>
+                    {/* 가사 토글 버튼 */}
+                    <button
+                        onClick={() => setShowLyrics(!showLyrics)}
+                        className={`w-full py-2 ${showLyrics ? 'bg-wish-green/30 border-wish-green/50' : 'bg-black/40 border-white/5'} hover:bg-black/60 active:bg-black/70 text-white/90 text-xs font-medium rounded-lg flex items-center justify-center gap-2 transition border active:scale-[0.98]`}
+                        style={{ minHeight: '44px' }}
+                    >
+                        <List size={14} />
+                        LYRICS
+                    </button>
 
                     {/* 추가 컨트롤: 재생속도, 수면타이머, 큐 */}
                     <div className="flex gap-1.5 sm:gap-2">
@@ -1351,25 +1335,6 @@ function AlbumDetailView({
                             <div className="p-4 flex flex-col h-full">
                                 <div className="mb-4">
                                     <h3 className="text-white font-bold text-center mb-3">{currentTrack?.title || "No track selected"}</h3>
-                                    
-                                    {/* 가사 검색 */}
-                                    <div className="relative mb-3">
-                                        <input
-                                            type="text"
-                                            placeholder="Search lyrics..."
-                                            value={lyricSearch}
-                                            onChange={(e) => setLyricSearch(e.target.value)}
-                                            className="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-wish-green/50"
-                                        />
-                                        {lyricSearch && (
-                                            <button
-                                                onClick={() => setLyricSearch('')}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded"
-                                            >
-                                                <X size={14} className="text-gray-400" />
-                                            </button>
-                                        )}
-                                    </div>
 
                                     {/* 언어 및 로마자 토글 */}
                                     {lyrics.length > 0 && (

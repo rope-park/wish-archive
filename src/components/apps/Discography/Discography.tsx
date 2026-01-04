@@ -480,7 +480,7 @@ function AlbumDetailView({
         playerRef, setCurrentTime, setDuration, seekTo, currentTime, duration, 
         volume, isMuted, setVolume, setMuted,
         playMode, setPlayMode, playNext, playPrev, isLoading,
-        queue, showQueue, toggleQueue, addToQueue, addNextInQueue, removeFromQueue, clearQueue,
+        queue, showQueue, toggleQueue, addToQueue, addNextInQueue, removeFromQueue, clearQueue, reorderQueue,
         playbackRate, setPlaybackRate, sleepTimer, setSleepTimer, toggleMiniPlayer
     } = useAudioStore();
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -498,6 +498,8 @@ function AlbumDetailView({
     const [allLyrics, setAllLyrics] = useState<Record<string, { language: string; script: string; lrcContent?: string; text?: string }>>({});
     const [memberColors, setMemberColors] = useState<Record<string, string>>({});
     const lyricContainerRef = useRef<HTMLDivElement>(null);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     // 멤버 컬러 로드
     useEffect(() => {
@@ -670,6 +672,57 @@ function AlbumDetailView({
         }
     }, [sleepTimer]);
 
+    // Queue 드래그 핸들러
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, index: number) => {
+        setDraggedIndex(index);
+        if ('dataTransfer' in e) {
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        e.preventDefault();
+        setDragOverIndex(index);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        e.preventDefault();
+        if (draggedIndex !== null && draggedIndex !== index) {
+            reorderQueue(draggedIndex, index);
+        }
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
+    // 터치 드래그 핸들러
+    const handleTouchStart = (index: number) => {
+        setDraggedIndex(index);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        const queueItem = element?.closest('[data-queue-index]');
+        if (queueItem) {
+            const index = parseInt(queueItem.getAttribute('data-queue-index') || '0');
+            setDragOverIndex(index);
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+            reorderQueue(draggedIndex, dragOverIndex);
+        }
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
+
     // 키보드 단축키
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -732,7 +785,9 @@ function AlbumDetailView({
     const targetTrack = currentTrack && currentAlbum.tracks.some(t => t.id === currentTrack.id)
         ? currentTrack
         : sortedTracks[0];
-    const currentYoutubeId = getYoutubeId(targetTrack?.mvUrl);
+    // MV URL이 없으면 audio URL 사용
+    const videoUrl = targetTrack?.mvUrl || targetTrack?.audioUrl;
+    const currentYoutubeId = getYoutubeId(videoUrl);
 
     const formatTime = (seconds: number | null) => {
         if (!seconds) return "0:00";
@@ -770,7 +825,22 @@ function AlbumDetailView({
                         {queue.map((track, idx) => (
                             <div
                                 key={`${track.id}-${idx}`}
-                                className={`group flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition ${currentTrack?.id === track.id ? 'bg-wish-green/20 border border-wish-green/30' : 'bg-white/5'}`}
+                                data-queue-index={idx}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, idx)}
+                                onDragOver={(e) => handleDragOver(e, idx)}
+                                onDrop={(e) => handleDrop(e, idx)}
+                                onDragEnd={handleDragEnd}
+                                onTouchStart={() => handleTouchStart(idx)}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
+                                className={`group flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition select-none ${
+                                    currentTrack?.id === track.id ? 'bg-wish-green/20 border border-wish-green/30' : 'bg-white/5'
+                                } ${
+                                    draggedIndex === idx ? 'opacity-50 scale-95' : ''
+                                } ${
+                                    dragOverIndex === idx && draggedIndex !== idx ? 'border-t-2 border-wish-green' : ''
+                                }`}
                             >
                                 <div className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-white transition" title="Drag to reorder">
                                     <GripVertical size={16} />
@@ -853,10 +923,10 @@ function AlbumDetailView({
             )}
 
             {/* 2. Left Side Panels (3 Cards) */}
-            <div className={`relative z-10 w-full md:w-[360px] lg:w-[400px] xl:w-[440px] h-full p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
+            <div className={`relative z-10 w-full md:w-[420px] lg:w-[460px] xl:w-[500px] h-full p-4 sm:p-5 md:p-6 flex flex-col gap-4 sm:gap-5 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
 
                 {/* Card 1: Player Control */}
-                <div className="flex-none h-[220px] sm:h-[240px] bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-5 flex flex-col justify-between shadow-xl">
+                <div className="flex-none h-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-5 flex flex-col gap-4 shadow-xl">
                     <div className="flex items-center gap-3 sm:gap-5">
                         <div className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-black flex-shrink-0 border-3 sm:border-4 border-gray-900 shadow-xl shadow-black/50 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
                             {/* 비닐 표면 그루브 */}
@@ -1437,7 +1507,7 @@ function AlbumDetailView({
                 </div>
 
                 {/* Card 3: Album Navigation */}
-                <div className="flex-none h-20 sm:h-24 md:h-28 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-1.5 sm:p-2 flex items-center justify-between shadow-xl">
+                <div className="flex-none h-24 sm:h-28 md:h-32 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2 sm:p-3 flex items-center justify-between shadow-xl">
                     <button
                         onClick={() => currentIndex > 0 && onNavigate(currentIndex - 1)}
                         disabled={currentIndex === 0}

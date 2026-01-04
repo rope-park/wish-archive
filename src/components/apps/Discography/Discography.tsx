@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Album, Track } from '@prisma/client';
 import { useAudioStore } from '@/app/stores/useAudioStore';
 import { parseLRC, getCurrentLyricIndex, searchLyrics, type LyricLine } from '@/lib/lrc-parser';
+import MiniPlayer from './MiniPlayer';
 import Image from 'next/image';
 import {
     Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2,
@@ -196,7 +197,7 @@ function YouTubeBackground({
 // ------------------------------------------------------------------
 // 메인 Discography 컴포넌트
 // ------------------------------------------------------------------
-export default function Discography({ onClose }: DiscographyProps) {
+export default function Discography({ onClose: _onClose }: DiscographyProps) {
     const [albums, setAlbums] = useState<ExtendedAlbum[]>([]);
     const [selectedAlbumIndex, setSelectedAlbumIndex] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
@@ -205,8 +206,8 @@ export default function Discography({ onClose }: DiscographyProps) {
     const [selectedType, setSelectedType] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'title-asc' | 'title-desc'>('date-desc');
     const [favorites, setFavorites] = useState<Set<string>>(new Set());
-    const [playHistory, setPlayHistory] = useState<Array<{trackId: string, timestamp: number}>>([]);
-    const [showHistory, setShowHistory] = useState(false);
+    // const [playHistory, setPlayHistory] = useState<Array<{trackId: string, timestamp: number}>>([]);
+    // const [showHistory, setShowHistory] = useState(false);
 
     useEffect(() => {
         fetch('/api/discography')
@@ -222,53 +223,53 @@ export default function Discography({ onClose }: DiscographyProps) {
             // eslint-disable-next-line
             setFavorites(new Set(JSON.parse(savedFavorites)));
         }
-        const savedHistory = localStorage.getItem('discography_history');
-        if (savedHistory) {
-            setPlayHistory(JSON.parse(savedHistory));
-        }
+        // const savedHistory = localStorage.getItem('discography_history');
+        // if (savedHistory) {
+        //     setPlayHistory(JSON.parse(savedHistory));
+        // }
     }, []);
 
     // 즐겨찾기 토글
-    const toggleFavorite = (trackId: string) => {
-        setFavorites(prev => {
-            const newFavorites = new Set(prev);
-            if (newFavorites.has(trackId)) {
-                newFavorites.delete(trackId);
-            } else {
-                newFavorites.add(trackId);
-            }
-            localStorage.setItem('discography_favorites', JSON.stringify(Array.from(newFavorites)));
-            return newFavorites;
-        });
-    };
+    // const toggleFavorite = (trackId: string) => {
+    //     setFavorites(prev => {
+    //         const newFavorites = new Set(prev);
+    //         if (newFavorites.has(trackId)) {
+    //             newFavorites.delete(trackId);
+    //         } else {
+    //             newFavorites.add(trackId);
+    //         }
+    //         localStorage.setItem('discography_favorites', JSON.stringify(Array.from(newFavorites)));
+    //         return newFavorites;
+    //     });
+    // };
 
     // 재생 기록 추가
-    const addToHistory = (trackId: string) => {
-        setPlayHistory(prev => {
-            const newHistory = [{ trackId, timestamp: Date.now() }, ...prev.slice(0, 49)]; // 최대 50개
-            localStorage.setItem('discography_history', JSON.stringify(newHistory));
-            return newHistory;
-        });
-    };
+    // const addToHistory = (trackId: string) => {
+    //     setPlayHistory(prev => {
+    //         const newHistory = [{ trackId, timestamp: Date.now() }, ...prev.slice(0, 49)]; // 최대 50개
+    //         localStorage.setItem('discography_history', JSON.stringify(newHistory));
+    //         return newHistory;
+    //     });
+    // };
 
     // 공유 기능
-    const shareTrack = async (track: Track) => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: track.title,
-                    text: `Check out "${track.title}" by NCT WISH!`,
-                    url: window.location.href
-                });
-            } catch (err) {
-                console.log('Share cancelled');
-            }
-        } else {
-            // Fallback: 클립보드에 복사
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
-        }
-    };
+    // const shareTrack = async (track: Track) => {
+    //     if (navigator.share) {
+    //         try {
+    //             await navigator.share({
+    //                 title: track.title,
+    //                 text: `Check out "${track.title}" by NCT WISH!`,
+    //                 url: window.location.href
+    //             });
+    //         } catch (_err) {
+    //             console.log('Share cancelled');
+    //         }
+    //     } else {
+    //         // Fallback: 클립보드에 복사
+    //         navigator.clipboard.writeText(window.location.href);
+    //         alert('Link copied to clipboard!');
+    //     }
+    // };
 
     // 검색 및 필터링
     const filteredAlbums = albums.filter(album => {
@@ -321,8 +322,10 @@ export default function Discography({ onClose }: DiscographyProps) {
     }
 
     return (
-        <div className="h-full flex flex-col">
-            {/* 검색 바 및 필터 */}
+        <>
+            {selectedAlbumIndex !== null && <MiniPlayer currentAlbum={albums[selectedAlbumIndex]} />}
+            <div className="h-full flex flex-col">
+                {/* 검색 바 및 필터 */}
             <div className="flex-none p-4 sm:p-6 pb-3">
                 <div className="max-w-4xl mx-auto space-y-3">
                     {/* 검색 바 */}
@@ -452,7 +455,8 @@ export default function Discography({ onClose }: DiscographyProps) {
                     </div>
                 )}
             </div>
-        </div>
+            </div>
+        </>
     );
 }
 
@@ -478,9 +482,9 @@ function AlbumDetailView({
     const { 
         currentTrack, isPlaying, playTrack, togglePlay, setPlaylist, playlist, 
         playerRef, setCurrentTime, setDuration, seekTo, currentTime, duration, 
-        volume, isMuted, setVolume, setMuted,
+        volume, setVolume, setMuted,
         playMode, setPlayMode, playNext, playPrev, isLoading,
-        queue, showQueue, toggleQueue, addToQueue, addNextInQueue, removeFromQueue, clearQueue, reorderQueue,
+        queue, showQueue, toggleQueue, addNextInQueue, removeFromQueue, clearQueue, reorderQueue,
         playbackRate, setPlaybackRate, sleepTimer, setSleepTimer, toggleMiniPlayer
     } = useAudioStore();
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -488,7 +492,8 @@ function AlbumDetailView({
     const [showLyrics, setShowLyrics] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showQuality, setShowQuality] = useState(false);
-    const [quality, setQuality] = useState<'hd1080' | 'hd720' | 'large' | 'medium'>('hd1080');
+    const [quality, setQuality] = useState<string>('hd1080');
+    const [availableQualities, setAvailableQualities] = useState<string[]>([]);
     const [lyrics, setLyrics] = useState<LyricLine[]>([]);
     const [lyricLanguage, setLyricLanguage] = useState<'native' | 'translation' | 'romanized'>('native');
     const [showRomanized, setShowRomanized] = useState(false);
@@ -563,7 +568,7 @@ function AlbumDetailView({
                     text: `Check out "${track.title}" by NCT WISH!`,
                     url: window.location.href
                 });
-            } catch (err) {
+            } catch (_err) {
                 console.log('Share cancelled');
             }
         } else {
@@ -583,13 +588,40 @@ function AlbumDetailView({
                         setCurrentTime(curr);
                         setDuration(total);
                     }
-                } catch (e) {
+                } catch (_error) {
                     // Player not ready
                 }
             }
         }, 500);
         return () => clearInterval(interval);
     }, [playerRef, isPlaying, setCurrentTime, setDuration]);
+
+    // 사용 가능한 화질 목록 가져오기
+    useEffect(() => {
+        interface YouTubePlayerWithQuality {
+            getAvailableQualityLevels: () => string[];
+            getPlaybackQuality: () => string;
+        }
+        
+        const detectQuality = async () => {
+            if (playerRef && typeof (playerRef as unknown as YouTubePlayerWithQuality).getAvailableQualityLevels === 'function') {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 100)); // 잠시 대기
+                    const qualities = (playerRef as unknown as YouTubePlayerWithQuality).getAvailableQualityLevels();
+                    if (qualities && qualities.length > 0) {
+                        setAvailableQualities(qualities);
+                        // 현재 화질 가져오기
+                        const currentQuality = (playerRef as unknown as YouTubePlayerWithQuality).getPlaybackQuality();
+                        if (currentQuality) {
+                            setQuality(currentQuality);
+                        }
+                    }
+                } catch {}
+            }
+        };
+        
+        detectQuality();
+    }, [playerRef]);
 
     // 가사 로딩
     useEffect(() => {
@@ -781,7 +813,7 @@ function AlbumDetailView({
         return (match && match[2].length === 11) ? match[2] : null;
     };
 
-    // 현재 재생 곡의 뮤비 우선, 없으면 1번 트랙 뮤비
+    // 현재 재생 곡의 뮤비 우선, 없으면 1번 트랙 뮤비 (useEffect보다 먼저 선언)
     const targetTrack = currentTrack && currentAlbum.tracks.some(t => t.id === currentTrack.id)
         ? currentTrack
         : sortedTracks[0];
@@ -796,8 +828,25 @@ function AlbumDetailView({
         return `${min}:${sec < 10 ? '0' : ''}${sec}`;
     };
 
+    // 화질 레이블 변환 (인라인에서 사용 중)
+    // const getQualityLabel = (q: string) => {
+    //     const labels: Record<string, string> = {
+    //         'highres': '2160p+ (4K)',
+    //         'hd1080': '1080p (Full HD)',
+    //         'hd720': '720p (HD)',
+    //         'large': '480p',
+    //         'medium': '360p',
+    //         'small': '240p',
+    //         'tiny': '144p',
+    //         'auto': 'Auto'
+    //     };
+    //     return labels[q] || q.toUpperCase();
+    // };
+
     return (
-        <div className="relative w-full h-full overflow-hidden flex flex-col md:flex-row">
+        <>
+            <MiniPlayer currentAlbum={currentAlbum} />
+            <div className="relative w-full h-full overflow-hidden flex flex-col md:flex-row">
 
             {/* Queue Panel - Slide from right */}
             <div className={`absolute top-0 right-0 z-50 h-full w-full sm:w-80 bg-black/95 backdrop-blur-xl border-l border-white/20 shadow-2xl transition-transform duration-300 ${showQueue ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
@@ -926,9 +975,9 @@ function AlbumDetailView({
             <div className={`relative z-10 w-full md:w-[420px] lg:w-[460px] xl:w-[500px] h-full p-4 sm:p-5 md:p-6 flex flex-col gap-4 sm:gap-5 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
 
                 {/* Card 1: Player Control */}
-                <div className="flex-none h-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-5 flex flex-col gap-4 shadow-xl">
-                    <div className="flex items-center gap-3 sm:gap-5">
-                        <div className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-black flex-shrink-0 border-3 sm:border-4 border-gray-900 shadow-xl shadow-black/50 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
+                <div className="flex-none h-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 md:p-5 flex flex-col gap-3 sm:gap-4 shadow-xl">
+                    <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
+                        <div className={`relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-black flex-shrink-0 border-2 sm:border-3 md:border-4 border-gray-900 shadow-xl shadow-black/50 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
                             {/* 비닐 표면 그루브 */}
                             <div className="absolute inset-0 rounded-full" style={{
                                 background: 'repeating-radial-gradient(circle at center, transparent 0%, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)'
@@ -951,7 +1000,7 @@ function AlbumDetailView({
                                 <p className="text-gray-300 text-xs sm:text-sm truncate">NCT WISH</p>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-4">
+                            <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                                 {/* 재생 모드 버튼 */}
                                 <button 
                                     onClick={() => {
@@ -1108,7 +1157,7 @@ function AlbumDetailView({
                     </div>
 
                     {/* 추가 컨트롤: 재생속도, 수면타이머, 큐 */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 sm:gap-2">
                         <button
                             onClick={() => {
                                 const rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -1177,32 +1226,43 @@ function AlbumDetailView({
                     {showQuality && (
                         <div className="p-3 bg-black/60 rounded-lg border border-white/10">
                             <p className="text-white text-xs font-bold mb-2">Streaming Quality</p>
-                            <div className="space-y-1">
-                                {[
-                                    { value: 'hd1080', label: '1080p (Best)' },
-                                    { value: 'hd720', label: '720p (High)' },
-                                    { value: 'large', label: '480p (Medium)' },
-                                    { value: 'medium', label: '360p (Low)' }
-                                ].map(q => (
-                                    <button
-                                        key={q.value}
-                                        onClick={() => {
-                                            setQuality(q.value as typeof quality);
-                                            if (playerRef && typeof playerRef.setPlaybackQuality === 'function') {
-                                                playerRef.setPlaybackQuality(q.value);
-                                            }
-                                            setShowQuality(false);
-                                        }}
-                                        className={`w-full py-1.5 px-3 rounded text-left text-xs transition ${
-                                            quality === q.value 
-                                                ? 'bg-wish-green/30 text-white font-bold' 
-                                                : 'bg-white/10 hover:bg-white/20 text-gray-300'
-                                        }`}
-                                    >
-                                        {q.label}
-                                    </button>
-                                ))}
-                            </div>
+                            {availableQualities.length > 0 ? (
+                                <div className="space-y-1">
+                                    {availableQualities.map(q => {
+                                        const labels: Record<string, string> = {
+                                            'highres': '2160p+ (4K)',
+                                            'hd1080': '1080p (Best)',
+                                            'hd720': '720p (High)',
+                                            'large': '480p (Medium)',
+                                            'medium': '360p (Low)',
+                                            'small': '240p',
+                                            'tiny': '144p',
+                                            'auto': 'Auto'
+                                        };
+                                        return (
+                                            <button
+                                                key={q}
+                                                onClick={() => {
+                                                    setQuality(q);
+                                                    if (playerRef && typeof playerRef.setPlaybackQuality === 'function') {
+                                                        playerRef.setPlaybackQuality(q);
+                                                    }
+                                                    setShowQuality(false);
+                                                }}
+                                                className={`w-full py-1.5 px-3 rounded text-left text-xs transition ${
+                                                    quality === q 
+                                                        ? 'bg-wish-green/30 text-white font-bold' 
+                                                        : 'bg-white/10 hover:bg-white/20 text-gray-300'
+                                                }`}
+                                            >
+                                                {labels[q] || q.toUpperCase()}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-gray-400 text-xs py-2 text-center">Loading quality options...</p>
+                            )}
                         </div>
                     )}
 
@@ -1214,7 +1274,14 @@ function AlbumDetailView({
                             title="Video Quality"
                         >
                             <Settings size={14} />
-                            {quality === 'hd1080' ? '1080p' : quality === 'hd720' ? '720p' : quality === 'large' ? '480p' : '360p'}
+                            {quality === 'highres' ? '4K' : 
+                             quality === 'hd1080' ? '1080p' : 
+                             quality === 'hd720' ? '720p' : 
+                             quality === 'large' ? '480p' : 
+                             quality === 'medium' ? '360p' : 
+                             quality === 'small' ? '240p' : 
+                             quality === 'tiny' ? '144p' : 
+                             quality.toUpperCase()}
                         </button>
                         <button
                             onClick={() => toggleMiniPlayer()}
@@ -1437,7 +1504,7 @@ function AlbumDetailView({
                             </div>
                         ) : (
                             // 트랙리스트
-                            sortedTracks.map((track, idx) => {
+                            sortedTracks.map((track) => {
                                 const isActive = currentTrack?.id === track.id;
                                 const isFavorite = favorites.has(track.id);
                                 return (
@@ -1567,7 +1634,8 @@ function AlbumDetailView({
                 ← List
             </button>
 
-        </div>
+            </div>
+        </>
     );
 }
 

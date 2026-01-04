@@ -10,6 +10,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
 import { Taskbar } from "@/components/os"
+import MiniPlayer from "@/components/os/MiniPlayer";
 import "./styles/globals.css";
 
 // ----------------------------------------------------------------------
@@ -123,6 +124,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* [D] 전역 태스크바 (항상 최상위 고정) */}
         <Taskbar />
+
+        {/* [E] 미니 플레이어 (전역 플로팅) */}
+        <MiniPlayer />
 
       </body>
     </html>

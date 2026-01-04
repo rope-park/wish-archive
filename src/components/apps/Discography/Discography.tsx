@@ -406,7 +406,7 @@ export default function Discography({ onClose: _onClose }: DiscographyProps) {
                         <p className="text-sm">Try a different search term</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8 pt-2 auto-rows-max">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 p-4 sm:p-6 md:p-8 pt-2 auto-rows-max overflow-y-auto max-h-full">
                         {filteredAlbums.map((album) => {
                             // 원본 albums 배열에서의 인덱스 찾기
                             const originalIdx = albums.findIndex(a => a.id === album.id);
@@ -1381,9 +1381,16 @@ function AlbumDetailView({
                                                 
                                                 {/* 로마자 */}
                                                 <button
-                                                    onClick={() => setShowRomanized(!showRomanized)}
+                                                    onClick={() => {
+                                                        setLyricLanguage('romanized');
+                                                        const key = `${currentTrack?.language}_ROMANTIZED`;
+                                                        const lyric = allLyrics[key];
+                                                        if (lyric?.lrcContent) {
+                                                            setLyrics(parseLRC(lyric.lrcContent));
+                                                        }
+                                                    }}
                                                     className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition ${
-                                                        showRomanized
+                                                        lyricLanguage === 'romanized'
                                                             ? 'bg-blue-500/30 text-blue-300 border border-blue-500/50' 
                                                             : 'bg-black/40 text-gray-300 border border-white/10'
                                                     }`}
@@ -1447,12 +1454,6 @@ function AlbumDetailView({
                                                     >
                                                         {lyricText || '♪'}
                                                     </p>
-                                                    {showRomanized && currentTrack && (
-                                                        <p className="text-xs text-blue-300/70 text-center mt-1 italic font-mono">
-                                                            {/* 로마자 표기는 ROMANIZED script에서 가져오기 */}
-                                                            {allLyrics[`${currentTrack.language}_ROMANIZED`]?.text?.split('\n')[idx] || 'Romanization available'}
-                                                        </p>
-                                                    )}
                                                 </div>
                                             );
                                         })

@@ -1,0 +1,82 @@
+<!-- 
+  Lyrics Template for NCT WISH Songs
+  
+  구조:
+  - Korean: 한국어 가사
+  - Japanese: 일본어 가사
+  - Romanized: 로마자 표기
+  - Parts: 멤버별 파트 (colorCode 사용)
+  
+  멤버 컬러:
+  - SION: #E9B0EF (Purple)
+  - RIKU: #FFC2D4 (Pink)
+  - YUSHI: #9AD7F5 (Sky Blue)
+  - JAEHEE: #FCC89B (Orange)
+  - RYO: #C4E7D4 (Green)
+  - SAKUYA: #FFF59E (Yellow)
+-->
+
+<div class="lyrics-container">
+  <!-- 한국어 가사 -->
+  <div class="lyrics-section korean" data-lang="korean">
+    <div class="lyric-line" data-time="0.00" data-member="ALL">
+      <span class="text"><!-- 가사를 여기에 입력하세요 --></span>
+    </div>
+    <div class="lyric-line" data-time="2.50" data-member="SION">
+      <span class="text" style="color: #E9B0EF"><!-- SION 파트 --></span>
+    </div>
+    <div class="lyric-line" data-time="5.00" data-member="RIKU">
+      <span class="text" style="color: #FFC2D4"><!-- RIKU 파트 --></span>
+    </div>
+    <div class="lyric-line" data-time="7.50" data-member="YUSHI">
+      <span class="text" style="color: #9AD7F5"><!-- YUSHI 파트 --></span>
+    </div>
+    <div class="lyric-line" data-time="10.00" data-member="JAEHEE">
+      <span class="text" style="color: #FCC89B"><!-- JAEHEE 파트 --></span>
+    </div>
+    <div class="lyric-line" data-time="12.50" data-member="RYO">
+      <span class="text" style="color: #C4E7D4"><!-- RYO 파트 --></span>
+    </div>
+    <div class="lyric-line" data-time="15.00" data-member="SAKUYA">
+      <span class="text" style="color: #FFF59E"><!-- SAKUYA 파트 --></span>
+    </div>
+  </div>
+
+  <!-- 일본어 가사 -->
+  <div class="lyrics-section japanese" data-lang="japanese">
+    <div class="lyric-line" data-time="0.00" data-member="ALL">
+      <span class="text"><!-- 일본어 가사를 여기에 입력하세요 --></span>
+    </div>
+  </div>
+
+  <!-- 로마자 표기 -->
+  <div class="lyrics-section romanized" data-lang="romanized">
+    <div class="lyric-line" data-time="0.00" data-member="ALL">
+      <span class="text"><!-- 로마자 표기를 여기에 입력하세요 --></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .lyrics-container {
+    padding: 1rem;
+  }
+  .lyrics-section {
+    display: none;
+  }
+  .lyrics-section.active {
+    display: block;
+  }
+  .lyric-line {
+    padding: 0.5rem 0;
+    transition: all 0.3s ease;
+  }
+  .lyric-line.current {
+    font-weight: bold;
+    transform: scale(1.05);
+  }
+  .lyric-line .text {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+</style>

@@ -195,47 +195,52 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
         }
 
         const initPlayer = () => {
-            if (!videoContainerRef.current || !window.YT) return;
+            if (!videoContainerRef.current || !window.YT || !window.YT.Player) return;
 
-            // 기존 player가 있으면 video만 변경
-            if (playerInstanceRef.current && typeof playerInstanceRef.current.loadVideoById === 'function') {
-                try {
-                    playerInstanceRef.current.loadVideoById(youtubeId);
-                    return;
-                } catch (e) {
-                    console.log('Player error, recreating...', e);
-                    if (playerInstanceRef.current) {
-                        playerInstanceRef.current.destroy();
-                    }
-                    playerInstanceRef.current = null;
-                }
-            }
+            // Container를 비워서 YouTube API가 iframe을 생성하도록 함
+            videoContainerRef.current.innerHTML = '';
+            
+            // 새 div 생성 (YouTube API가 여기에 iframe을 넣음)
+            const playerDiv = document.createElement('div');
+            playerDiv.id = `youtube-player-${Date.now()}`;
+            videoContainerRef.current.appendChild(playerDiv);
 
             // 새 player 생성
-            playerInstanceRef.current = new window.YT.Player(videoContainerRef.current, {
-                videoId: youtubeId,
-                width: '100%',
-                height: '100%',
-                playerVars: {
-                    autoplay: 1,
-                    controls: 1,
-                    modestbranding: 1,
-                    rel: 0,
-                    playsinline: 1,
-                },
-                events: {
-                    onReady: (event: YT.OnReadyEvent) => {
-                        const player = event.target;
-                        setPlayerRef(player); // Store에 저장
-                        if (typeof player.setVolume === 'function') {
-                            player.setVolume(volume);
-                        }
-                        if (isPlaying && typeof player.playVideo === 'function') {
-                            player.playVideo();
-                        }
+            try {
+                playerInstanceRef.current = new window.YT.Player(playerDiv, {
+                    videoId: youtubeId,
+                    width: '100%',
+                    height: '100%',
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 1,
+                        modestbranding: 1,
+                        rel: 0,
+                        playsinline: 1,
                     },
-                }
-            });
+                    events: {
+                        onReady: (event: YT.OnReadyEvent) => {
+                            console.log('MiniPlayer YouTube ready');
+                            const player = event.target;
+                            setPlayerRef(player); // Store에 저장
+                            if (typeof player.setVolume === 'function') {
+                                player.setVolume(volume);
+                            }
+                            if (isPlaying && typeof player.playVideo === 'function') {
+                                player.playVideo();
+                            }
+                        },
+                        onStateChange: (event: YT.OnStateChangeEvent) => {
+                            console.log('MiniPlayer YouTube state:', event.data);
+                        },
+                        onError: (event: { data: number }) => {
+                            console.error('MiniPlayer YouTube error:', event.data);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to create YouTube player:', error);
+            }
         };
 
         if (window.YT && window.YT.Player) {

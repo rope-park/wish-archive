@@ -118,6 +118,9 @@ async function main() {
           case 'Events':
             result = await step.fn(prisma, seedResults.Members!, seedResults.Eras!, seedResults.Albums!);
             break;
+          case 'Lyrics':
+            result = await step.fn(prisma);
+            break;
           case 'Programs':
           case 'Charts':
           case 'Appearances':

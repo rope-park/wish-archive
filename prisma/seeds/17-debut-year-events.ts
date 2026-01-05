@@ -623,7 +623,7 @@ export async function seedDebutYearEvents() {
       data: {
         ...event,
         isPreDebut: false,
-      },
+      } as any,
     });
   }
 

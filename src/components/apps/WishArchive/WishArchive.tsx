@@ -8,14 +8,16 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Spinner, Button, Dropdown, MenuBar, MenuItemType, ToolBar } from '@/components/ui';
+import { PreDebutTimeline } from './PreDebutTimeline';
 
 // ----------------------------------------------------------------------
 // Types & Icons
 // ----------------------------------------------------------------------
 
 type FileType = 'root' | 'drive' | 'folder' | 'era' | 'album' | 'event';
+type ViewType = 'explorer' | 'timeline';
 
 interface FileSystemItem {
     id?: string;
@@ -71,66 +73,89 @@ function NavButton({ label, icon, disabled, onClick, active }: { label: string, 
     );
 }
 
-// 파일 속성 모달 (실행 시 상세 정보 표시)
+// 파일 속성 모달 (실행 시 상세 정보 표시) - Responsive
 function PropertiesDialog({ item, onClose }: { item: FileSystemItem; onClose: () => void }) {
     if (!item) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
-            {/* 윈도우 스타일 프레임 */}
-            <div className="w-[360px] bg-[#C0C0C0] border-2 border-white border-r-black border-b-black shadow-xl flex flex-col p-[2px]">
+        <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-[1px] p-4"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}
+        >
+            {/* 윈도우 스타일 프레임 - Responsive */}
+            <div className="w-full max-w-[90vw] sm:max-w-sm md:max-w-md bg-[#C0C0C0] border-2 border-white border-r-black border-b-black shadow-xl flex flex-col p-[2px] max-h-[85vh] sm:max-h-[75vh]">
 
-                {/* 타이틀 바 */}
-                <div className="bg-[#000080] text-white px-2 py-1 flex justify-between items-center h-7 select-none">
-                    <span className="font-bold text-xs truncate pr-2">{item.name} Properties</span>
+                {/* 타이틀 바 - Touch friendly */}
+                <div className="bg-[#000080] text-white px-2 sm:px-3 py-1.5 sm:py-2 flex justify-between items-center select-none touch-manipulation">
+                    <span className="font-bold text-xs sm:text-sm truncate pr-2">{item.name} Properties</span>
                     <button
                         onClick={onClose}
-                        className="w-4 h-4 bg-[#C0C0C0] text-black border-t-white border-l-white border-r-black border-b-black border flex items-center justify-center text-[10px] active:border-t-black active:border-l-black active:border-r-white active:border-b-white"
+                        className="
+                            w-6 h-6 sm:w-5 sm:h-5 
+                            bg-[#C0C0C0] text-black 
+                            border-t-white border-l-white border-r-black border-b-black border 
+                            flex items-center justify-center 
+                            text-sm sm:text-xs
+                            active:border-t-black active:border-l-black active:border-r-white active:border-b-white
+                            touch-manipulation
+                            hover:bg-gray-300
+                            transition-colors
+                        "
+                        aria-label="Close"
                     >
                         ✕
                     </button>
                 </div>
 
-                {/* 컨텐츠 */}
-                <div className="p-4 flex flex-col gap-4 text-sm font-sans text-black">
+                {/* 컨텐츠 - Scrollable on mobile */}
+                <div className="p-3 sm:p-4 md:p-6 flex flex-col gap-3 sm:gap-4 text-sm font-sans text-black overflow-y-auto">
 
-                    {/* 일반 정보 탭 스타일 */}
-                    <div className="flex gap-4 items-start">
-                        <div className="w-16 h-16 shrink-0 flex items-center justify-center bg-white border border-gray-400 shadow-inner text-4xl">
+                    {/* 일반 정보 탭 스타일 - Responsive Grid */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start">
+                        <div className="w-20 h-20 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center bg-white border border-gray-400 shadow-inner text-4xl sm:text-3xl mx-auto sm:mx-0">
                             {item.cover ? <img src={item.cover} alt="" className="w-full h-full object-cover" /> : getIcon(item)}
                         </div>
                         <div className="flex flex-col gap-2 w-full overflow-hidden">
                             <div className="flex flex-col">
-                                <label className="text-xs text-gray-600">Name:</label>
+                                <label className="text-xs text-gray-600 mb-1">Name:</label>
                                 <input
                                     readOnly
                                     value={item.name}
-                                    className="text-sm border border-gray-400 px-1 py-0.5 bg-white focus:outline-none"
+                                    className="text-sm border border-gray-400 px-2 py-1 bg-white focus:outline-none w-full"
                                 />
                             </div>
                             <div className="w-full h-[1px] bg-gray-400 border-b border-white" />
-                            <div className="grid grid-cols-[60px_1fr] gap-x-2 gap-y-1 text-xs">
+                            <div className="grid grid-cols-[80px_1fr] sm:grid-cols-[60px_1fr] gap-x-2 gap-y-1.5 text-xs sm:text-[11px]">
                                 <span className="text-gray-600">Type:</span>
-                                <span>{item.type.toUpperCase()} File</span>
+                                <span className="break-words">{item.type.toUpperCase()} File</span>
                                 <span className="text-gray-600">Date:</span>
                                 <span>{item.date ? new Date(item.date).toLocaleDateString() : '-'}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* 설명 영역 */}
+                    {/* 설명 영역 - Better mobile readability */}
                     {item.description && (
-                        <fieldset className="border border-gray-400 border-b-white border-r-white p-2">
+                        <fieldset className="border border-gray-400 border-b-white border-r-white p-2 sm:p-3">
                             <legend className="px-1 text-xs text-gray-600">Description</legend>
-                            <div className="max-h-[100px] overflow-y-auto custom-scrollbar text-xs leading-relaxed whitespace-pre-wrap">
+                            <div className="max-h-[120px] sm:max-h-[100px] overflow-y-auto custom-scrollbar text-xs sm:text-[11px] leading-relaxed whitespace-pre-wrap">
                                 {item.description}
                             </div>
                         </fieldset>
                     )}
 
-                    {/* 하단 버튼 */}
+                    {/* 하단 버튼 - Touch friendly */}
                     <div className="flex justify-end gap-2 mt-2">
-                        <Button variant="default" size="sm" onClick={onClose} className="min-w-[70px]">OK</Button>
+                        <Button 
+                            variant="default" 
+                            size="sm" 
+                            onClick={onClose} 
+                            className="min-w-[80px] sm:min-w-[70px] touch-manipulation active:scale-95"
+                        >
+                            OK
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -151,7 +176,8 @@ export default function WishArchive({ onClose }: { onClose: () => void }) {
 
     const [loading, setLoading] = useState(true);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-
+    // View Mode: explorer or timeline
+    const [currentView, setCurrentView] = useState<ViewType>('explorer');
     // View Options
     const [viewMode, setViewMode] = useState<'icons' | 'details'>('icons');
     const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
@@ -286,15 +312,30 @@ export default function WishArchive({ onClose }: { onClose: () => void }) {
             key: 'view', label: '&View',
             children: (
                 <Dropdown.Menu>
-                    <Dropdown.Item label="Icons" checked={viewMode === 'icons'} onClick={() => setViewMode('icons')} />
-                    <Dropdown.Item label="Details" checked={viewMode === 'details'} onClick={() => setViewMode('details')} />
+                    <Dropdown.Item label="Explorer" checked={currentView === 'explorer'} onClick={() => setCurrentView('explorer')} />
+                    <Dropdown.Item label="Event Timeline" checked={currentView === 'timeline'} onClick={() => setCurrentView('timeline')} />
                     <Dropdown.Divider />
-                    <Dropdown.Item label="Sort by Name" checked={sortBy === 'name'} onClick={() => setSortBy('name')} />
-                    <Dropdown.Item label="Sort by Date" checked={sortBy === 'date'} onClick={() => setSortBy('date')} />
+                    <Dropdown.Item label="Icons" checked={viewMode === 'icons'} onClick={() => setViewMode('icons')} disabled={currentView !== 'explorer'} />
+                    <Dropdown.Item label="Details" checked={viewMode === 'details'} onClick={() => setViewMode('details')} disabled={currentView !== 'explorer'} />
+                    <Dropdown.Divider />
+                    <Dropdown.Item label="Sort by Name" checked={sortBy === 'name'} onClick={() => setSortBy('name')} disabled={currentView !== 'explorer'} />
+                    <Dropdown.Item label="Sort by Date" checked={sortBy === 'date'} onClick={() => setSortBy('date')} disabled={currentView !== 'explorer'} />
                 </Dropdown.Menu>
             )
         },
     ];
+
+    // If showing timeline, render timeline view
+    if (currentView === 'timeline') {
+        return (
+            <div className="flex flex-col h-full w-full bg-[#f0f0f0] font-sans select-none overflow-hidden">
+                <MenuBar items={menuItems} className="bg-[#f0f0f0]" />
+                <div className="flex-1 overflow-hidden">
+                    <PreDebutTimeline />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full w-full bg-[#f0f0f0] font-sans select-none overflow-hidden">

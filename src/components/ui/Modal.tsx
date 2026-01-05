@@ -23,6 +23,7 @@ export interface ModalProps {
   confirmText?: string;       // 확인 버튼 텍스트
   cancelText?: string;        // 취소 버튼 텍스트
   className?: string;         // 추가 클래스명
+  children?: ReactNode;       // Custom content (overrides message)
 }
 
 export default function Modal({
@@ -35,6 +36,7 @@ export default function Modal({
   confirmText = '확인',
   cancelText = '취소',
   className = '',
+  children,
 }: ModalProps) {
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -168,64 +170,72 @@ export default function Modal({
             </span>
           </div>
           
-          {/* 닫기 버튼 (X) */}
+          {/* 닫기 버튼 (X) - Enhanced touch support */}
           <button 
             onClick={onClose}
             className="
-              w-7 h-7 md:w-6 md:h-6 flex items-center justify-center shrink-0
+              w-10 h-10 sm:w-7 sm:h-7 md:w-6 md:h-6 
+              flex items-center justify-center shrink-0
               bg-[#c0c0c0] text-black 
               border-t-white border-l-white border-r-black border-b-black border
               active:border-t-black active:border-l-black active:border-r-white active:border-b-white
               hover:bg-red-500 hover:text-white group
               transition-colors
+              touch-manipulation
             "
-            style={{ minWidth: '44px', minHeight: '44px', touchAction: 'manipulation' }}
             aria-label="Close modal"
           >
-            <span className="font-pixel text-[10px] -mt-[2px] group-hover:text-white">✕</span>
+            <span className="font-pixel text-xs sm:text-[10px] -mt-[2px] group-hover:text-white">✕</span>
           </button>
         </div>
 
         {/* [4] 컨텐츠 영역 */}
         <div className="p-4 md:p-6 flex flex-col gap-4 md:gap-6 bg-gray-200">
           
-          {/* 아이콘 + 메시지 */}
-          <div className="flex items-start gap-3 md:gap-4">
-            <div className="shrink-0 filter drop-shadow-sm select-none pt-1 text-3xl md:text-4xl">
-              {config.icon}
-            </div>
-            <div className="pt-1 text-sm md:text-base font-body text-gray-900 leading-relaxed break-keep flex-1">
-              {message}
-            </div>
-          </div>
+          {children ? (
+            // Custom content
+            children
+          ) : (
+            <>
+              {/* 아이콘 + 메시지 */}
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="shrink-0 filter drop-shadow-sm select-none pt-1 text-3xl md:text-4xl">
+                  {config.icon}
+                </div>
+                <div className="pt-1 text-sm md:text-base font-body text-gray-900 leading-relaxed break-keep flex-1">
+                  {message}
+                </div>
+              </div>
 
-          {/* 버튼 그룹 (중앙 정렬) */}
-          <div className="flex flex-col sm:flex-row justify-center gap-2 md:gap-3 mt-2">
-            {/* 확인 버튼 */}
-            <Button 
-              size="sm" 
-              onClick={() => {
-                if (onConfirm) onConfirm();
-                else onClose();
-              }}
-              className="min-w-[100px] font-pixel order-1 sm:order-1"
-              autoFocus // 모달 열리면 기본 포커스
-            >
-              {confirmText}
-            </Button>
+              {/* 버튼 그룹 (중앙 정렬) - Touch optimized */}
+              <div className="flex flex-col sm:flex-row justify-center gap-2 md:gap-3 mt-2">
+                {/* 확인 버튼 */}
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    if (onConfirm) onConfirm();
+                    else onClose();
+                  }}
+                  className="min-w-[100px] min-h-[44px] sm:min-h-[36px] font-pixel order-1 sm:order-1 touch-manipulation"
+                  autoFocus // 모달 열리면 기본 포커스
+                >
+                  {confirmText}
+                </Button>
 
-            {/* 취소 버튼 (Question 타입일 때만 표시) */}
-            {variant === 'question' && (
-              <Button 
-                size="sm" 
-                variant="ghost"
-                onClick={onClose}
-                className="min-w-[100px] border border-black font-pixel order-2 sm:order-2"
-              >
-                {cancelText}
-              </Button>
-            )}
-          </div>
+                {/* 취소 버튼 (Question 타입일 때만 표시) */}
+                {variant === 'question' && (
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={onClose}
+                    className="min-w-[100px] min-h-[44px] sm:min-h-[36px] border border-black font-pixel order-2 sm:order-2 touch-manipulation"
+                  >
+                    {cancelText}
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
 
         </div>
       </div>

@@ -85,7 +85,7 @@ function MenuButton({ children, disabled, onClick, className = '' }: MenuButtonP
       className={`
         h-5 px-2 mx-[1px]
         flex items-center justify-center
-        rounded-none
+        rounded-none overflow-hidden
         font-pixel text-sm leading-none
         border 
         transition-none cursor-default
@@ -114,7 +114,7 @@ function MenuButton({ children, disabled, onClick, className = '' }: MenuButtonP
         ${className}
       `}
     >
-      <span className={`pt-[2px] ${isOpen ? 'translate-x-[1px] translate-y-[1px]' : ''}`}>
+      <span className={`pt-[2px] whitespace-nowrap ${isOpen ? 'translate-x-[1px] translate-y-[1px]' : ''}`}>
         {children}
       </span>
     </div>

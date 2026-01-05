@@ -179,15 +179,16 @@ function DropdownItem({
             className={`
                 group flex items-center w-full px-4 py-1.5
                 text-sm font-pixel leading-none text-left select-none
-              bg-gray-200 text-gray-900
+                bg-gray-200 text-gray-900
                 hover:bg-brand-retro-navy hover:text-white
-              disabled:text-gray-400 disabled:hover:bg-gray-200 disabled:cursor-not-allowed
+                disabled:text-gray-400 disabled:hover:bg-gray-200 disabled:cursor-not-allowed
+                transition-colors duration-75
                 ${className}
             `}
             {...props}
         >
-            <span className="w-5 flex items-center justify-center mr-2 shrink-0">
-                {checked ? <span className="text-[10px] group-hover:text-white">✔</span> : <span className="text-sm group-hover:text-white">{icon}</span>}
+            <span className="w-4 flex items-center justify-center mr-2 shrink-0">
+                {checked && <span className="text-xs group-hover:text-white">✓</span>}
             </span>
             <span className="flex-1 truncate pt-[2px]">{children || label}</span>
             {shortcut && <span className="ml-4 text-[10px] text-gray-500 group-hover:text-white pt-[2px]">{shortcut}</span>}

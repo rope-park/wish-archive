@@ -29,7 +29,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['Pre-Debut'],
-      isHighlighted: true,
       programName: 'NCT LASTART',
     },
     {
@@ -41,7 +40,6 @@ export async function seedEvents(
       country: 'JP',
       city: null,
       eraId: eraMap['Pre-Debut'],
-      isHighlighted: true,
       programName: null
     },
     {
@@ -55,7 +53,6 @@ export async function seedEvents(
       country: 'JP',
       city: null,
       eraId: eraMap['Pre-Debut'],
-      isHighlighted: false,
     },
 
     // ==================== WISH Era (2024.02-06) ====================
@@ -70,7 +67,6 @@ export async function seedEvents(
       country: 'JP',
       city: '도쿄',
       eraId: eraMap['WISH'],
-      isHighlighted: true,
       relatedUrl: 'https://youtu.be/bR8BxxcmxJY',
     },
     {
@@ -82,7 +78,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['WISH'],
-      isHighlighted: true,
     },
     {
       type: 'MUSIC_SHOW' as EventType,
@@ -94,7 +89,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['WISH'],
       programName: 'M COUNTDOWN',
-      isHighlighted: false,
     },
     {
       type: 'FANMEETING' as EventType,
@@ -107,7 +101,6 @@ export async function seedEvents(
       country: 'KR',
       city: '서울',
       eraId: eraMap['WISH'],
-      isHighlighted: true,
     },
 
     // ==================== Songbird Era (2024.06-09) ====================
@@ -120,7 +113,6 @@ export async function seedEvents(
       country: 'JP',
       city: null,
       eraId: eraMap['Songbird'],
-      isHighlighted: true,
     },
     {
       type: 'ONLINE_CONTENT' as EventType,
@@ -135,7 +127,6 @@ export async function seedEvents(
       eraId: eraMap['Songbird'],
       programName: 'ALL The Feels',
       ProgramType: 'RADIO',
-      isHighlighted: false,
     },
 
 
@@ -149,7 +140,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['Steady'],
-      isHighlighted: true,
     },
     {
       type: 'RELEASE' as EventType,
@@ -160,7 +150,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['Steady'],
-      isHighlighted: true,
     },
     {
       type: 'MUSIC_SHOW' as EventType,
@@ -172,7 +161,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['Steady'],
       programName: 'M COUNTDOWN',
-      isHighlighted: false,
     },
     {
       type: 'MUSIC_SHOW' as EventType,
@@ -184,7 +172,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['Steady'],
       programName: 'Music Bank',
-      isHighlighted: true,
     },
     {
       type: 'ONLINE_CONTENT' as EventType,
@@ -197,7 +184,6 @@ export async function seedEvents(
       eraId: eraMap['Steady'],
       programName: 'CHAT WITH WISH!',
       ProgramType: 'RADIO',
-      isHighlighted: false,
     },
     {
       type: 'CONCERT' as EventType,
@@ -210,7 +196,6 @@ export async function seedEvents(
       country: 'JP',
       city: null,
       eraId: eraMap['Steady'],
-      isHighlighted: false,
     },
 
     // ==================== WISHFUL Era (2024.11-2025.04) ====================
@@ -223,7 +208,6 @@ export async function seedEvents(
       country: 'JP',
       city: null,
       eraId: eraMap['WISHFUL'],
-      isHighlighted: true,
     },
     {
       type: 'AWARD_SHOW' as EventType,
@@ -234,7 +218,6 @@ export async function seedEvents(
       country: 'JP',
       city: null,
       eraId: eraMap['WISHFUL'],
-      isHighlighted: false,
       programName: '뮤직뱅크 글로벌 페스티벌',
     },
     {
@@ -246,7 +229,6 @@ export async function seedEvents(
       country: 'KR',
       city: '서울',
       eraId: eraMap['WISHFUL'],
-      isHighlighted: false,
       programName: 'SBS 가요대전',
     },
     {
@@ -258,7 +240,6 @@ export async function seedEvents(
       country: 'KR',
       city: '서울',
       eraId: eraMap['WISHFUL'],
-      isHighlighted: false,
       programName: 'MBC 가요대제전',
     },
 
@@ -271,7 +252,6 @@ export async function seedEvents(
       country: 'JP',
       city: '후쿠오카',
       eraId: eraMap['WISHFUL'],
-      isHighlighted: false,
     },
     {
       type: 'CONCERT' as EventType,
@@ -284,7 +264,6 @@ export async function seedEvents(
       country: 'KR',
       city: '서울',
       eraId: eraMap['WISHFUL'],
-      isHighlighted: true,
     },
     {
       type: 'CONCERT' as EventType,
@@ -297,7 +276,6 @@ export async function seedEvents(
       country: 'MO',
       city: '마카오',
       eraId: eraMap['WISHFUL'],
-      isHighlighted: false,
     },
 
     {
@@ -309,7 +287,6 @@ export async function seedEvents(
       country: 'PH',
       city: '마닐라',
       eraId: eraMap['WISHFUL'],
-      isHighlighted: false,
     },
 
     // ==================== poppop Era (2025.04-08) ====================
@@ -322,7 +299,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['poppop'],
-      isHighlighted: false,
     },
 
     {
@@ -334,7 +310,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['poppop'],
-      isHighlighted: true,
     },
 
     {
@@ -347,7 +322,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['poppop'],
       programName: 'M COUNTDOWN',
-      isHighlighted: false,
     },
 
     {
@@ -360,7 +334,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['poppop'],
       programName: 'M COUNTDOWN',
-      isHighlighted: true,
     },
 
     {
@@ -373,7 +346,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['poppop'],
       programName: 'Music Bank',
-      isHighlighted: false,
     },
 
     {
@@ -386,7 +358,6 @@ export async function seedEvents(
       city: '서울',
       eraId: eraMap['poppop'],
       programName: 'Show Music Core',
-      isHighlighted: true,
     },
 
     {
@@ -398,7 +369,6 @@ export async function seedEvents(
       country: 'HK',
       city: '홍콩',
       eraId: eraMap['poppop'],
-      isHighlighted: false,
     },
 
     {
@@ -410,7 +380,6 @@ export async function seedEvents(
       country: 'SG',
       city: '싱가포르',
       eraId: eraMap['poppop'],
-      isHighlighted: false,
     },
 
     {
@@ -422,7 +391,6 @@ export async function seedEvents(
       country: 'TW',
       city: '타이페이',
       eraId: eraMap['poppop'],
-      isHighlighted: false,
     },
 
     {
@@ -434,7 +402,6 @@ export async function seedEvents(
       country: 'ID',
       city: '자카르타',
       eraId: eraMap['poppop'],
-      isHighlighted: false,
     },
     
     // ==================== COLOR Era (2025.09-현재) ====================
@@ -447,7 +414,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['COLOR'],
-      isHighlighted: false,
     },
 
     {
@@ -459,7 +425,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['COLOR'],
-      isHighlighted: false,
     },
 
     {
@@ -471,7 +436,6 @@ export async function seedEvents(
       country: 'KR',
       city: null,
       eraId: eraMap['COLOR'],
-      isHighlighted: true,
     },
 
     {
@@ -483,7 +447,6 @@ export async function seedEvents(
       country: 'KR',
       city: '서울',
       eraId: eraMap['COLOR'],
-      isHighlighted: false,
     },
 
     {
@@ -497,7 +460,6 @@ export async function seedEvents(
       country: 'KR',
       city: '인천',
       eraId: eraMap['COLOR'],
-      isHighlighted: true,
     },
 
     {
@@ -511,7 +473,6 @@ export async function seedEvents(
       country: null,
       city: null,
       eraId: eraMap['COLOR'],
-      isHighlighted: false,
     },
   ]
 

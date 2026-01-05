@@ -327,12 +327,7 @@ export async function seedContents(prisma: PrismaClient) {
                     album: albumId ? { connect: { id: albumId } } : undefined,
                     track: trackId ? { connect: { id: trackId } } : undefined,
                     group: { connect: { id: group.id } },
-                    // 기본적으로 모든 멤버 연결 (유닛곡인 경우 별도 로직 필요하지만 여기선 전체 연결)
-                    members: {
-                        create: allMemberIds.map(memberId => ({
-                            member: { connect: { id: memberId } }
-                        }))
-                    }
+                    // update 시에는 members를 건드리지 않음 (이미 존재하므로)
                 },
                 create: {
                     title: item.title,

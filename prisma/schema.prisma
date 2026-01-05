@@ -521,16 +521,15 @@ model Event {
   country  String? // 국가
   city     String? // 도시
 
-  // --- c. 비주얼 에셋 ---
-  mainImageUrl  String? // 파일 썸네일용
-  isHighlighted Boolean @default(false) // 중요 스케줄 강조
+  // --- d. 분류 플래그 ---
+  isPreDebut Boolean @default(false) // 프리데뷔 시기 스케줄 (2023.10~2024.02)
 
-  // --- d. 연결 링크 ---
+  // --- e. 연결 링크 ---
   relatedUrl     String? // 공식 공지/정보 링크
   ticketUrl      String? // 예매/신청 페이지 링크
   galleryAlbumId String? // 연결된 갤러리/앨범 ID
 
-  // --- e. 관계 ---
+  // --- f. 관계 ---
   // 활동 시기
   eraId String?
   era   Era?    @relation(fields: [eraId], references: [id], onDelete: SetNull)

@@ -24,6 +24,9 @@ import { seedAlbumSales } from './seeds/12-sales'
 import { seedContents } from './seeds/13-contents'
 import { seedAwards } from './seeds/14-awards'
 import { seedLyrics } from './seeds/15-lyrics'
+import { seedPreDebutEvents } from './seeds/16-pre-debut-events';
+import { seedDebutYearEvents } from './seeds/17-debut-year-events';
+import { seed2025Events } from './seeds/18-2025-events';
 
 const prisma = new PrismaClient({
   log: process.env.DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : ['info', 'warn', 'error'],
@@ -46,6 +49,9 @@ type SeedResults = {
   Contents?: unknown[];
   Awards?: unknown[];
   Lyrics?: unknown[];
+  PreDebutEvents?: unknown[];
+  DebutYearEvents?: unknown[];
+  Activities2025?: unknown[];
 };
 
 // 시드 단계 정의
@@ -66,6 +72,9 @@ const SEED_STEPS = [
   { name: 'Contents', fn: seedContents, deps: [] },
   { name: 'Awards', fn: seedAwards, deps: [] },
   { name: 'Lyrics', fn: seedLyrics, deps: ['Tracks'] },
+  { name: 'PreDebutEvents', fn: seedPreDebutEvents, deps: [] },
+  { name: 'DebutYearEvents', fn: seedDebutYearEvents, deps: [] },
+  { name: 'Activities2025', fn: seed2025Events, deps: [] },
 ] as const
 
 // 메인 시드 함수
@@ -132,6 +141,9 @@ async function main() {
           case 'AlbumSales':
           case 'Contents':
           case 'Awards':
+          case 'PreDebutEvents':
+          case 'DebutYearEvents':
+          case 'Activities2025':
             result = await step.fn(prisma);
             break;
         }
@@ -162,6 +174,9 @@ async function main() {
     console.log(`  • Album Sales: ${Array.isArray(seedResults.AlbumSales) ? seedResults.AlbumSales.length : 0}`)
     console.log(`  • Contents: ${Array.isArray(seedResults.Contents) ? seedResults.Contents.length : 0}`)
     console.log(`  • Awards: ${Array.isArray(seedResults.Awards) ? seedResults.Awards.length : 0}`)
+    console.log(`  • Pre-Debut Events: ${Array.isArray(seedResults.PreDebutEvents) ? seedResults.PreDebutEvents.length : 0}`);
+    console.log(`  • 2024 Debut Year Events: ${Array.isArray(seedResults.DebutYearEvents) ? seedResults.DebutYearEvents.length : 0}`);
+    console.log(`  • 2025 Activities: ${Array.isArray(seedResults.Activities2025) ? seedResults.Activities2025.length : 0}`);
     
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)
     console.log(`\n Total time: ${duration}s`)

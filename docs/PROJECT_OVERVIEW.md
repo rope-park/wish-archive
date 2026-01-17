@@ -87,7 +87,7 @@
 |-----|------|------|
 | **Next.js** | 16.0.8 | React 프레임워크, App Router |
 | **React** | 19.2.0 | UI 라이브러리 |
-| **TypeScript** | 5.x | 타입 안정성 |
+| **TypeScript** | 5.9.3 | 타입 안정성 |
 | **Tailwind CSS** | 4.1.17 | 유틸리티 기반 스타일링 |
 | **Zustand** | 5.0.9 | 클라이언트 상태 관리 |
 | **Framer Motion** | 12.23.25 | 애니메이션 (devDep) |
@@ -102,13 +102,15 @@
 - **react-markdown** (10.1.0): 마크다운 렌더링
 - **react-player** (3.4.0): 비디오 재생
 - **react-datepicker** (8.10.0): 날짜 선택
+- **axios** (1.13.2): HTTP 클라이언트
+- **date-fns** (4.1.0): 날짜 유틸리티
 
 ### Backend & Database
 
 | 기술 | 버전 | 용도 |
 |-----|------|------|
-| **PostgreSQL** | - | 메인 데이터베이스 |
-| **Prisma** | 6.19.1 | ORM (스키마, 마이그레이션, 쿼리) |
+| **PostgreSQL** | 15+ | 메인 데이터베이스 |
+| **Prisma** | 7.2.0 | ORM (스키마, 마이그레이션, 쿼리) |
 | **Supabase** | 2.83.0 | DB 호스팅 및 인증 |
 | **Cloudinary** | 2.8.0 | 이미지/비디오 스토리지 및 최적화 |
 
@@ -363,6 +365,6 @@ NCT WISH와 NCTzen WISH 여러분께 감사드립니다. 💚
 
 ---
 
-**Last Updated:** 2025-12-29  
+**Last Updated:** 2026-01-17  
 **Version:** 0.1.0  
 **Author:** Park Ju Eul (rope_park)

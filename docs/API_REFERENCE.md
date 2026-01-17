@@ -32,7 +32,7 @@
 | **문자 인코딩** | UTF-8 |
 | **요청 메서드** | GET, POST |
 
-### 현재 구현된 API (11개)
+### 현재 구현된 API (10개)
 
 ```
 /api
@@ -42,11 +42,12 @@
 ├── /discography                 [GET]  디스코그래피
 ├── /archive                     [GET]  아카이브 트리
 ├── /gallery                     [GET]  갤러리 (Cloudinary)
+├── /events                      [GET]  이벤트 목록
+├── /lyrics                      [GET]  가사 조회
 ├── /stats                       [GET]  시스템 통계
 └── /widgets
     ├── /dday                    [GET]  D-Day 위젯
     ├── /quotes/random           [GET]  랜덤 명언
-    ├── /tracks                  [GET]  MV 플레이리스트
     └── /wishes                  [GET, POST]  소원 항아리
 ```
 

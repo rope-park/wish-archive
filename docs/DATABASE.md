@@ -28,18 +28,18 @@
 | 항목 | 기술 |
 |-----|------|
 | **DBMS** | PostgreSQL 15+ |
-| **ORM** | Prisma 6.19.1 |
+| **ORM** | Prisma 7.2.0 |
 | **호스팅** | Supabase |
 | **마이그레이션** | Prisma Migrate |
 | **시드 데이터** | TypeScript (tsx) |
 
 ### 스키마 통계
 
-- **총 모델 수**: 32개
-- **ENUM 타입**: 15개
-- **관계 테이블**: 5개
+- **총 모델 수**: 35개
+- **ENUM 타입**: 17개
+- **관계 테이블**: 7개
 - **인덱스**: 100개 이상
-- **총 라인 수**: 1,269줄
+- **총 라인 수**: 1,302줄
 
 ### 설계 원칙
 
@@ -60,20 +60,24 @@ Prisma의 ENUM 타입을 사용하여 데이터 일관성을 보장합니다.
 
 ```prisma
 enum EventType {
-  RELEASE        // 음반/싱글/디지털 발매
-  MUSIC_SHOW     // 음악방송 출연
-  CONCERT        // 콘서트
-  TOUR           // 투어
-  FANMEETING     // 팬미팅
-  SHOWCASE       // 쇼케이스
-  VARIETY_SHOW   // 예능/특집/일반 TV 출연
-  POPUP_STORE    // 팝업 스토어
-  AWARD_SHOW     // 시상식 참석/수상
-  CF_AD          // 광고/브랜드 콜라보
-  MAGAZINE       // 화보/잡지 촬영
+  RELEASE // 음반/싱글/디지털 발매
+  MUSIC_SHOW // 음악방송 출연
+  CONCERT // 콘서트
+  TOUR // 투어
+  FANMEETING // 팬미팅
+  SHOWCASE // 쇼케이스
+  VARIETY_SHOW // 예능/특집/일반 TV 출연
+  POPUP_STORE // 팝업 스토어
+  AWARD_SHOW // 시상식 참석/수상
+  CF_AD // 광고/브랜드 콜라보
+  MAGAZINE // 화보/잡지 촬영
   ONLINE_CONTENT // 유튜브/Weverse/웹 콘텐츠
-  MERCH_DROP     // 굿즈
-  ANNOUNCEMENT   // 공식 발표/공지
+  ANNOUNCEMENT // 공식 발표/공지
+  FANSIGN // 팬싸인회
+  EVENT // 일반 이벤트
+  RADIO // 라디오 출연
+  BIRTHDAY // 생일
+  ANNIVERSARY // 기념일
   OTHER
 }
 ```

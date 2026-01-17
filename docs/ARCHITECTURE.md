@@ -83,10 +83,10 @@
 | 특징 | 설명 |
 |-----|------|
 | **패러다임** | Client-Server Architecture with SSR/CSR Hybrid |
-| **프레임워크** | Next.js 16 (App Router) |
+| **프레임워크** | Next.js 16.0.8 (App Router) |
 | **렌더링 방식** | Server Components + Client Components |
 | **상태 관리** | Zustand (클라이언트), Server State (React Query 예정) |
-| **데이터베이스** | PostgreSQL + Prisma ORM |
+| **데이터베이스** | PostgreSQL 15+ + Prisma ORM 7.2.0 |
 | **API 스타일** | RESTful JSON API |
 | **배포 전략** | Serverless (Vercel 예정) |
 

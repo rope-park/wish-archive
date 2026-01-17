@@ -12,17 +12,24 @@
     "db:fresh": "prisma migrate reset --force && prisma db seed"
   },
   "dependencies": {
-    "@prisma/client": "6.19.1",
+    "@heroicons/react": "^2.2.0",
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
     "@supabase/supabase-js": "^2.83.0",
     "@vercel/analytics": "^1.6.1",
+    "axios": "^1.13.2",
+    "cheerio": "^1.1.2",
     "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",
     "colorthief": "^2.6.0",
+    "date-fns": "^4.1.0",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "fs": "^0.0.1-security",
+    "heroicons": "^2.2.0",
     "lucide-react": "^0.554.0",
     "next": "^16.0.8",
+    "pg": "^8.16.3",
     "react": "19.2.0",
     "react-datepicker": "^8.10.0",
     "react-dom": "19.2.0",
@@ -37,7 +44,9 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
-    "@types/node": "^20",
+    "@types/cheerio": "^0.22.35",
+    "@types/node": "^20.19.28",
+    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.22",
@@ -46,10 +55,11 @@
     "eslint-config-next": "16.0.1",
     "framer-motion": "^12.23.25",
     "postcss": "^8.5.6",
-    "prisma": "6.19.1",
+    "prisma": "^7.2.0",
     "tailwindcss": "^4.1.17",
+    "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

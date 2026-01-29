@@ -11,6 +11,9 @@ import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
 import { Taskbar } from "@/components/os"
 import MiniPlayer from "@/components/os/MiniPlayer";
+import CustomCursor from "@/components/ui/CustomCursor";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import { generateWebsiteJsonLd, generateOrganizationJsonLd } from "@/lib/json-ld";
 import "./styles/globals.css";
 
 // ----------------------------------------------------------------------
@@ -21,6 +24,7 @@ const neodunggeunmo = localFont({
   src: './fonts/NeoDunggeunmoPro-Regular.ttf',
   display: 'swap',
   variable: '--font-pixel',
+  preload: true, // 성능 최적화: 우선 로드
 });
 
 // 고딕 폰트 (본문, 가독성 필요 시)
@@ -65,19 +69,20 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "WISH OS",
-    description: "NCT WISH Fan-made Archive",
-    url: "https://nct-wish-os.vercel.app",
+    type: "website",
+    locale: "ko_KR",
+    url: "https://wish-archive.vercel.app",
+    title: "WISH OS | NCT WISH Archive",
+    description: "NCT WISH의 모든 순간을 담은 Windows 98 스타일 팬메이드 아카이브",
     siteName: "WISH OS",
     images: [
       {
-        url: "", // TODO: 오픈그래프 이미지 URL 삽입
+        url: "/og-image.png",
         width: 1200,
         height: 630,
+        alt: "WISH OS - NCT WISH Archive",
       },
     ],
-    type: "website",
-    locale: "ko_KR",
   },
 
   twitter: {
@@ -107,6 +112,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${neodunggeunmo.variable} ${pyeongjin.variable} ${ssshinbi.variable} ${d2coding.variable}`}
     >
       <body className="relative w-screen h-screen overflow-hidden select-none bg-[#bfdef0]">
+        {/* JSON-LD 구조화된 데이터 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebsiteJsonLd()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateOrganizationJsonLd()),
+          }}
+        />
 
         {/* [A] 전역 배경화면 레이어 (Z-Index: -20) */}
         {/* layout에 두어야 페이지 이동 시에도 배경이 깜빡이지 않음 */}
@@ -118,7 +136,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* [C] 메인 콘텐츠 영역 */}
         {/* 하단 Taskbar 높이(50px)만큼 패딩을 주어 가려짐 방지 */}
         <main className="w-full h-full relative z-[var(--z-desktop)]">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
           <Analytics />
         </main>
 
@@ -127,6 +147,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* [E] 미니 플레이어 (전역 플로팅) */}
         <MiniPlayer />
+
+        {/* [F] 커스텀 커서 (Deskotp Only) */}
+        <CustomCursor />
+
 
       </body>
     </html>

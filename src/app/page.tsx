@@ -13,6 +13,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
 import { Modal } from '@/components/ui';
 import { LAYOUT_CONSTANTS } from '@/lib/costants';
+import { Z_INDEX } from '@/lib/z-index';
 
 // --- 컴포넌트 Imports ---
 import { DesktopIcon } from '@/components/os';
@@ -39,9 +40,9 @@ const DESKTOP_ICONS: DesktopIconConfig[] = [
   { id: 'disco', type: 'DISCOGRAPHY', title: 'Discography', iconSrc: '/system/icons/apps/discography.png' },
   { id: 'gallery', type: 'WISH_GALLERY', title: 'WISH_Gallery', iconSrc: '/system/icons/apps/wishgallery.png' },
   { id: 'world', type: 'WISH_WORLD', title: 'WISH World', iconSrc: '/system/icons/apps/wishworld.png' },
-  { id: 'mail', type: 'TO_WISH', title: 'To. WISH', iconSrc: '/system/icons/apps/towish.png' },
+  { id: 'towish', type: 'TO_WISH', title: 'To. WISH', iconSrc: '/system/icons/apps/towish.png' },
   { id: 'readme', type: 'README', title: 'README.txt', iconSrc: '/system/icons/apps/readme.png' },
-  { id: 'trash', type: 'RECYCLE_BIN' as AppType, title: 'Recycle Bin', iconSrc: '/system/icons/apps/recyclebin.png' },
+  { id: 'trash', type: 'RECYCLE_BIN', title: 'Recycle Bin', iconSrc: '/system/icons/apps/recyclebin.png' },
 ];
 
 // ----------------------------------------------------------------------
@@ -51,7 +52,6 @@ const DESKTOP_ICONS: DesktopIconConfig[] = [
 export default function Home() {
   // --- State ---
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [widgetPositions, setWidgetPositions] = useState<{ [key: string]: { x: number; y: number } }>({});
   const [widgetScale, setWidgetScale] = useState<number>(1);
   const [iconScale, setIconScale] = useState<number>(1);
@@ -206,6 +206,13 @@ export default function Home() {
         positionPercent: { x: 3, y: 75 },
         baseSize: { width: 340, height: 140 },
         component: MiniPlayerWidget,
+        props: {},
+      },
+      {
+        id: 'towish',
+        positionPercent: { x: 75, y: 6 },
+        baseSize: { width: 200, height: 300 },
+        component: WishJarWidget,
         props: {},
       },
     ];
@@ -365,11 +372,6 @@ export default function Home() {
 
   // 앱 실행 핸들러
   const executeApp = (icon: DesktopIconConfig) => {
-    if (icon.id === 'trash') {
-      setModalOpen(true);
-      return;
-    }
-
     openWindow({
       id: icon.id,
       type: icon.type,
@@ -415,39 +417,62 @@ export default function Home() {
     >
       {/* 최소 크기 미만 경고 화면 */}
        {isViewportTooSmall && (
-        <div className="absolute inset-0 z-[9999] bg-gray-900 flex flex-col items-center justify-center p-6 text-center">
+        <div 
+          className="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center p-6 text-center"
+          style={{ zIndex: Z_INDEX.VIEWPORT_WARNING }}
+        >
           <div className="bg-white rounded-lg p-8 max-w-md shadow-2xl">
             <div className="text-6xl mb-4">⚠️</div>
             <h2 className="font-pixel text-xl mb-4 text-gray-900">화면 크기가 너무 작습니다</h2>
             <p className="font-pixel text-sm text-gray-700 leading-relaxed mb-2">
               이 사이트는 최소 <strong>320 x 500</strong> 크기의 화면이 필요합니다.
             </p>
-            <p className="font-pixel text-xs text-gray-500">
+            <p className="font-pixel text-xs text-gray-500 mb-4">
               기기를 회전하거나 브라우저 창을 키워주세요.
+            </p>
+            <hr className="my-4 border-gray-300" />
+            <h2 className="font-pixel text-lg mb-3 text-gray-900">Screen Size Too Small</h2>
+            <p className="font-pixel text-sm text-gray-700 leading-relaxed mb-2">
+              This site requires at least <strong>320 x 500</strong> screen size.
+            </p>
+            <p className="font-pixel text-xs text-gray-500">
+              Please rotate your device or resize the browser window.
             </p>
           </div>
         </div>
       )}
 
       {/* =================================================================================
-          0. 윈도우 렌더러 (열린 창들을 그려줌)
-          - z-index 관리는 store 내부에서 처리
+          1. 바탕화면 위젯들 (드래그 가능) - 가장 먼저 렌더링 (가장 아래 레이어)
       ================================================================================= */}
-      <WindowRenderer />
+      {widgetsReady && (
+        <div
+          className="absolute top-0 left-0 right-0 pointer-events-none overflow-hidden"
+          style={{ 
+            height: `calc(100vh - ${taskbarHeight}px)`,
+            maxHeight: `calc(100dvh - ${taskbarHeight}px)`,
+            paddingBottom: `${taskbarHeight + 20}px`,
+            zIndex: Z_INDEX.WIDGET,
+          }}
+        >
+          {WIDGET_CONFIGS.map((widget) => {
+            const WidgetComponent = widget.component;
+            return (
+              <DraggableWidget
+                key={widget.id}
+                defaultPosition={widgetPositions[widget.id] || { x: 0, y: 0 }}
+                scale={widgetScale}
+                taskbarHeight={taskbarHeight}
+              >
+                <WidgetComponent {...widget.props} scale={widgetScale} />
+              </DraggableWidget>
+            );
+          })}
+        </div>
+      )}
 
       {/* =================================================================================
-          1. 시스템 모달
-      ================================================================================= */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        variant="error"
-        title="Error"
-        message="추억은 버릴 수 없어요!"
-      />
-
-      {/* =================================================================================
-          2. 바탕화면 아이콘 그리드
+          2. 바탕화면 아이콘 그리드 - 위젯 위에
       ================================================================================= */}
       <div 
         className="
@@ -466,14 +491,13 @@ export default function Home() {
           md:flex-col md:flex-wrap md:content-start md:items-start md:gap-2 md:p-4
           md:overflow-visible
           md:pointer-events-none
-
-          z-[var(--z-desktop)]
         "
         style={{
           height: `calc(100vh - ${taskbarHeight}px)`,
           maxHeight: `calc(100dvh - ${taskbarHeight}px)`,
           paddingBottom: `${taskbarHeight + 10}px`,
           WebkitOverflowScrolling: 'touch',
+          zIndex: Z_INDEX.DESKTOP_ICON,
         }}
         onClick={handleBackgroundClick}
         onTouchEnd={handleBackgroundClick}
@@ -494,31 +518,10 @@ export default function Home() {
       </div>
 
       {/* =================================================================================
-          3. 바탕화면 위젯들 (드래그 가능)
+          3. 윈도우 렌더러 (열린 창들) - 가장 나중에 렌더링 (가장 위 레이어)
+          - z-index 관리는 store 내부에서 처리
       ================================================================================= */}
-      {widgetsReady && (
-        <div
-          className="absolute top-0 left-0 right-0 pointer-events-none z-[var(--z-desktop)] overflow-hidden"
-          style={{ 
-            height: `calc(100vh - ${taskbarHeight}px)`,
-            maxHeight: `calc(100dvh - ${taskbarHeight}px)`,
-          }}
-        >
-          {WIDGET_CONFIGS.map((widget) => {
-            const WidgetComponent = widget.component;
-            return (
-              <DraggableWidget
-                key={widget.id}
-                defaultPosition={widgetPositions[widget.id] || { x: 0, y: 0 }}
-                scale={widgetScale}
-                taskbarHeight={taskbarHeight}
-              >
-                <WidgetComponent {...widget.props} scale={widgetScale} />
-              </DraggableWidget>
-            );
-          })}
-        </div>
-      )}
+      <WindowRenderer />
 
     </main>
   );

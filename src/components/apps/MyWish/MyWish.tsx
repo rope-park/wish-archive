@@ -196,7 +196,11 @@ function WichuAssistant({ currentTab }: { currentTab: string }) {
     };
 
     return (
-        <Draggable bounds="parent" defaultPosition={{ x: 20, y: 380 }} nodeRef={nodeRef as React.RefObject<HTMLDivElement>}>
+        <Draggable 
+            bounds={{ top: 0, left: 0, right: typeof window !== 'undefined' ? window.innerWidth - 180 : 800, bottom:  typeof window !== 'undefined' ? window.innerHeight - 250 - (window.innerWidth < 768 ? 64 : window.innerWidth < 1024 ? 56 : 48) : 400 }}
+            defaultPosition={{ x: 20, y: typeof window !== 'undefined' && window.innerHeight > 600 ? window.innerHeight - 450 : 100 }} 
+            nodeRef={nodeRef as React.RefObject<HTMLDivElement>}
+        >
             <div
                 ref={nodeRef}
                 className="absolute z-50 cursor-pointer group flex flex-col items-center transition-all duration-300"
@@ -238,8 +242,10 @@ function WichuAssistant({ currentTab }: { currentTab: string }) {
                     </div>
                 ) : (
                     // 2. 최소화 상태 (작은 아이콘)
-                    <div className="flex items-center justify-center gap-2 bg-white/90 backdrop-blur-sm border-2 border-wish-green rounded-full px-3 py-1.5 shadow-lg hover:scale-105 transition-transform">
-                        <Star size={16} className="text-wish-green animate-pulse" />
+                    <div className="flex items-center justify-center gap-2 bg-white/90 backdrop-blur-sm border-2 rounded-full px-3 py-1.5 shadow-lg hover:scale-105 transition-transform"
+                        style={{ borderColor: 'var(--color-brand-primary, #BFFF00)' }}
+                    >
+                        <Star size={16} className="animate-pulse" style={{ color: 'var(--color-brand-primary, #BFFF00)' }} />
                         <span className="text-xs font-pixel font-bold text-gray-700">Wichu</span>
                     </div>
                 )}
@@ -292,7 +298,7 @@ function GeneralTab({ group }: { group: GroupWithLinks | null }) {
 
                     <div>
                         <h3 className="font-bold mb-1 text-black">User:</h3>
-                        <ul className="ml-4 space-y-0.5 list-square marker:text-wish-green">
+                            <ul className="ml-4 space-y-0.5 list-square" style={{ '--tw-marker-color': 'var(--color-brand-primary)' } as React.CSSProperties}>
                             <li>{group.fandomName || 'WIZENY'} (Active)</li>
                             <li className="flex items-center gap-2">
                                 Color Profile:
@@ -315,7 +321,7 @@ function GeneralTab({ group }: { group: GroupWithLinks | null }) {
                     <Network size={12} /> Network Neighborhood
                 </legend>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
                     {socialLinks.map((link) => (
                         <a
                             key={link.name}
@@ -355,7 +361,7 @@ function MembersTab({ members }: { members: Member[] }) {
     // 초기 선택 (첫 번째 멤버)
     useEffect(() => {
         if (!selectedId && members.length > 0) {
-            //eslint-disable-next-line react-hooks/exhaustive-deps
+             
             setSelectedId(members[0].id);
         }
     }, [members, selectedId]);
@@ -374,11 +380,21 @@ function MembersTab({ members }: { members: Member[] }) {
 
     const TreeItem = ({ member }: { member: Member }) => (
         <li
+            tabIndex={0}
+            role="option"
+            aria-selected={selectedId === member.id}
             onClick={() => setSelectedId(member.id)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedId(member.id);
+                }
+            }}
             className={`
-                pl-6 py-1 pr-2 cursor-pointer flex items-center gap-2 text-sm select-none border border-transparent
+                pl-6 py-2 pr-2 cursor-pointer flex items-center gap-2 text-sm select-none border border-transparent
                 ${selectedId === member.id ? 'bg-[#000080] text-white border-dotted border-gray-200' : 'text-gray-800 hover:bg-gray-200'}
             `}
+            style={{ minHeight: '44px', touchAction: 'manipulation' }}
         >
             <span className="text-xs">{selectedId === member.id ? '👤' : '💿'}</span>
             <span className={selectedId === member.id ? 'font-bold' : ''}>{member.stageName}</span>
@@ -460,7 +476,7 @@ function MembersTab({ members }: { members: Member[] }) {
                             </div>
 
                             {/* 우측: 레이더 차트 (육각형 능력치) */}
-                            <div className="w-full md:w-48 shrink-0 flex flex-col items-center">
+                            <div className="w-full md:w-56 lg:w-64 shrink-0 flex flex-col items-center">
                                 <div className="w-full h-48 bg-gray-50 border border-gray-200 relative">
                                     <div className="absolute top-1 left-1 text-[9px] text-gray-400 font-pixel">Stats.exe</div>
                                     <ResponsiveContainer width="100%" height="100%">
@@ -472,7 +488,7 @@ function MembersTab({ members }: { members: Member[] }) {
                                                 name={selectedMember.stageName}
                                                 dataKey="A"
                                                 stroke="#86efac"
-                                                fill="#86efac"
+                                                fill="var(--color-brand-primary, #BFFF00)"
                                                 fillOpacity={0.6}
                                             />
                                         </RadarChart>
@@ -501,13 +517,14 @@ function MembersTab({ members }: { members: Member[] }) {
 function DefragBlock({ type, delay }: { type: 'system' | 'album' | 'empty', delay: number }) {
     const getColor = () => {
         if (type === 'system') return 'bg-blue-500';
-        if (type === 'album') return 'bg-brand-[wichu-green]'; // 엔시티 색상
+        if (type === 'album') return ''; // CSS 변수로 대체
         return 'bg-white';
     };
 
     return (
         <div
             className={`w-full h-full border border-gray-100 shadow-sm ${type === 'empty' ? 'bg-white' : ''}`}
+            style={{ backgroundColor: type === 'album' ? 'var(--color-brand-primary, #BFFF00)' : undefined }}
         >
             {type !== 'empty' && (
                 <div
@@ -547,7 +564,7 @@ function PerformanceTab({ group, stats }: { group: GroupWithLinks | null, stats:
                 </div>
                 <div className="flex-1 min-w-[150px] bg-white border border-gray-400 px-2 py-1 shadow-sm flex justify-between items-center">
                     <span className="text-gray-600">Memory (Love)</span>
-                    <span className="font-pixel font-bold text-wish-green">100% Full</span>
+                    <span className="font-pixel font-bold" style={{ color: 'var(--color-brand-primary, #BFFF00)' }}>100% Full</span>
                 </div>
             </div>
 
@@ -573,7 +590,7 @@ function PerformanceTab({ group, stats }: { group: GroupWithLinks | null, stats:
                 {/* 범례 */}
                 <div className="flex gap-4 mt-2 px-1 text-[10px] text-gray-600">
                     <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-500 border border-gray-400"></div> System</div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 bg-wish-green border border-gray-400"></div> WISH Data</div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 border border-gray-400" style={{ backgroundColor: 'var(--color-brand-primary, #BFFF00)' }}></div> WISH Data</div>
                     <div className="flex items-center gap-1"><div className="w-3 h-3 bg-white border border-gray-400"></div> Free Space</div>
                 </div>
             </div>
@@ -625,7 +642,11 @@ export default function MyWish({ onClose }: MyWishProps) {
                 ]);
 
                 if (groupRes.ok) setGroup(await groupRes.json());
-                if (membersRes.ok) setMembers(await membersRes.json());
+                if (membersRes.ok) {
+                    const membersData = await membersRes.json();
+                    // API가 { data: Member[] } 형태로 반환할 수 있으므로 안전하게 처리
+                    setMembers(Array.isArray(membersData) ? membersData : (membersData.data || []));
+                }
                 if (statsRes.ok) setStats(await statsRes.json());
             } catch (error) {
                 console.error("Failed to load data", error);

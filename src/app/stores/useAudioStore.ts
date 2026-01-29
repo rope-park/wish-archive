@@ -25,6 +25,7 @@ interface YouTubePlayer {
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   setPlaybackQuality: (quality: string) => void;
   getPlaybackQuality: () => string;
+  setPlaybackRate: (rate: number) => void;
 }
 
 interface AudioStore {
@@ -278,8 +279,8 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     const clampedRate = Math.max(0.5, Math.min(2.0, rate));
     set({ playbackRate: clampedRate });
     const { playerRef } = get();
-    if (playerRef && typeof (playerRef as any).setPlaybackRate === 'function') {
-      (playerRef as any).setPlaybackRate(clampedRate);
+    if (playerRef && typeof playerRef.setPlaybackRate === 'function') {
+      playerRef.setPlaybackRate(clampedRate);
     }
   },
 

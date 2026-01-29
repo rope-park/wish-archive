@@ -170,7 +170,7 @@ export function FilterPanel({
                             key={location}
                             onClick={() => toggleLocation(location)}
                             className={`
-                              px-4 py-2 border-3 border-black dark:border-white text-sm font-black transition-all uppercase
+                              px-4 py-2 border-4 border-black dark:border-white text-sm font-black transition-all uppercase
                               ${
                                 isSelected
                                   ? 'bg-green-400 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] translate-x-[2px] translate-y-[2px]'

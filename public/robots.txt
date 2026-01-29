@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin or private pages
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://wish-archive.vercel.app/sitemap.xml

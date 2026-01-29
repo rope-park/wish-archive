@@ -10,7 +10,7 @@ import type { Era, Program, EventSeries, Album, Member, Track } from '@prisma/cl
 export function findEraIdByDate(date: Date, eras: Era[]): string | undefined {
   // 1. Pre-Debut 예외 처리 (안전장치)
   const preDebutEra = eras.find(e => e.name === 'Pre-Debut');
-  
+
   if (preDebutEra && date < new Date('2024-01-18') && date > new Date('2023-09-07')) { // 프리데뷔 활동기
     return preDebutEra.id;
   }
@@ -45,7 +45,7 @@ export function findProgramIdByTitle(title: string, programs: Program[]): string
       if (title.includes(program.aliases[i])) return program.id;
     }
   }
-  
+
   return undefined;
 }
 
@@ -56,7 +56,7 @@ export function findProgramIdByTitle(title: string, programs: Program[]): string
  */
 export function findSeriesIdByName(name: string | undefined, seriesList: EventSeries[]): string | undefined {
   if (!name) return undefined;
-  
+
   const target = seriesList.find(s => s.name === name || name.includes(s.name));
   return target?.id;
 }
@@ -68,7 +68,7 @@ export function findSeriesIdByName(name: string | undefined, seriesList: EventSe
  */
 export function findAlbumIdByTitle(title: string | undefined, albums: Album[]): string | undefined {
   if (!title) return undefined;
-  
+
   // 정확히 일치하거나, 스케줄 데이터의 앨범명이 DB 앨범명을 포함하는 경우
   const target = albums.find(a => a.title === title || title.includes(a.title));
   return target?.id;
@@ -102,14 +102,14 @@ export function findTrackIdByTitle(title: string | undefined, tracks: Track[]): 
 
   const target = tracks.find(t => {
     const normalizedTrackTitle = normalize(t.title);
-    
+
     // 1. 정확히 일치 (Normalize 후)
     if (normalizedTrackTitle === normalizedInput) return true;
-    
+
     // 2. "WISH (Japanese Ver.)" 같은 경우 "WISH"로 검색해도 찾을 수 있게 처리하려면:
     // 상황에 따라 포함 여부로 체크 (오탐지 가능성이 있으므로 주의)
     // if (normalizedTrackTitle.includes(normalizedInput)) return true;
-    
+
     return false;
   });
 

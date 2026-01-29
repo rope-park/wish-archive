@@ -138,7 +138,7 @@ export const WishList = ({ onWriteClick }: WishListProps) => {
                                         {new Date(wish.createdAt).toLocaleDateString()}
                                     </span>
                                 </div>
-                                <p className="text-gray-900 text-sm font-medium leading-normal break-words font-pixel">
+                                <p className="text-gray-900 text-sm font-medium leading-normal wrap-break-word font-pixel">
                                     {wish.message}
                                 </p>
                             </div>

@@ -4,7 +4,12 @@ import {
   ContentType,
   Platform,
   ExternalLinkType,
-  Appearance,
+  Era,
+  Program,
+  EventSeries,
+  Album,
+  Member,
+  Track,
 } from "@prisma/client";
 
 // 월별 이벤트 데이터 import
@@ -57,22 +62,17 @@ import {
   findMemberByName,
   findTrackIdByTitle,
 } from "./events-mapper";
-import type { EventInput } from "./types-event";
+import { EventInput } from "../../src/types/event";
 
 export async function seedEvents(prisma: PrismaClient) {
-  console.log("🚀 Starting Event Seeding Process...");
-
-  // ==========================================
-  // 1. 참조 데이터 미리 로드 (캐싱)
-  // ==========================================
+  // 1. Context Loading
   const eras = await prisma.era.findMany();
   const programs = await prisma.program.findMany();
+  const programMap = new Map(programs.map((p) => [p.name, p.id]));
   const seriesList = await prisma.eventSeries.findMany();
   const albums = await prisma.album.findMany();
   const members = await prisma.member.findMany();
   const tracks = await prisma.track.findMany();
-
-  const programMap = new Map<string, string>();
   programs.forEach((p) => programMap.set(p.name, p.id));
 
   // ==========================================
@@ -114,50 +114,25 @@ export async function seedEvents(prisma: PrismaClient) {
     ...events202601,
   ];
 
-  console.log(`📦 Total ${allEventsData.length} events to process`);
+  // Sort by date
+  allEventsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // ==========================================
-  // 3. 배치 병렬 처리 (Supabase 연결 제한 고려)
-  // ==========================================
-  const BATCH_SIZE = 10; // Supabase Session mode 연결 제한으로 인해 작게 설정
-  const totalBatches = Math.ceil(allEventsData.length / BATCH_SIZE);
+  console.log(`Processing ${allEventsData.length} events...`);
 
-  for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-    const batchStart = batchIndex * BATCH_SIZE;
-    const batchEnd = Math.min(batchStart + BATCH_SIZE, allEventsData.length);
-    const batch = allEventsData.slice(batchStart, batchEnd);
-
-    console.log(
-      `\n📦 Batch ${batchIndex + 1}/${totalBatches}: Processing events ${batchStart + 1}-${batchEnd}...`,
-    );
-
-    await Promise.all(
-      batch.map(async (eventData) => {
-        try {
-          await processEvent(
-            eventData,
-            prisma,
-            eras,
-            programs,
-            programMap,
-            seriesList,
-            albums,
-            members,
-            tracks,
-          );
-        } catch (error) {
-          console.error(`❌ Failed: ${eventData.date} - ${eventData.title}`);
-          console.error(error);
-        }
-      }),
-    );
-
-    console.log(
-      `   ✓ Batch ${batchIndex + 1}/${totalBatches} completed (${batchEnd}/${allEventsData.length} total)`,
+  // 3. Process Events
+  for (const event of allEventsData) {
+    await processEvent(
+      event,
+      prisma,
+      eras,
+      programs,
+      programMap,
+      seriesList,
+      albums,
+      members,
+      tracks
     );
   }
-
-  console.log("✅ Events seeding completed successfully!");
 }
 
 // ==========================================
@@ -166,13 +141,13 @@ export async function seedEvents(prisma: PrismaClient) {
 async function processEvent(
   eventData: EventInput,
   prisma: PrismaClient,
-  eras: any[],
-  programs: any[],
+  eras: Era[],
+  programs: Program[],
   programMap: Map<string, string>,
-  seriesList: any[],
-  albums: any[],
-  members: any[],
-  tracks: any[],
+  seriesList: EventSeries[],
+  albums: Album[],
+  members: Member[],
+  tracks: Track[],
 ) {
   const eventDate = new Date(eventData.date);
   const uniqueKey = `${eventData.date}_${eventData.title.replace(/[\/\s]/g, "_")}`;
@@ -200,7 +175,7 @@ async function processEvent(
         });
         programId = newProgram.id;
         programMap.set(targetProgramName, newProgram.id);
-      } catch (e) {
+      } catch {
         const existing = await prisma.program.findFirst({
           where: { name: targetProgramName },
         });

@@ -128,14 +128,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* [A] 전역 배경화면 레이어 (Z-Index: -20) */}
         {/* layout에 두어야 페이지 이동 시에도 배경이 깜빡이지 않음 */}
-        <div className="fixed inset-0 -z-20 bg-gradient-to-br from-[#E0F7FA] via-[#bfdef0] to-[#A7C7E7]" />
+        <div className="fixed inset-0 -z-20 bg-linear-to-br from-[#E0F7FA] via-[#bfdef0] to-[#A7C7E7]" />
 
         {/* [B] 노이즈 텍스처 레이어 (Z-Index: -10) */}
         <div className="fixed inset-0 -z-10 opacity-30 bg-noise-texture mix-blend-overlay pointer-events-none" />
 
         {/* [C] 메인 콘텐츠 영역 */}
         {/* 하단 Taskbar 높이(50px)만큼 패딩을 주어 가려짐 방지 */}
-        <main className="w-full h-full relative z-[var(--z-desktop)]">
+        <main className="w-full h-full relative z-(--z-desktop)">
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

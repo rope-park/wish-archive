@@ -18,7 +18,7 @@ export default function ToWish() {
             <div className="w-full md:w-1/2 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-600 p-4 flex items-center justify-center relative bg-[url('/system/wallpapers/grid_pattern.png')] bg-repeat">
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
                 <div className="z-10 w-full max-w-md">
-                    <WishForm onCancel={() => {}} onSuccess={handleSuccess} />
+                    <WishForm onSuccess={handleSuccess} />
                 </div>
             </div>
 

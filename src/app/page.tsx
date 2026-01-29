@@ -11,7 +11,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
-import { Modal } from '@/components/ui';
 import { LAYOUT_CONSTANTS } from '@/lib/costants';
 import { Z_INDEX } from '@/lib/z-index';
 
@@ -291,10 +290,8 @@ export default function Home() {
 
       // 사용 가능한 영역 계산
       const safeStartX = ICON_AREA_WIDTH + PADDING;
-      const safeWidth = currentViewportWidth - safeStartX - PADDING;
+      // safeWidth, safeHeight 제거
       const safeStartY = ICON_AREA_HEIGHT + PADDING;
-      const taskbarBuffer = 100; // 추가 여유 공간
-      const safeHeight = viewportHeight - currentTaskbarHeight - ICON_AREA_HEIGHT - (PADDING * 2) - taskbarBuffer;
 
       // 화면 크기에 따른 scale 계산 (더 넓은 범위로 동적 조정)
       let scale = 1;

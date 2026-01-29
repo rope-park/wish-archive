@@ -90,7 +90,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-pop-in px-4"
+      className="fixed inset-0 z-99999 flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-pop-in px-4"
       role="dialog"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -115,7 +115,7 @@ export default function Modal({
           ${headerHeightClass} w-full shrink-0
           flex items-center justify-between
           px-2
-          bg-gradient-to-r ${config.headerGradient}
+          bg-linear-to-r ${config.headerGradient}
           text-white select-none
           border-b-2 border-[#808080] /* WindowFrame 스타일 테두리 추가 */
         `}>
@@ -148,7 +148,7 @@ export default function Modal({
               flex items-center justify-center
               bg-[#c0c0c0] text-black font-bold leading-none
               border border-white border-r-black border-b-black shadow-outset
-              active:shadow-inset active:translate-y-[1px] active:scale-95
+              active:shadow-inset active:translate-y-px active:scale-95
               hover:bg-red-500 hover:text-white
               transition-all
               shrink-0

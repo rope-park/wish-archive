@@ -8,10 +8,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Modal, Button } from '@/components/ui';
 import { AppHeader } from '@/components/ui/AppHeader';
-import { Trash2, FileImage, RefreshCcw, X, AlertTriangle } from 'lucide-react';
+import { Trash2, FileImage, RefreshCcw, AlertTriangle } from 'lucide-react';
 
 // B컷 데이터 타입 정의
 interface BCutItem {
@@ -211,7 +210,7 @@ export default function RecycleBin({ onClose }: RecycleBinProps) {
         >
             <div className="flex flex-col gap-4">
                 {/* 이미지 영역 */}
-                <div className="relative w-full aspect-[4/3] bg-black border-2 border-gray-300 shadow-inner flex items-center justify-center overflow-hidden bg-[url('/system/checkerboard.png')]">
+                <div className="relative w-full aspect-4/3 bg-black border-2 border-gray-300 shadow-inner flex items-center justify-center overflow-hidden bg-[url('/system/checkerboard.png')]">
                     {/* Next/Image 사용 (실제 경로가 있다면 주석 해제) */}
                     {/* <Image src={selectedItem.imageUrl} alt={selectedItem.title} fill className="object-contain" /> */}
                     

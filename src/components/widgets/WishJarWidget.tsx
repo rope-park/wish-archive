@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 import { PaperCrane } from '@/components/apps/ToWish/PaperCrane';
 
@@ -50,9 +51,11 @@ export default function WishJarWidget() {
       >
         {/* Glass Bottle Image */}
         <div className="relative w-[280px] h-full z-10 flex items-center justify-center">
-            <img 
+            <Image 
                 src="/system/widgets/WishJar/Glass.svg" 
                 alt="Wish Jar" 
+                width={280}
+                height={300}
                 className="w-full h-full object-contain drop-shadow-xl"
             />
             
@@ -62,9 +65,11 @@ export default function WishJarWidget() {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className="absolute top-[2%] left-1/2 -translate-x-1/2 w-[60px] z-[-1]"
             >
-                <img 
+                <Image 
                     src="/system/widgets/WishJar/Cork.svg" 
                     alt="Cork" 
+                    width={60}
+                    height={40}
                     className="w-full rounded-t-sm"
                 />
             </motion.div>
@@ -74,7 +79,7 @@ export default function WishJarWidget() {
                  {/* Note: Clip path is approximate for star shape, may need fine tuning or use mask image */}
                  <div className="absolute bottom-[20%] left-[15%] right-[15%] h-[120px] flex flex-wrap justify-center content-end gap-1 opacity-90">
                     {/* Render dummy cranes for visual effect */}
-                    {DUMMY_WISHES.map((wish, i) => (
+                    {DUMMY_WISHES.map((wish) => (
                         <motion.div
                             key={wish.id}
                             className="absolute"
@@ -98,9 +103,11 @@ export default function WishJarWidget() {
          onClick={(e) => { e.stopPropagation(); handleOpenApp(); }}
          whileTap={{ scale: 0.95 }}
       >
-        <img 
+        <Image 
             src="/system/widgets/WishJar/Origami_Stack.svg" 
             alt="Make a Wish" 
+            width={64}
+            height={64}
             className="w-full h-full object-contain drop-shadow-md"
         />
         <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-100 text-[10px] px-1 border border-yellow-300 whitespace-nowrap font-pixel text-yellow-800">

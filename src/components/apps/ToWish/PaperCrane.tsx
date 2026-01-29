@@ -3,6 +3,7 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 
 // Color map for hex to SVG filename
 // We use rough hex matching or just expect the specific hex codes we set in WishForm
@@ -44,10 +45,18 @@ export const PaperCrane = ({ color = '#FFB6C1', className = "w-12 h-12" }: { col
                 y: [-3, 3, -3],
                 rotate: [-2, 2, -2]
             }}
+            transition={{
+                duration: animation.duration,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: animation.delay
+            }}
         >
-            <img 
+            <NextImage 
                 src={getCraneSrc(color)} 
                 alt="Paper Crane" 
+                width={48}
+                height={48}
                 className="w-full h-full object-contain drop-shadow-md"
                 draggable={false}
             />

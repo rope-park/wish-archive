@@ -4,7 +4,6 @@ import Button from '@/components/ui/Button';
 import { Loader2, X, Minus } from 'lucide-react';
 
 interface WishFormProps {
-    onCancel: () => void;
     onSuccess: () => void;
 }
 
@@ -17,7 +16,7 @@ const CRANE_COLORS = [
     '#FF6B6B'  // Red
 ];
 
-export const WishForm = ({ onCancel, onSuccess }: WishFormProps) => {
+export const WishForm = ({ onSuccess }: WishFormProps) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         message: '',

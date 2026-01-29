@@ -103,7 +103,7 @@ export default function StickyNoteWidget({
       {/* 테이프 (Tape) - 상단에 붙은 느낌 */}
       {/* 본체보다 z-index를 높여서 위를 덮도록 배치 */}
       <div 
-        className="absolute left-1/2 -translate-x-1/2 z-20 bg-white/40 backdrop-blur-sm shadow-[0_1px_2px_rgba(0,0,0,0.1)] rotate-[-2deg] pointer-events-none"
+        className="absolute left-1/2 -translate-x-1/2 z-20 bg-white/40 backdrop-blur-sm shadow-[0_1px_2px_rgba(0,0,0,0.1)] -rotate-2 pointer-events-none"
         style={{
           top: `${-12 * scale}px`,
           width: `${tapeWidth}px`,
@@ -140,7 +140,7 @@ export default function StickyNoteWidget({
         ) : (
           // [뷰 모드] 텍스트 표시
           <div 
-            className="w-full h-full font-hand text-gray-900 leading-relaxed break-words whitespace-pre-wrap cursor-text opacity-90 overflow-y-auto custom-scrollbar"
+            className="w-full h-full font-hand text-gray-900 leading-relaxed wrap-break-word whitespace-pre-wrap cursor-text opacity-90 overflow-y-auto custom-scrollbar"
             style={{ 
               fontFamily: 'var(--font-hand), cursive',
               fontSize: `${fontSize}px`,

@@ -5,7 +5,7 @@ import {
   Platform,
   ExternalLinkType,
 } from "@prisma/client";
-import type { EventInput } from "../types-event";
+import type { EventInput } from "../../../src/types/event";
 
 export const events202307: EventInput[] = [
   // ==========================================

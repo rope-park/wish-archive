@@ -222,7 +222,24 @@ export default function DraggableWidget({
       onDrag={(e, data) => {
         setPosition({ x: data.x, y: data.y });
       }}
-      onStop={() => {
+      onStop={(e, data) => {
+        // Taskbar 영역 침범 방지 - 최종 위치 clamp
+        const viewportHeight = window.innerHeight;
+        const width = window.innerWidth;
+        
+        // 태스크바 높이 계산
+        let calculatedTaskbarHeight: number = LAYOUT_CONSTANTS.TASKBAR_HEIGHT;
+        if (width < 768) {
+          calculatedTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_MOBILE;
+        } else if (width < 1024) {
+          calculatedTaskbarHeight = LAYOUT_CONSTANTS.TASKBAR_HEIGHT_TABLET;
+        }
+        
+        const finalTaskbarHeight = taskbarHeight || calculatedTaskbarHeight;
+        const maxY = viewportHeight - finalTaskbarHeight - 20; // 20px 추가 여유
+        
+        const clampedY = Math.min(data.y, maxY);
+        setPosition({ x: data.x, y: clampedY });
         setIsDragging(false);
       }}
     >

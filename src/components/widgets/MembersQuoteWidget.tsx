@@ -25,6 +25,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
   const [data, setData] = useState<QuoteData | null>(null);
   const [allQuotes, setAllQuotes] = useState<QuoteData[]>([]); // 전체 어록 데이터 캐싱
   const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState(false); // 이미지 로드 실패 추적
 
   // 전체 어록 데이터 로드
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
           // 전체 어록은 여러 번 호출해서 수집하거나, API 수정 필요
           // 임시로 현재 어록만 저장
           setAllQuotes([quote]);
+          setImageError(false); //  새 데이터 로드 시 에러 상태 리셋
         }
       } catch (error) {
         console.error('Error fetching quotes:', error);
@@ -71,6 +73,7 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         
         setTimeout(() => {
           setData(quote);
+          setImageError(false); // 에러 상태 리셋
           setIsLoading(false);
         }, 100);
       }
@@ -104,8 +107,9 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
         
         setTimeout(() => {
           setData(quote);
+          setImageError(false); // 에러 상태 리셋
           setIsLoading(false);
-        }, 400);
+        }, 200);
       }
     } catch (error) {
       console.error('Error fetching quote:', error);
@@ -212,14 +216,16 @@ export default function MembersQuoteWidget({ scale = 1 }: { scale?: number }) {
           }}
         />
 
-        {/* 캐릭터 이미지 (없으면 이니셜) */}
-        {data.member.characterUrl ? (
+        {/* 캐릭터 이미지 (없거나 에러면 이니셜) */}
+        {data.member.characterUrl && !imageError ? (
           <Image
             src={data.member.characterUrl}
             alt={data.member.stageName}
             fill
             className="object-contain drop-shadow-md transition-transform duration-300 group-hover:-translate-y-1"
             draggable={false}
+            onError={() => setImageError(true)}
+            unoptimized // 404 에러 방지
           />
         ) : (
           <div 

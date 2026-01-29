@@ -1,223 +1,113 @@
 /**
  * WishJarWidget 컴포넌트
  * 
- * - 유리병에 소원을 담는 인터랙티브 위젯
- * - 글쓰기 버튼, 유리병 애니메이션, 소원 목록 보기 기능 포함
+ * - SVG 기반의 별 병 위젯
+ * - WishForm/List 앱 실행 트리거
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-//import { WritingModal } from '@/components/widgets';
-import { Modal } from '../ui';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useWindowStore } from '@/app/stores/useWindowStore';
+import { PaperCrane } from '@/components/apps/ToWish/PaperCrane';
 
-// 소원 데이터 타입
-interface Wish {
-    id: number;     // 사용자 ID (등록 순서대로 오름차순 부여)
-    content: string; // 소원 내용
-    color: 'pink' | 'blue' | 'green' | 'yellow' | 'purple' | 'red'; // 소원 색종이 색상
-    date: string;   // 작성 날짜
-    nickname?: string; // 작성자 닉네임
-    x: number;      // 유리병 내 X 좌표
-    y: number;      // 유리병 내 Y 좌표
-    rotation: number; // 종이학 회전 각도
-}
+// Dummy Wishes for visualization inside the jar
+const DUMMY_WISHES = [
+  { id: 1, color: 'var(--color-sion)', x: 20, y: 60, r: 10 },  // Pink
+  { id: 2, color: 'var(--color-riku)', x: 50, y: 70, r: -5 },  // Blue
+  { id: 3, color: 'var(--color-yushi)', x: 80, y: 65, r: 15 },  // Green
+  { id: 4, color: 'var(--color-jaehee)', x: 35, y: 80, r: -10 }, // Yellow
+  { id: 5, color: 'var(--color-ryo)', x: 65, y: 85, r: 5 },   // Purple
+  { id: 6, color: 'var(--color-sakuya)', x: 45, y: 55, r: 20 },  // Red
+];
 
 export default function WishJarWidget() {
-  const [wishes, setWishes] = useState<Wish[]>([]); // 저장된 소원들
-  const [isWriting, setIsWriting] = useState(false); // 글쓰기 모달 상태
-  const [isViewing, setIsViewing] = useState(false); // 목록 보기 상태
-  const [isAnimating, setIsAnimating] = useState(false); // 종이학 날아가는 중
-  const [flyingCrane, setFlyingCrane] = useState<{ color: 'pink' | 'blue' | 'yellow' | 'green' | 'purple' | 'red' } | null>(null);
+  const { openWindow } = useWindowStore();
+  const [isHovered, setIsHovered] = useState(false);
 
-  // 소원 추가 핸들러 (애니메이션 시작)
-  const handleAddWish = async (content: string, color: 'pink' | 'blue' | 'yellow' | 'green' | 'purple' | 'red') => {
-    setIsWriting(false); // 1. 모달 닫기
-    setFlyingCrane({ color }); // 2. 날아가는 학 생성
-    setIsAnimating(true); // 3. 병뚜껑 열기 신호
-
-    // 4. 애니메이션 타이밍 조절 (1.5초 뒤에 병에 들어감)
-    setTimeout(() => {
-      const newWish: Wish = {
-        id: wishes.length + 1,
-        date: new Date().toISOString(),
-        content,
-        color,
-        // 유리병 안쪽 영역 내 랜덤 위치 계산
-        x: 30 + Math.random() * 100, 
-        y: 180 + Math.random() * 40,
-        rotation: Math.random() * 360,
-      };
-      setWishes((prev) => [...prev, newWish]); // 5. 데이터 추가
-      setFlyingCrane(null); // 6. 날아가는 학 제거
-      setIsAnimating(false); // 7. 병뚜껑 닫기
-    }, 1500);
+  const handleOpenApp = () => {
+    openWindow({
+      id: 'to_wish_app',
+      type: 'TO_WISH',
+      title: 'To. WISH',
+      icon: '/system/icons/apps/towish.png',
+      defaultSize: { width: 900, height: 600 } // Wider for split view
+    });
   };
 
   return (
-    <div className="relative w-full max-w-[300px] min-w-[220px] aspect-[6/7]">
+    <div className="relative w-[300px] h-[300px] flex items-center justify-center">
       
-      {/* --- [1] 글쓰기 트리거 (색종이) --- */}
-      <motion.button
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsWriting(true)}
-        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setIsWriting(true); }}
-        className="absolute top-10 -left-4 z-20 cursor-pointer no-drag"
-        style={{ touchAction: 'manipulation' }}
+      {/* 1. 유리병 본체 (클릭 시 앱 실행) */}
+      <motion.div 
+        className="relative w-full h-full cursor-pointer group no-drag flex items-center justify-center"
+        onClick={handleOpenApp}
+        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenApp(); }}
+        whileHover={{ scale: 1.02 }}
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
       >
-        {/* 색종이 */}
-        <div className="w-12 h-12 bg-[#FFD1DC] shadow-md border border-white/50 rotate-[-10deg] flex items-center justify-center">
-          <span className="font-hand text-[10px] text-gray-600">Wish!</span>
-        </div>
-      </motion.button>
-
-      {/* --- [2] 유리병 본체 (클릭 시 목록 보기) --- */}
-      <div 
-        className="absolute left-[50px] top-[50px] w-[242px] h-60 cursor-pointer group no-drag"
-        onClick={() => !isAnimating && setIsViewing(true)}
-        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); !isAnimating && setIsViewing(true); }}
-        style={{ touchAction: 'manipulation' }}
-      >
-        {/* 2-1. 코르크 마개 (애니메이션 적용) */}
-        <motion.div
-          animate={{ 
-            y: isAnimating ? -30 : 0, 
-            rotate: isAnimating ? 10 : 0 
-          }}
-          transition={{ duration: 0.5 }}
-          className="absolute left-[74px] -top-2 z-10"
-        >
-           {/* 코르크 이미지 */}
-           <img 
-             src="https://placehold.co/58x24" // 실제 코르크 이미지로 교체 필요
-             className="w-[58px] h-6 rounded shadow-[0px_2px_3px_rgba(0,0,0,0.3)] bg-[#8B4513]" 
-             alt="Cork"
-           />
-        </motion.div>
-
-        {/* 2-2. 유리병 몸통 (앞부분 반사광 + 뒷배경) */}
-        <div className="w-full h-full relative">
-          {/* 유리병 쉐이프 */}
-          <div className="
-            absolute inset-0 
-            bg-white/20 backdrop-blur-[2px] 
-            rounded-xl border border-white/40
-            shadow-[-5px_14px_6px_rgba(0,0,0,0.1)]
-            overflow-hidden
-          ">
+        {/* Glass Bottle Image */}
+        <div className="relative w-[280px] h-full z-10 flex items-center justify-center">
+            <img 
+                src="/system/widgets/WishJar/Glass.svg" 
+                alt="Wish Jar" 
+                className="w-full h-full object-contain drop-shadow-xl"
+            />
             
-            {/* [쌓인 종이학들 렌더링] */}
-            {wishes.map((wish) => (
-              <div
-                key={wish.id}
-                className="absolute w-8 h-6 transition-all"
-                style={{
-                  left: wish.x,
-                  top: wish.y,
-                  transform: `rotate(${wish.rotation}deg)`,
-                }}
-              >
-                {/* 종이학 아이콘 (색상별 분기) */}
-                <CraneIcon color={wish.color} />
-              </div>
-            ))}
+            {/* Cork (Animated) */}
+            <motion.div
+                animate={{ y: isHovered ? -60 : -15 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="absolute top-[2%] left-1/2 -translate-x-1/2 w-[60px] z-[-1]"
+            >
+                <img 
+                    src="/system/widgets/WishJar/Cork.svg" 
+                    alt="Cork" 
+                    className="w-full rounded-t-sm"
+                />
+            </motion.div>
 
-          </div>
-          
-          {/* 유리병 입구 링 */}
-          <div className="absolute left-[80px] top-[21px] w-[47px] h-8 bg-black/5 rounded-full border border-white/30" />
+            {/* 유리병에 넣은 학종이(소원 메시지) */}
+            <div className="absolute inset-0 z-0 overflow-hidden" style={{ clipPath: 'path("M74.5,60 C74.5,60 110,90 140,90 C170,90 205.5,60 205.5,60 L220,100 C220,100 280,110 270,160 C260,210 220,240 200,280 L140,260 L80,280 C60,240 20,210 10,160 C0,110 60,100 60,100 Z")' }}> 
+                 {/* Note: Clip path is approximate for star shape, may need fine tuning or use mask image */}
+                 <div className="absolute bottom-[20%] left-[15%] right-[15%] h-[120px] flex flex-wrap justify-center content-end gap-1 opacity-90">
+                    {/* Render dummy cranes for visual effect */}
+                    {DUMMY_WISHES.map((wish, i) => (
+                        <motion.div
+                            key={wish.id}
+                            className="absolute"
+                            style={{ 
+                                left: `${wish.x}%`, 
+                                top: `${wish.y}%`,
+                                rotate: wish.r 
+                            }}
+                        >
+                             <PaperCrane color={wish.color} className="w-8 h-8" />
+                        </motion.div>
+                    ))}
+                 </div>
+            </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* --- [3] 날아가는 종이학 애니메이션 --- */}
-      <AnimatePresence>
-        {flyingCrane && (
-          <motion.div
-            initial={{ x: -100, y: 0, scale: 2, opacity: 0 }} // 왼쪽(글쓰기 버튼)에서 시작
-            animate={{ 
-              x: 100, // 병 입구 쪽으로 이동
-              y: 50, 
-              scale: 0.5, 
-              opacity: 1, 
-              rotate: 360 
-            }} 
-            exit={{ y: 200, opacity: 0 }} // 병 안으로 쏙 사라짐
-            transition={{ duration: 1.2, ease: "easeInOut" }}
-            className="absolute left-0 top-0 z-50 pointer-events-none"
-          >
-            <CraneIcon color={flyingCrane.color} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      { /** TODO: 모달 추가 필요 */}
-      {/* --- [4] 모달들 --- */}
-      {/* 글쓰기 모달 */}
-      {/*
-      <WritingModal 
-        isOpen={isWriting} 
-        onClose={() => setIsWriting(false)} 
-        onSubmit={handleAddWish} 
-      />
-      */}
-
-      {/* 목록 보기 모달 */}
-      {/*
-      <Modal 
-        isOpen={isViewing} 
-        onClose={() => setIsViewing(false)} 
-        title="Wishes in the Jar"
-        variant="info"
+      {/* 2. Side Item: Sticky Notes / Paper Stack */}
+      <motion.button
+         className="absolute -right-4 bottom-4 w-16 h-16 cursor-pointer no-drag hover:scale-110 transition-transform"
+         onClick={(e) => { e.stopPropagation(); handleOpenApp(); }}
+         whileTap={{ scale: 0.95 }}
       >
-        <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto p-2">
-          {wishes.length === 0 ? (
-            <p className="col-span-2 text-center text-gray-500 font-pixel">아직 소원이 없어요!</p>
-          ) : (
-            wishes.map((wish) => (
-              <div key={wish.id} className={`p-2 rounded font-hand text-sm ${getColorClass(wish.color)}`}>
-                {wish.text}
-              </div>
-            ))
-          )}
-        </div>
-      </Modal>
-      */}
+        <img 
+            src="/system/widgets/WishJar/Origami_Stack.svg" 
+            alt="Make a Wish" 
+            className="w-full h-full object-contain drop-shadow-md"
+        />
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-100 text-[10px] px-1 border border-yellow-300 whitespace-nowrap font-pixel text-yellow-800">
+            Write!
+        </span>
+      </motion.button>
 
     </div>
   );
-}
-
-// -----------------------------------------------------------
-// [Sub Component] 종이학 아이콘 (색상 처리)
-// -----------------------------------------------------------
-function CraneIcon({ color }: { color: 'pink' | 'blue' | 'green' | 'yellow' | 'purple' | 'red' }) {
-  // 색상별 필터 또는 이미지 교체
-  const colorMap = {
-    pink: 'text-[#FFD1DC]',
-    blue: 'text-[#B2EBF2]',
-    yellow: 'text-[#FFF9C4]',
-    green: 'text-[#C8E6C9]',
-    purple: 'text-[#E1BEE7]',
-    red: 'text-[#FFCDD2]',
-  };
-
-  return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" className={`drop-shadow-sm ${colorMap[color]} stroke-gray-600 stroke-1`}>
-      {/* 종이학 모양 SVG (간략화) */}
-      <path d="M12 2L2 12h10l2-2 2 2h6L12 2zm0 0v20" /> 
-      <path d="M2 12l10 4 10-4" />
-    </svg>
-  );
-}
-
-// 배경색 유틸
-function getColorClass(color: string) {
-  switch (color) {
-    case 'pink': return 'bg-[#FFD1DC]';
-    case 'blue': return 'bg-[#B2EBF2]';
-    case 'yellow': return 'bg-[#FFF9C4]';
-    default: return 'bg-white';
-  }
 }

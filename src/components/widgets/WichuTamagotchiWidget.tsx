@@ -94,7 +94,7 @@ export default function WichuTamagotchiWidget({ scale = 1 }: { scale?: number })
       >
         {/* 별 모양 몸통 이미지 */}
         <Image 
-          src="/system/widgets/WichuTamagotchi/Star.svg" 
+          src="/system/widgets/WichuTamagotchi/Body.svg" 
           alt="Wichu Tamagotchi Body" 
           fill 
           className="object-contain"

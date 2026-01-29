@@ -51,3 +51,4 @@ next-env.d.ts
 *docs
 /lib
 prisma/seeds/helpers
+prisma/seeds/utils

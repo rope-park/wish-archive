@@ -1,0 +1,314 @@
+/**
+ * Design Tokens - WISH Archive
+ * 
+ * Windows 95/XP 레트로 감성 + 현대적 브랜드 컬러
+ */
+
+:root {
+  /* ============================================
+     색상 시스템 (Colors)
+     ============================================ */
+
+  /* 브랜드 컬러 */
+  --color-brand-primary: #bfff00; /* WISH Green (라임 그린) */
+  --color-brand-secondary: #ff2e93; /* WISH Pink (핫 핑크) */
+  --color-brand-accent: #8ee3f5; /* WISH Blue (스카이 블루) */
+
+  --color-brand-retro-navy: #000080; /* Windows 클래식 네이비 */
+  --color-brand-retro-gray: #c0c0c0; /* Windows 95 실버 */
+
+  /* 중성 색상 (Neutral) */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+
+  /* Windows 95 레트로 팔레트 */
+  --color-win95-light: #ffffff;
+  --color-win95-highlight: #dfdfdf;
+  --color-win95-face: #c0c0c0;
+  --color-win95-shadow: #808080;
+  --color-win95-dark: #000000;
+  --color-win95-blue: #000080;
+  --color-win95-active-title: #000080;
+  --color-win95-inactive-title: #808080;
+
+  /* 상태 색상 (Status) */
+  --color-success: #22c55e; /* 성공 - 초록 */
+  --color-error: #ef4444; /* 에러 - 빨강 */
+  --color-warning: #f59e0b; /* 경고 - 주황 */
+  --color-info: #3b82f6; /* 정보 - 파랑 */
+
+  /* 위시돌 멤버 컬러 (참고용) */
+  --color-sion: #DDA0DD;
+  --color-riku: #FF6B6B;
+  --color-yushi: #87CEFA;
+  --color-jaehee: #98FB98;
+  --color-ryo: #F0E68C;
+  --color-sakuya: #FFB6C1;
+
+  /* ============================================
+     타이포그래피 (Typography)
+     ============================================ */
+
+  /* 폰트 패밀리 */
+  --font-pixel: "Neo둥근모 Pro", "DungGeunMo", monospace;
+  --font-gothic:
+    "Pretendard Variable", "Pretendard", -apple-system, system-ui, sans-serif;
+  --font-hand: "상상토끼 신비는일곱살", cursive;
+
+  /* 폰트 크기 */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem; /* 36px */
+
+  /* 폰트 두께 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 줄 간격 */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ============================================
+     간격 (Spacing)
+     ============================================ */
+
+  --spacing-0: 0;
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-16: 4rem; /* 64px */
+  --spacing-20: 5rem; /* 80px */
+
+  /* ============================================
+     Z-Index (Layering)
+     ============================================ */
+
+  --z-index-base: 0;
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  --z-index-toast: 1080;
+  --z-index-start-menu: 9998;
+  --z-index-taskbar: 9999;
+  --z-index-max: 10000;
+
+  /* ============================================
+     그림자 (Shadows)
+     ============================================ */
+
+  /* Windows 95 스타일 그림자 */
+  --shadow-outset:
+    inset -1px -1px 0 var(--color-win95-shadow),
+    inset 1px 1px 0 var(--color-win95-light);
+  --shadow-inset:
+    inset 1px 1px 0 var(--color-win95-shadow),
+    inset -1px -1px 0 var(--color-win95-light);
+
+  /* 현대적 그림자 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* 창 그림자 */
+  --shadow-window: 4px 4px 10px rgba(0, 0, 0, 0.3);
+
+  /* ============================================
+     보더 (Borders)
+     ============================================ */
+
+  /* Windows 95 3D 보더 */
+  --border-raised: 2px solid;
+  --border-raised-color-light: var(--color-win95-light);
+  --border-raised-color-dark: var(--color-win95-shadow);
+
+  --border-sunken: 2px solid;
+  --border-sunken-color-light: var(--color-win95-shadow);
+  --border-sunken-color-dark: var(--color-win95-light);
+
+  /* 일반 보더 */
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 3px;
+
+  --border-color-light: var(--color-gray-300);
+  --border-color-dark: var(--color-gray-700);
+
+  /* ============================================
+     반경 (Border Radius)
+     ============================================ */
+
+  --radius-none: 0;
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem; /* 8px */
+  --radius-xl: 0.75rem; /* 12px */
+  --radius-2xl: 1rem; /* 16px */
+  --radius-full: 9999px;
+
+  /* Windows 클래식 (각진 스타일) */
+  --radius-retro: 0;
+
+  /* ============================================
+     레이아웃 (Layout)
+     ============================================ */
+
+  /* Taskbar */
+  --taskbar-height-mobile: 64px;
+  --taskbar-height-tablet: 56px;
+  --taskbar-height-desktop: 48px;
+
+  /* Desktop Icon */
+  --icon-size-small: 48px;
+  --icon-size-medium: 64px;
+  --icon-size-large: 96px;
+
+  /* 브레이크포인트 (참고용, 실제는 Tailwind) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ============================================
+     전환 (Transitions)
+     ============================================ */
+
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+
+  --transition-colors:
+    color 150ms ease-in-out, background-color 150ms ease-in-out,
+    border-color 150ms ease-in-out;
+
+  /* ============================================
+     애니메이션 (Animations)
+     ============================================ */
+
+  --animation-bounce: bounce 1s infinite;
+  --animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animation-spin: spin 1s linear infinite;
+
+  /* ============================================
+     기타 (Miscellaneous)
+     ============================================ */
+
+  /* 터치 타겟 최소 크기 */
+  --touch-target-min: 44px;
+
+  /* 포커스 링 */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-brand-primary);
+}
+
+/* ============================================
+   다크 모드 (선택적)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 다크 모드는 레트로 테마와 맞지 않으므로 생략 */
+    /* 필요 시 추가 */
+  }
+}
+
+/* ============================================
+   유틸리티 클래스
+   ============================================ */
+
+/* Windows 95/XP 버튼 스타일 */
+.btn-win95 {
+  background: var(--color-win95-face);
+  border: var(--border-raised);
+  border-color: var(--border-raised-color-light) var(--border-raised-color-dark)
+    var(--border-raised-color-dark) var(--border-raised-color-light);
+  box-shadow: var(--shadow-outset);
+}
+
+.btn-win95:active {
+  border-color: var(--border-sunken-color-light) var(--border-sunken-color-dark)
+    var(--border-sunken-color-dark) var(--border-sunken-color-light);
+  box-shadow: var(--shadow-inset);
+  transform: translateY(1px);
+}
+
+/* 윈도우 프레임 */
+.window-frame {
+  background: var(--color-win95-face);
+  border: var(--border-raised);
+  border-color: var(--border-raised-color-light) var(--border-raised-color-dark)
+    var(--border-raised-color-dark) var(--border-raised-color-light);
+  box-shadow: var(--shadow-window);
+}
+
+/* 윈도우 타이틀 바 */
+.window-title-bar {
+  background: linear-gradient(90deg, var(--color-brand-secondary), #ff8fab);
+  color: var(--color-win95-light);
+  font-family: var(--font-pixel);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.window-title-bar-inactive {
+  background: linear-gradient(
+    90deg,
+    var(--color-win95-inactive-title),
+    #a0a0a0
+  );
+}
+
+/* 스크롤바 커스텀 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 16px;
+  background: var(--color-gray-200);
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-win95-face);
+  border: 1px solid var(--color-win95-shadow);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border: 2px outset var(--color-win95-light);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  border-style: inset;
+}

@@ -7,39 +7,64 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // 1. Color System
+      // 1. Color System (Design Tokens 통합)
       colors: {
-        // Grayscale (Windows 98 뼈대)
+        // Grayscale (Windows 98 + Design Tokens)
         gray: {
-          white: "#FFFFFF",
-          50: "#F9FAFB",
-          100: "#F3F4F6", // 아주 연한 회색
-          200: "#C0C0C0", // ⭐ [Win98 Main] 창틀, 버튼 기본색
-          300: "#D1D5DB", // 비활성 텍스트용
-          400: "#808080", // 보조 텍스트용
-          500: "#6B7280", // 진한 그림자
-          700: "#374151", // 어두운 회색
-          800: "#1F2937", // 거의 블랙
-          900: "#111827", // 블랙에 가까운 진한 회색
-          black: "#000000",
+          white: "var(--color-win95-light, #FFFFFF)",
+          50: "var(--color-gray-50, #FAFAFA)",
+          100: "var(--color-gray-100, #F5F5F5)",
+          200: "var(--color-gray-200, #E5E5E5)", // Windows 95 face
+          300: "var(--color-gray-300, #D4D4D4)",
+          400: "var(--color-gray-400, #A3A3A3)",
+          500: "var(--color-gray-500, #737373)",
+          600: "var(--color-gray-600, #525252)",
+          700: "var(--color-gray-700, #404040)",
+          800: "var(--color-gray-800, #262626)",
+          900: "var(--color-gray-900, #171717)",
+          black: "var(--color-win95-dark, #000000)",
         },
-        // Brand Colors
+
+        // Brand Colors (Design Tokens)
         brand: {
+          "primary": "var(--color-brand-primary, #BFFF00)",        // WISH Green
+          "secondary": "var(--color-brand-secondary, #FF2E93)",    // WISH Pink
+          "accent": "var(--color-brand-accent, #8EE3F5)",          // WISH Blue
+          
+          // Legacy names (기존 호환성 유지)
           "wichu-green": "#99F490",
           "popchu-pink": "#FFD1DC",
           "wish-blue": "#BFDEF0",
           "pearl-neo-champagne": "#BBE309",
-          "retro-navy": "#000080",
+          "retro-navy": "var(--color-brand-retro-navy, #000080)",
+        },
+
+        // Windows 95 Colors
+        win95: {
+          light: "var(--color-win95-light, #FFFFFF)",
+          highlight: "var(--color-win95-highlight, #DFDFDF)",
+          face: "var(--color-win95-face, #C0C0C0)",
+          shadow: "var(--color-win95-shadow, #808080)",
+          dark: "var(--color-win95-dark, #000000)",
+          blue: "var(--color-win95-blue, #000080)",
+        },
+
+        // Status Colors (Design Tokens)
+        status: {
+          success: "var(--color-success, #22C55E)",
+          error: "var(--color-error, #EF4444)",
+          warning: "var(--color-warning, #F59E0B)",
+          info: "var(--color-info, #3B82F6)",
         },
 
         // Character Colors
         character: {
-          sion: "#9B419B",    // 보라
-          riku: "#E14766",    // 빨강
-          yushi: "#93D6F9",   // 파랑
-          jaehee: "#38A96A",  // 초록
-          ryo: "#FADD4E",     // 노랑
-          sakuya: "#E669A4",  // 핑크
+          sion: "var(--color-sion, #9B419B)",
+          riku: "var(--color-riku, #E14766)",
+          yushi: "var(--color-yushi, #93D6F9)",
+          jaehee: "var(--color-jaehee, #38A96A)",
+          ryo: "var(--color-ryo, #FADD4E)",
+          sakuya: "var(--color-sakuya, #E669A4)",
         },
 
         // Accent Colors
@@ -49,13 +74,7 @@ module.exports = {
           "neon-lime": "#CCFF00",
         },
 
-        // System
-        system: {
-          error: "#FF0000",
-          success: "#0000FF",
-        },
-
-        // Album Colors
+        // Album Colors (기존 유지)
         album: {
           handsUp: {
             "sky": "#7DB2FF",
@@ -81,7 +100,7 @@ module.exports = {
           },
           Steady: {
             "red": "#D0021B",
-            "sSilver": "#C0C8CF",
+            "silver": "#C0C8CF",
             "mist": "#E8EBFF",
             "charcoal": "#2D3436",
             "gray": "#B6B6B2",
@@ -118,15 +137,25 @@ module.exports = {
         },
       },
 
-      // 2. Typography
+      // 2. Typography (Design Tokens 통합)
       fontFamily: {
-        pixel: ['var(--font-pixel)', 'monospace'],
-        gothic: ['var(--font-gothic)', 'sans-serif'],
-        hand: ['var(--font-hand)', 'cursive'],
+        pixel: ['var(--font-pixel)', 'Neo둥근모 Pro', 'monospace'],
+        gothic: ['var(--font-gothic)', 'Pretendard Variable', 'sans-serif'],
+        hand: ['var(--font-hand)', '상상토끼 신비는일곱살', 'cursive'],
         code: ['var(--font-code)', 'monospace'],
       },
 
       fontSize: {
+        // Design Token 기반
+        'xs': 'varcalc(--font-size-xs, 0.75rem)',
+        'sm': 'var(--font-size-sm, 0.875rem)',
+        'base': 'var(--font-size-base, 1rem)',
+        'lg': 'var(--font-size-lg, 1.125rem)',
+        'xl': 'var(--font-size-xl, 1.25rem)',
+        '2xl': 'var(--font-size-2xl, 1.5rem)',
+        '3xl': 'var(--font-size-3xl, 1.875rem)',
+        '4xl': 'var(--font-size-4xl, 2.25rem)',
+
         // Display (픽셀 폰트)
         'display-xl': ['40px', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
         'display-l': ['24px', { lineHeight: '1.3' }],
@@ -143,53 +172,84 @@ module.exports = {
         'ui-button': ['16px', { lineHeight: '1.0', letterSpacing: '0.02em' }],
         'ui-label': ['12px', { lineHeight: '1.2', letterSpacing: '0.04em' }],
 
-        // Code (코드 폰트)
+        // Code
         'code-m': ['14px', { lineHeight: '1.5', letterSpacing: '0em' }],
       },
 
-      // 3. Effects (Shadows)
+      // 3. Spacing (Design Tokens)
+      spacing: {
+        '0': 'var(--spacing-0, 0)',
+        '1': 'var(--spacing-1, 0.25rem)',
+        '2': 'var(--spacing-2, 0.5rem)',
+        '3': 'var(--spacing-3, 0.75rem)',
+        '4': 'var(--spacing-4, 1rem)',
+        '5': 'var(--spacing-5, 1.25rem)',
+        '6': 'var(--spacing-6, 1.5rem)',
+        '8': 'var(--spacing-8, 2rem)',
+        '10': 'var(--spacing-10, 2.5rem)',
+        '12': 'var(--spacing-12, 3rem)',
+        '16': 'var(--spacing-16, 4rem)',
+        '20': 'var(--spacing-20, 5rem)',
+      },
+
+      // 4. Effects (Shadows) - Design Tokens 통합
       boxShadow: {
-        // 1. Shadow / Retro Hard (레트로 하드)
+        // Windows 95 Style
+        'outset': 'var(--shadow-outset)',
+        'inset': 'var(--shadow-inset)',
+        'window': 'var(--shadow-window)',
+
+        // Modern Shadows
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
+        'xl': 'var(--shadow-xl)',
+        '2xl': 'var(--shadow-2xl)',
+
+        // Retro Effects
         'retro-hard': '4px 4px 0px 0px rgba(0,0,0,0.25)',
-
-        // 2. Shadow / Retro Pressed (레트로 눌림)
         'retro-pressed': 'inset 2px 2px 0px 0px rgba(0,0,0,0.4)',
-
-        // 3. Shadow / Outset (튀어나옴)
-        'outset': 'inset 1px 1px 0px 0px #FFFFFF, 2px 2px 0px 0px rgba(0,0,0,0.4)',
-
-        // 4. Shadow / Inset (들어감)
-        'inset': 'inset 2px 2px 0px 0px rgba(0,0,0,0.4), inset 1px 1px 0px 0px #FFFFFF',
-
-        // 5. Border / Pixel Stroke (픽셀 테두리)
         'pixel-stroke': '2px 2px 0px 0px #3D3F47',
 
-        // 6. Glow / Neon Basic (네온)
+        // Glow
         'neon-basic': '0px 0px 12px 2px rgba(153, 244, 144, 0.6)',
-
-        // 7. Glow / Text (텍스트 네온)
         'glow-text': '0px 0px 4px 0px rgba(187, 227, 9, 1.0)',
       },
 
-      // 4. Border Radius
+      // 5. Border Radius (Design Tokens)
       borderRadius: {
-        'none': '0px',
-        'sm': '4px',
-        'md': '8px',
-        'lg': '12px',
-        'full': '999px',
+        'none': 'var(--radius-none, 0)',
+        'sm': 'var(--radius-sm, 0.125rem)',
+        'md': 'var(--radius-md, 0.375rem)',
+        'lg': 'var(--radius-lg, 0.5rem)',
+        'xl': 'var(--radius-xl, 0.75rem)',
+        '2xl': 'var(--radius-2xl, 1rem)',
+        'full': 'var(--radius-full, 9999px)',
+        'retro': 'var(--radius-retro, 0)',
       },
 
-      // 5. Background
+      // 6. Z-Index (Design Tokens)
+      zIndex: {
+        'base': 'var(--z-index-base, 0)',
+        'dropdown': 'var(--z-index-dropdown, 1000)',
+        'sticky': 'var(--z-index-sticky, 1020)',
+        'fixed': 'var(--z-index-fixed, 1030)',
+        'modal-backdrop': 'var(--z-index-modal-backdrop, 1040)',
+        'modal': 'var(--z-index-modal, 1050)',
+        'popover': 'var(--z-index-popover, 1060)',
+        'tooltip': 'var(--z-index-tooltip, 1070)',
+        'start-menu': 'var(--z-index-start-menu, 9998)',
+        'taskbar': 'var(--z-index-taskbar, 9999)',
+      },
+
+      // 7. Background (기존 유지)
       backgroundImage: {
-        // 줄 공책 패턴
         'lined-paper': "repeating-linear-gradient(transparent, transparent 27px, #B4D4F1 27px, #B4D4F1 28px)",
         'noise-texture': "url('/system/wallpapers/noise.png')",
-        'main-gradient': "",
         'sparkle-texture': "url('/system/wallpapers/Sparkle.png')",
       },
 
-      // 6. Animations
+      // 8. Animations (기존 유지 + 일부 추가)
       keyframes: {
         'pop-in': {
           '0%': { transform: 'scale(0.95)', opacity: '0' },

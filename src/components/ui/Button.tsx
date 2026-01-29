@@ -96,6 +96,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     // 크기별 스타일 (패딩, 폰트 크기)
     const sizeStyles = {
+      xs: 'h-4 px-2 text-xs',       // 매우 작은 버튼
       sm: 'h-6 px-2 text-xs',       // 윈도우 타이틀바 버튼용
       md: 'h-8 px-3 text-sm',       // 일반 버튼 (표준)
       lg: 'h-10 px-5 text-base',    // 시작 버튼용

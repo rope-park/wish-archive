@@ -1,29 +1,19 @@
-/**
- * Modal 컴포넌트
- * 
- * - 다양한 알림창 (정보, 성공, 오류, 질문)
- * - ESC 키로 닫기 지원
- * - 뒷배경 스크롤 방지
- * - 확인/취소 버튼 지원 (사용자가 닫거나 버튼 눌러야 사라짐)
- * - 사용자 집중도 높음 (모달 이외 다른 부분 클릭 불가)
- */
-
 'use client';
 
-import { useEffect, useRef, ReactNode } from 'react';
+import { useEffect, useRef, useState, ReactNode } from 'react';
 import { Button } from '@/components/ui';
 
 export interface ModalProps {
-  isOpen: boolean;            // 열림 여부
-  onClose: () => void;        // 닫기 함수
-  title?: string;             // 창 제목
-  message?: ReactNode;        // 내용 (텍스트 또는 컴포넌트)
-  variant?: 'info' | 'success' | 'error' | 'question'; // 알림창 타입
-  onConfirm?: () => void;     // 확인 버튼 클릭 시 실행 (question 타입용)
-  confirmText?: string;       // 확인 버튼 텍스트
-  cancelText?: string;        // 취소 버튼 텍스트
-  className?: string;         // 추가 클래스명
-  children?: ReactNode;       // Custom content (overrides message)
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  message?: ReactNode;
+  variant?: 'info' | 'success' | 'error' | 'question' | 'default';
+  onConfirm?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  className?: string;
+  children?: ReactNode;
 }
 
 export default function Modal({
@@ -40,195 +30,173 @@ export default function Modal({
 }: ModalProps) {
 
   const modalRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // ESC 키로 닫기 & 스크롤 방지
+  // 1. [핵심 로직 이식] 터치 디바이스 및 화면 크기 감지
+  // WindowFrame의 WindowControlBtn에 있는 로직과 동일하게 구현
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
   useEffect(() => {
-    if (!isOpen) return;
-
-    // 현재 포커스 저장
-    previousFocusRef.current = document.activeElement as HTMLElement;
-
-    // 모달 내부로 포커스 이동
-    const focusableElements = modalRef.current?.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusableElements && focusableElements.length > 0) {
-      (focusableElements[0] as HTMLElement).focus();
-    } else {
-      modalRef.current?.focus();
-    }
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-
-      // Focus Trap
-      if (e.key === 'Tab' && modalRef.current) {
-        const focusable = modalRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const first = focusable[0] as HTMLElement;
-        const last = focusable[focusable.length - 1] as HTMLElement;
-
-        if (e.shiftKey) { // Shift + Tab
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else { // Tab
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      }
+    const checkTouch = () => {
+      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      // 768px 미만이거나 터치 스크린이 있으면 터치 디바이스(모바일)로 간주
+      setIsTouchDevice(window.innerWidth < 768 || hasTouchScreen);
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden'; // 스크롤 방지
+    checkTouch();
+    window.addEventListener('resize', checkTouch);
+    return () => window.removeEventListener('resize', checkTouch);
+  }, []);
 
+  // ESC 키 닫기 및 스크롤 방지
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
-      previousFocusRef.current?.focus(); // 이전 포커스 복원
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // 타입별 스타일 설정 (아이콘, 헤더색상)
-  const typeConfig = {
-    success: {
-      headerGradient: 'from-blue-600 to-blue-400', // 파란색
-      icon: '✅', /* TODO: image 아이콘으로 교체 */
-      defaultTitle: 'Success',
-    },
-    info: {
-      headerGradient: 'from-brand-retro-navy to-brand-wish-blue', // Navy -> Sky
-      icon: 'ℹ️', /* TODO: image 아이콘으로 교체 */
-      defaultTitle: 'Information',
-    },
-    error: {
-      headerGradient: 'from-system-error to-red-600', // 빨간색
-      icon: '❌', /* TODO: image 아이콘으로 교체 */
-      defaultTitle: 'Error',
-    },
-    question: {
-      headerGradient: 'from-green-600 to-green-400', // 초록색
-      icon: '❓', /* TODO: image 아이콘으로 교체 */
-      defaultTitle: 'Question',
-    },
+  // 스타일 설정
+  const typeConfig: Record<string, { headerGradient: string; icon: string; defaultTitle: string }> = {
+    success: { headerGradient: 'from-blue-600 to-blue-400', icon: 'system/icons/modal/success.svg', defaultTitle: 'Success' },
+    info: { headerGradient: 'from-[#000080] to-[#1084d0]', icon: 'system/icons/modal/info.svg', defaultTitle: 'Information' },
+    error: { headerGradient: 'from-[#800000] to-[#ff0000]', icon: 'system/icons/modal/error.svg', defaultTitle: 'Error' },
+    question: { headerGradient: 'from-[#008000] to-[#00ff00]', icon: 'system/icons/modal/question.svg', defaultTitle: 'Question' },
+    default: { headerGradient: 'from-[#000080] to-[#1084d0]', icon: '', defaultTitle: 'Notice' },
   };
 
-  const config = typeConfig[variant];
+  const config = typeConfig[variant] || typeConfig['info'];
   const displayTitle = title || config.defaultTitle;
 
+  // 2. [동적 스타일 계산] WindowFrame과 동일한 크기 로직 적용
+  
+  // 헤더 높이: 터치(모바일)일 땐 48px(h-12), 아니면 32px(h-8)
+  const headerHeightClass = isTouchDevice ? "h-12 min-h-[48px]" : "h-8";
+  
+  // 버튼 크기: 터치일 땐 36px(w-9), 아니면 24px(w-6) (WindowFrame과 유사하게 맞춤)
+  const buttonSizeClass = isTouchDevice 
+    ? "w-9 h-9 text-sm" 
+    : "w-6 h-6 text-xs"; // 데스크톱에서는 조금 작게
+
+  // 인라인 스타일로 강제할 최소 크기
+  const minBtnSize = isTouchDevice ? 36 : 24;
+
   return (
-    // [1] 배경 오버레이 (Dimmed)
-    <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-pop-in px-4"
-      aria-modal="true"
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-[2px] animate-pop-in px-4"
       role="dialog"
-      aria-labelledby="modal-title"
-      onClick = {(e) => {
+      onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      
-      {/* [2] 모달 윈도우 본체 */}
-      <div 
+      <div
         ref={modalRef}
-        tabIndex={-1}
         className={`
-          w-full max-w-[90vw] sm:max-w-[400px] md:max-w-[500px]
           flex flex-col
-          bg-gray-200 
+          w-full max-w-[90vw] sm:max-w-[400px]
+          max-h-[85dvh]
+          bg-[#c0c0c0]
           shadow-[4px_4px_10px_rgba(0,0,0,0.5)]
           border-2 border-[#dfdfdf] border-r-black border-b-black
-          outline outline-1 outline-black
           ${className}
         `}
-        onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫힘 방지
+        onClick={(e) => e.stopPropagation()}
       >
-        
-        {/* [3] 헤더 (Title Bar) */}
+
+        {/* [헤더] 동적 높이 클래스 적용 */}
         <div className={`
-          h-10 min-h-[44px] px-2 flex items-center justify-between shrink-0
+          ${headerHeightClass} w-full shrink-0
+          flex items-center justify-between
+          px-2
           bg-gradient-to-r ${config.headerGradient}
-          text-white select-none cursor-default
+          text-white select-none
+          border-b-2 border-[#808080] /* WindowFrame 스타일 테두리 추가 */
         `}>
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="text-lg shrink-0">{config.icon}</span>
-            <span 
+          
+          {/* 제목 영역 */}
+          <div className="flex items-center gap-2 overflow-hidden mr-2">
+            <span className="shrink-0 filter drop-shadow-md">{config.icon}</span>
+            <span
               id="modal-title"
-              className="font-pixel text-sm font-bold pt-[2px] tracking-wide truncate drop-shadow-md"
+              className="font-pixel font-bold pt-[2px] shadow-black drop-shadow-md truncate"
             >
               {displayTitle}
             </span>
           </div>
-          
-          {/* 닫기 버튼 (X) - Enhanced touch support */}
-          <button 
-            onClick={onClose}
-            className="
-              w-10 h-10 sm:w-7 sm:h-7 md:w-6 md:h-6 
-              flex items-center justify-center shrink-0
-              bg-[#c0c0c0] text-black 
-              border-t-white border-l-white border-r-black border-b-black border
-              active:border-t-black active:border-l-black active:border-r-white active:border-b-white
-              hover:bg-red-500 hover:text-white group
-              transition-colors
-              touch-manipulation
-            "
-            aria-label="Close modal"
+
+          {/* [닫기 버튼] WindowControlBtn 스타일 및 로직 적용 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            // 모바일 터치 반응성 향상 (WindowFrame 로직)
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onClose();
+            }}
+            className={`
+              ${buttonSizeClass}
+              flex items-center justify-center
+              bg-[#c0c0c0] text-black font-bold leading-none
+              border border-white border-r-black border-b-black shadow-outset
+              active:shadow-inset active:translate-y-[1px] active:scale-95
+              hover:bg-red-500 hover:text-white
+              transition-all
+              shrink-0
+              cursor-pointer
+            `}
+            style={{
+              minWidth: `${minBtnSize}px`,
+              minHeight: `${minBtnSize}px`,
+              touchAction: 'manipulation', // 터치 딜레이 제거
+            }}
+            aria-label="Close"
           >
-            <span className="font-pixel text-xs sm:text-[10px] -mt-[2px] group-hover:text-white">✕</span>
+            ✕
           </button>
         </div>
 
-        {/* [4] 컨텐츠 영역 */}
-        <div className="p-4 md:p-6 flex flex-col gap-4 md:gap-6 bg-gray-200">
-          
+        {/* [컨텐츠] */}
+        <div className="p-4 md:p-6 flex-1 gap-4 md:gap-6 bg-[#c0c0c0] text-black overflow-y-auto custom-scrollbar border border-t-white border-l-white border-r-gray-400 border-b-gray-400 m-1">
           {children ? (
-            // Custom content
             children
           ) : (
             <>
-              {/* 아이콘 + 메시지 */}
               <div className="flex items-start gap-3 md:gap-4">
-                <div className="shrink-0 filter drop-shadow-sm select-none pt-1 text-3xl md:text-4xl">
-                  {config.icon}
-                </div>
-                <div className="pt-1 text-sm md:text-base font-body text-gray-900 leading-relaxed break-keep flex-1">
+                <span className="shrink-0 text-3xl md:text-4xl filter drop-shadow-sm">{config.icon}</span>
+                <p className="pt-1 text-sm md:text-base font-body leading-relaxed break-keep">
                   {message}
-                </div>
+                </p>
               </div>
 
-              {/* 버튼 그룹 (중앙 정렬) - Touch optimized */}
-              <div className="flex flex-col sm:flex-row justify-center gap-2 md:gap-3 mt-2">
-                {/* 확인 버튼 */}
-                <Button 
-                  size="sm" 
+              <div className="flex flex-col sm:flex-row justify-center gap-2 md:gap-3 mt-4">
+                <Button
+                  size="sm"
                   onClick={() => {
                     if (onConfirm) onConfirm();
                     else onClose();
                   }}
-                  className="min-w-[100px] min-h-[44px] sm:min-h-[36px] font-pixel order-1 sm:order-1 touch-manipulation"
-                  autoFocus // 모달 열리면 기본 포커스
+                  className="min-w-[80px] font-pixel touch-manipulation"
+                  autoFocus
                 >
                   {confirmText}
                 </Button>
 
-                {/* 취소 버튼 (Question 타입일 때만 표시) */}
                 {variant === 'question' && (
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="ghost"
                     onClick={onClose}
-                    className="min-w-[100px] min-h-[44px] sm:min-h-[36px] border border-black font-pixel order-2 sm:order-2 touch-manipulation"
+                    className="min-w-[80px] font-pixel touch-manipulation"
                   >
                     {cancelText}
                   </Button>
@@ -236,7 +204,6 @@ export default function Modal({
               </div>
             </>
           )}
-
         </div>
       </div>
     </div>

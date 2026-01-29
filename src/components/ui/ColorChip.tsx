@@ -1,92 +1,84 @@
 /**
  * ColorChip 컴포넌트
  * 
- * - 다양한 색상 옵션 제공
- * - 선택 상태에 따른 스타일 변화
- * - 크기 조절 가능
+ * - 색상을 표시하는 작은 칩 컴포넌트
+ * - 클릭 시 색상 선택 기능
+ * - 반응형 크기 지원
  */
 
 'use client';
 
-import { forwardRef, ButtonHTMLAttributes } from 'react';
+import React from 'react';
 
-export interface ColorChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
-  color: 'red' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink';
-  selected?: boolean; // 선택 여부
+interface ColorChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  color: string;
   size?: 'sm' | 'md' | 'lg';
+  selected?: boolean;
 }
 
-const ColorChip = forwardRef<HTMLButtonElement, ColorChipProps>(
-  ({
-    color,
-    selected = false,
-    size = 'md',
-    className = '',
-    onClick,
-    disabled,
-    ...props
-  }, ref) => {
-
-    // 색상 매핑
-    const colorMap = {
-      red: 'bg-[rgba(255,183,178,1)]',    // #FFB7B2
-      yellow: 'bg-[rgba(255,249,196,1)]', // #FFF9C4
-      green: 'bg-[rgba(143,208,172,1)]',   // #8FD0AC
-      blue: 'bg-[rgba(185,230,253,1)]',    // #B9E6FD
-      purple: 'bg-[rgba(233,176,239,1)]', // #E9B0EF
-      pink: 'bg-[rgba(245,202,212,1)]',    // #F5CAD4
+export default function ColorChip({
+  color,
+  size = 'md',
+  selected = false,
+  className = '',
+  disabled = false,
+  ...props
+}: ColorChipProps) {
+  // 반응형 크기 계산
+  const getSizeClasses = () => {
+    // 모바일: 터치 친화적 크기
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
+    
+    const sizeMap = {
+      sm: {
+        mobile: 'w-6 h-6',
+        tablet: 'w-5 h-5',
+        desktop: 'w-4 h-4',
+      },
+      md: {
+        mobile: 'w-10 h-10',
+        tablet: 'w-8 h-8',
+        desktop: 'w-6 h-6',
+      },
+      lg: {
+        mobile: 'w-14 h-14',
+        tablet: 'w-12 h-12',
+        desktop: 'w-10 h-10',
+      },
     };
+    
+    if (isMobile) return sizeMap[size].mobile;
+    if (isTablet) return sizeMap[size].tablet;
+    return sizeMap[size].desktop;
+  };
 
-    // 크기 설정
-    const sizeClass = {
-      sm: 'w-6 h-6 md:w-5 md:h-5',
-      md: 'w-8 h-8 md:w-6 md:h-6',
-      lg: 'w-10 h-10 md:w-8 md:h-8',
-    };
-
-    return (
-      <button
-        ref={ref}
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={`Select ${color} color`}
-        aria-pressed={selected}
-        className={`
-        /* --- 기본 레이아웃 --- */
-        relative flex items-center justify-center shrink-0
-        rounded-full transition-transform duration-100
-
-        /* --- 크기 설정 --- */
-        ${sizeClass[size]}
-
-        /* --- 색상 설정 --- */
-        ${colorMap[color]}
-
-        /* --- 테두리 및 입체감 --- */
-        border border-gray-500
-
-        /* 선택 안 됨: 튀어나옴 (Outset) */
-        ${!selected && !disabled ? 'shadow-[inset_1px_1px_0px_rgba(255,255,255,0.6),1px_1px_2px_rgba(0,0,0,0.2)] hover:brightness-110 active:scale-95' : ''}
-          
-        /* 선택됨: 움푹 파임 (Inset) + 테두리 진하게 */
-        ${selected ? 'shadow-[inset_2px_2px_4px_rgba(0,0,0,0.4)] border-black scale-95' : ''}
-          
-        /* 비활성화 */
-        ${disabled ? 'opacity-50 cursor-not-allowed shadow-none' : 'cursor-pointer'}
-
-        /* --- 포커스 (접근성) --- */
-        focus-visible:outline-none 
-        focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
-          
+  return (
+    <button
+      type="button"
+      {...props}
+      disabled={disabled}
+      className={`
+        ${getSizeClasses()}
+        rounded-full
+        border-2
+        ${selected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-400'}
+        shadow-outset
+        hover:shadow-inset
+        active:scale-95
+        transition-all
+        touch-target
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}
       `}
-        {...props}
-      />
-    );
-  }
-);
-
-ColorChip.displayName = 'ColorChip';
-
-export default ColorChip;
+      style={{ 
+        backgroundColor: color,
+        minWidth: '44px',  // 터치 영역 보장
+        minHeight: '44px', // 터치 영역 보장
+        ...props.style
+      }}
+      aria-label={`색상: ${color}`}
+      aria-pressed={selected}
+    />
+  );
+}

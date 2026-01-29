@@ -9,7 +9,19 @@
     "lint": "eslint",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
-    "db:fresh": "prisma migrate reset --force && prisma db seed"
+    "db:fresh": "prisma migrate reset --force && prisma db seed",
+    "validate:events": "tsx scripts/validate-events-seed.ts",
+    "format:events": "tsx scripts/format-events-seed.ts",
+    "format:events:dry": "tsx scripts/format-events-seed.ts --dry-run",
+    "match:scraped-data": "tsx scripts/match-scraped-data.ts",
+    "match:scraped-data:dry-run": "tsx scripts/match-scraped-data.ts --dry-run",
+    "match:scraped-data:2025": "tsx scripts/match-scraped-data.ts --year=2025",
+    "apply:matched-data": "tsx scripts/apply-matched-data.ts",
+    "process:youtube": "tsx scripts/process-youtube-videos.ts",
+    "process:youtube:2025": "tsx scripts/process-youtube-videos.ts --year=2025",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -44,22 +56,28 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/cheerio": "^0.22.35",
     "@types/node": "^20.19.28",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.22",
     "baseline-browser-mapping": "^2.9.6",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
     "framer-motion": "^12.23.25",
+    "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
     "prisma": "^7.2.0",
     "tailwindcss": "^4.1.17",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

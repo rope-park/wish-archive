@@ -33,9 +33,13 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-, "scripts/scraper/tiktok_crawler/tiktok-scraper.js", "prisma.config.ts", "prisma.config.mjs"  ],
+    ".next/dev/types/**/*.ts",
+    "prisma.config.ts",
+    "prisma.config.mjs"
+  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "scripts",
+    "prisma/seeds"
   ]
 }

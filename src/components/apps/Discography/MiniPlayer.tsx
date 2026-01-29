@@ -45,12 +45,14 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const playerInstanceRef = useRef<YT.Player | null>(null);
 
-    // 초기 위치 설정 (우하단)
+    // 초기 위치 설정 (우하단) - Taskbar 높이 반영
     useEffect(() => {
         if (!miniPlayerPosition.x && !miniPlayerPosition.y) {
+            const taskbarHeight = typeof window !== 'undefined' ? 
+                (window.innerWidth < 768 ? 64 : window.innerWidth < 1024 ? 56 : 48) : 48;
             setMiniPlayerPosition({
                 x: window.innerWidth - (miniPlayerExpanded ? 380 : 280) - 20,
-                y: window.innerHeight - (miniPlayerExpanded ? 200 : 80) - 20
+                y: window.innerHeight - (miniPlayerExpanded ? 200 : 80) - taskbarHeight - 20
             });
         }
     }, []);
@@ -83,8 +85,9 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
         const handleMouseMove = (e: MouseEvent) => {
             if (!isDragging) return;
             
+            const taskbarHeight = window.innerWidth < 768 ? 64 : window.innerWidth < 1024 ? 56 : 48;
             const newX = Math.max(0, Math.min(window.innerWidth - (miniPlayerExpanded ? 380 : 280), e.clientX - dragOffset.x));
-            const newY = Math.max(0, Math.min(window.innerHeight - (miniPlayerExpanded ? 200 : 80), e.clientY - dragOffset.y));
+            const newY = Math.max(0, Math.min(window.innerHeight - (miniPlayerExpanded ? 200 : 80) - taskbarHeight, e.clientY - dragOffset.y));
             
             setMiniPlayerPosition({ x: newX, y: newY });
         };
@@ -110,8 +113,9 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
             if (!isDragging) return;
             
             const touch = e.touches[0];
+            const taskbarHeight = window.innerWidth < 768 ? 64 : window.innerWidth < 1024 ? 56 : 48;
             const newX = Math.max(0, Math.min(window.innerWidth - (miniPlayerExpanded ? 380 : 280), touch.clientX - dragOffset.x));
-            const newY = Math.max(0, Math.min(window.innerHeight - (miniPlayerExpanded ? 200 : 80), touch.clientY - dragOffset.y));
+            const newY = Math.max(0, Math.min(window.innerHeight - (miniPlayerExpanded ? 200 : 80) - taskbarHeight, touch.clientY - dragOffset.y));
             
             setMiniPlayerPosition({ x: newX, y: newY });
         };
@@ -344,7 +348,13 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
                         <div className="space-y-1">
                             <div 
                                 ref={progressBarRef}
-                                className="relative h-1.5 bg-white/10 rounded-full cursor-pointer group"
+                                aria-label="재생 진행률"
+                                role="slider"
+                                aria-valuemin={0}
+                                aria-valuemax={duration}
+                                aria-valuenow={currentTime}
+                                tabIndex={0}
+                                className="relative h-3 bg-white/10 rounded-full cursor-pointer group"
                                 onClick={handleProgressClick}
                                 onTouchStart={(e) => {
                                     e.stopPropagation();
@@ -356,8 +366,11 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
                                 onTouchEnd={() => setIsSeeking(false)}
                             >
                                 <div 
-                                    className="absolute top-0 left-0 h-full bg-wish-green rounded-full transition-all"
-                                    style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                                    className="absolute top-0 left-0 h-full rounded-full transition-all"
+                                    style={{ 
+                                        backgroundColor: 'var(--color-brand-primary, #BFFF00)',
+                                        width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`
+                                    }}
                                 />
                                 <div 
                                     className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
@@ -386,7 +399,11 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
                                     e.stopPropagation();
                                     togglePlay();
                                 }}
-                                className="p-3 bg-wish-green hover:bg-wish-green/80 rounded-full transition text-black active:scale-95 shadow-lg shadow-wish-green/30"
+                                className="p-3 rounded-full transition text-black active:scale-95 shadow-lg"
+                                style={{ 
+                                    backgroundColor: 'var(--color-brand-primary, #BFFF00)',
+                                    boxShadow: '0 0 20px rgba(191, 255, 0, 0.3)'
+                                }}
                             >
                                 {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
                             </button>
@@ -438,7 +455,8 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
                                         e.stopPropagation();
                                         togglePlay();
                                     }}
-                                    className="p-2 bg-wish-green hover:bg-wish-green/80 rounded-full transition text-black active:scale-95"
+                                    className="p-2 rounded-full transition text-black active:scale-95"
+                                    style={{ backgroundColor: 'var(--color-brand-primary, #BFFF00)' }}
                                 >
                                     {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
                                 </button>
@@ -468,8 +486,11 @@ export default function MiniPlayer({ currentAlbum }: MiniPlayerProps) {
                             onTouchEnd={() => setIsSeeking(false)}
                         >
                             <div 
-                                className="absolute top-0 left-0 h-full bg-wish-green rounded-full transition-all"
-                                style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                                className="absolute top-0 left-0 h-full rounded-full transition-all"
+                                style={{ 
+                                    backgroundColor: 'var(--color-brand-primary, #BFFF00)',
+                                    width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`
+                                }}
                             />
                         </div>
                     </div>

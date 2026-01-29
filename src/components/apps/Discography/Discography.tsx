@@ -429,7 +429,7 @@ export default function Discography({ onClose: _onClose }: DiscographyProps) {
                                                 quality={85}
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400">No Image</div>
+                                            <div className="h-full w-full bg-black text-white flex items-center justify-center overflow-hidden">No Image</div>
                                         )}
                                         {/* 즐겨찾기 앨범 배지 */}
                                         {album.tracks.some(t => favorites.has(t.id)) && (
@@ -857,8 +857,8 @@ function AlbumDetailView({
             <MiniPlayer currentAlbum={currentAlbum} />
             <div className="relative w-full h-full overflow-hidden flex flex-col md:flex-row">
 
-            {/* Queue Panel - Slide from right */}
-            <div className={`absolute top-0 right-0 z-50 h-full w-full sm:w-80 bg-black/95 backdrop-blur-xl border-l border-white/20 shadow-2xl transition-transform duration-300 ${showQueue ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+            {/* Queue Panel - Slide from right - top-12로 창 헤더 아래로 이동 */}
+            <div className={`absolute top-6 right-0 z-50 h-[calc(100%-3rem)] w-full sm:w-80 bg-black/95 backdrop-blur-xl border-l border-white/20 shadow-2xl transition-transform duration-300 ${showQueue ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
                 <div className="p-4 border-b border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <ListMusic size={18} className="text-wish-green" />
@@ -980,11 +980,11 @@ function AlbumDetailView({
                 </button>
             )}
 
-            {/* 2. Left Side Panels (3 Cards) */}
-            <div className={`relative z-10 w-full md:w-[420px] lg:w-[460px] xl:w-[500px] h-full p-4 sm:p-5 md:p-6 flex flex-col gap-4 sm:gap-5 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
+                {/* 2. Left Side Panels (3 Cards) - h-full overflow-hidden + pt-12로 창 헤더와 간격 */}
+                <div className={`relative z-10 w-full md:w-[420px] lg:w-[460px] xl:w-[500px] h-full overflow-hidden pt-12 px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6 flex flex-col gap-4 sm:gap-5 transition-transform duration-500 ${isFullscreen ? '-translate-x-full' : 'translate-x-0'}`}>
 
-                {/* Card 1: Player Control */}
-                <div className="flex-none h-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 md:p-5 flex flex-col gap-3 sm:gap-4 shadow-xl">
+                {/* Card 1: Player Control - flex-1 + overflow-y-auto (크기는 원래대로) */}
+                <div className="flex-1 min-h-0 overflow-y-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 md:p-5 flex flex-col gap-3 sm:gap-4 shadow-xl">
                     <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
                         <div className={`relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-black flex-shrink-0 border-2 sm:border-3 md:border-4 border-gray-900 shadow-xl shadow-black/50 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
                             {/* 비닐 표면 그루브 */}
@@ -1539,8 +1539,8 @@ function AlbumDetailView({
                     </div>
                 </div>
 
-                {/* Card 3: Album Navigation */}
-                <div className="flex-none h-24 sm:h-28 md:h-32 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2 sm:p-3 flex items-center justify-between shadow-xl">
+                {/* Card 3: Album Navigation - 크기 축소 */}
+                <div className="flex-none h-20 sm:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2 sm:p-3 flex items-center justify-between shadow-xl">
                     <button
                         onClick={() => currentIndex > 0 && onNavigate(currentIndex - 1)}
                         disabled={currentIndex === 0}

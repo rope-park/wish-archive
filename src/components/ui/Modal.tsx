@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, ReactNode } from 'react';
-import { Button } from '@/components/ui';
+import Button from './Button';
 
 export interface ModalProps {
   isOpen: boolean;

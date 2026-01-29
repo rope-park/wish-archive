@@ -1,3 +1,5 @@
+// prisma/seed.ts
+
 /**
  * 시드 데이터 메인 실행 스크립트
  * 
@@ -7,28 +9,37 @@
  */
 
 import { PrismaClient, Group, Member, Era, Album, Track, Event, Program, } from '@prisma/client'
-import { logger, checkEnvVars } from './seeds/utils'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
+import 'dotenv/config'
+import { logger, checkEnvVars } from './seeds/utils/utils'
 import { seedGroup } from './seeds/00-group'
 import { seedMembers } from './seeds/01-members'
 import { seedEras } from './seeds/02-eras'
 import { seedAlbums } from './seeds/03-albums'
 import { seedTracks } from './seeds/04-tracks'
-import { seedEvents } from './seeds/05-events'
+import { seedEvents } from './seeds/seed-events'
 import { seedPrograms } from './seeds/06-programs'
-import { seedAppearances } from './seeds/07-appearances'
-import { seedCharts } from './seeds/08-charts'
-import { seedCertifications } from './seeds/09-certifications'
-import { seedWidgets } from './seeds/10-widgets'
-import { seedMusicShowTrophies } from './seeds/11-music-show'
-import { seedAlbumSales } from './seeds/12-sales'
-import { seedContents } from './seeds/13-contents'
-import { seedAwards } from './seeds/14-awards'
-import { seedLyrics } from './seeds/15-lyrics'
-import { seedPreDebutEvents } from './seeds/16-pre-debut-events';
-import { seedDebutYearEvents } from './seeds/17-debut-year-events';
-import { seed2025Events } from './seeds/18-2025-events';
+import { seedCharts } from './seeds/07-charts'
+import { seedCertifications } from './seeds/08-certifications'
+import { seedWidgets } from './seeds/09-widgets'
+import { seedAlbumSales } from './seeds/10-sales'
+import { seedAwards } from './seeds/11-awards'
+import { seedLyrics } from './seeds/12-lyrics'
+import { seedLore } from './seeds/99-lore'
+
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const pool = new Pool({
+  connectionString,
+  max: 20, // 최대 연결 수 증가
+  idleTimeoutMillis: 60000, // 60초
+  connectionTimeoutMillis: 10000, // 10초
+  statement_timeout: 600000, // 10분
+});
+const adapter = new PrismaPg(pool);
 
 const prisma = new PrismaClient({
+  adapter,
   log: process.env.DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : ['info', 'warn', 'error'],
 })
 
@@ -49,9 +60,7 @@ type SeedResults = {
   Contents?: unknown[];
   Awards?: unknown[];
   Lyrics?: unknown[];
-  PreDebutEvents?: unknown[];
-  DebutYearEvents?: unknown[];
-  Activities2025?: unknown[];
+  Lore?: unknown[];
 };
 
 // 시드 단계 정의
@@ -61,29 +70,24 @@ const SEED_STEPS = [
   { name: 'Eras', fn: seedEras, deps: ['Group'] },
   { name: 'Albums', fn: seedAlbums, deps: ['Group'] },
   { name: 'Tracks', fn: seedTracks, deps: ['Albums'] },
-  { name: 'Events', fn: seedEvents, deps: ['Members', 'Eras', 'Albums'] },
   { name: 'Programs', fn: seedPrograms, deps: [] },
-  { name: 'Appearances', fn: seedAppearances, deps: ['Programs', 'Tracks'] },
+  { name: 'Events', fn: seedEvents, deps: ['Members', 'Eras', 'Albums', 'Programs', 'Tracks'] },
   { name: 'Charts', fn: seedCharts, deps: [] },
   { name: 'Certifications', fn: seedCertifications, deps: ['Albums'] },
   { name: 'Widgets', fn: seedWidgets, deps: ['Members', 'Albums'] },
-  { name: 'MusicShowTrophies', fn: seedMusicShowTrophies, deps: ['Programs', 'Tracks'] },
   { name: 'AlbumSales', fn: seedAlbumSales, deps: ['Albums'] },
-  { name: 'Contents', fn: seedContents, deps: [] },
   { name: 'Awards', fn: seedAwards, deps: [] },
+  { name: 'Lore', fn: seedLore, deps: [] },
   { name: 'Lyrics', fn: seedLyrics, deps: ['Tracks'] },
-  { name: 'PreDebutEvents', fn: seedPreDebutEvents, deps: [] },
-  { name: 'DebutYearEvents', fn: seedDebutYearEvents, deps: [] },
-  { name: 'Activities2025', fn: seed2025Events, deps: [] },
 ] as const
 
 // 메인 시드 함수
 async function main() {
   const startTime = Date.now()
-  
+
   // 환경 변수 확인
   checkEnvVars(['DATABASE_URL'])
-  
+
   logger.info('🌱 Starting database seed process...')
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`)
   logger.info(`Total steps: ${SEED_STEPS.length}`)
@@ -97,7 +101,7 @@ async function main() {
     for (let i = 0; i < SEED_STEPS.length; i++) {
       const step = SEED_STEPS[i]
       const stepNum = String(i + 1).padStart(2, '0')
-      
+
       console.log(`\n${'='.repeat(60)}`)
       logger.info(`[${stepNum}/${SEED_STEPS.length}] Seeding ${step.name}...`)
       console.log('='.repeat(60))
@@ -125,31 +129,28 @@ async function main() {
             result = await step.fn(prisma, seedResults.Albums!);
             break;
           case 'Events':
-            result = await step.fn(prisma, seedResults.Members!, seedResults.Eras!, seedResults.Albums!);
+            result = await step.fn(prisma);
+            break;
+          case 'Lore': 
+            result = await step.fn(prisma);
             break;
           case 'Lyrics':
             result = await step.fn(prisma);
             break;
           case 'Programs':
           case 'Charts':
-          case 'Appearances':
           case 'Certifications':
             result = await step.fn(prisma);
             break;
           case 'Widgets':
-          case 'MusicShowTrophies':
           case 'AlbumSales':
-          case 'Contents':
           case 'Awards':
-          case 'PreDebutEvents':
-          case 'DebutYearEvents':
-          case 'Activities2025':
-            result = await step.fn(prisma);
+            result = await step.fn(prisma, seedResults.Group!.id);
             break;
         }
 
         seedResults[step.name as keyof SeedResults] = result as never;
-        
+
         logger.success(`${step.name} seeded successfully`)
       } catch (error) {
         logger.error(`Failed to seed ${step.name}`)
@@ -161,7 +162,7 @@ async function main() {
     console.log('\n' + '='.repeat(60))
     logger.success('✨ Seed completed successfully!')
     console.log('='.repeat(60))
-    
+
     // 통계 출력
     console.log('\n📊 Seed Statistics:')
     console.log(`  • Groups: ${Array.isArray(seedResults.Group) ? seedResults.Group.length : 1}`)
@@ -172,25 +173,22 @@ async function main() {
     console.log(`  • Events: ${Array.isArray(seedResults.Events) ? seedResults.Events.length : 0}`)
     console.log(`  • Music Show Trophies: ${Array.isArray(seedResults.MusicShowTrophies) ? seedResults.MusicShowTrophies.length : 0}`)
     console.log(`  • Album Sales: ${Array.isArray(seedResults.AlbumSales) ? seedResults.AlbumSales.length : 0}`)
-    console.log(`  • Contents: ${Array.isArray(seedResults.Contents) ? seedResults.Contents.length : 0}`)
     console.log(`  • Awards: ${Array.isArray(seedResults.Awards) ? seedResults.Awards.length : 0}`)
-    console.log(`  • Pre-Debut Events: ${Array.isArray(seedResults.PreDebutEvents) ? seedResults.PreDebutEvents.length : 0}`);
-    console.log(`  • 2024 Debut Year Events: ${Array.isArray(seedResults.DebutYearEvents) ? seedResults.DebutYearEvents.length : 0}`);
-    console.log(`  • 2025 Activities: ${Array.isArray(seedResults.Activities2025) ? seedResults.Activities2025.length : 0}`);
-    
+    console.log(`  • Lore: ${Array.isArray(seedResults.Lore) ? seedResults.Lore.length : 0}`)
+
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)
     console.log(`\n Total time: ${duration}s`)
-    
+
   } catch (error) {
     logger.error('Seed failed')
     console.error(error)
-    
+
     // 디버그 모드에서만 스택 트레이스 출력
     if (process.env.DEBUG === 'true' && error instanceof Error) {
       console.error('\n🔍 Stack trace:')
       console.error(error.stack)
     }
-    
+
     process.exit(1)
   }
 }

@@ -3,9 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 // ===========================
@@ -19,6 +17,7 @@ enum EventType {
   CONCERT // 콘서트
   TOUR // 투어
   FANMEETING // 팬미팅
+  FESTIVAL // 페스티벌
   SHOWCASE // 쇼케이스
   VARIETY_SHOW // 예능/특집/일반 TV 출연
   POPUP_STORE // 팝업 스토어
@@ -26,8 +25,14 @@ enum EventType {
   CF_AD // 광고/브랜드 콜라보
   MAGAZINE // 화보/잡지 촬영
   ONLINE_CONTENT // 유튜브/Weverse/웹 콘텐츠
-  MERCH_DROP // 굿즈
-  ANNOUNCEMENT // 공식 발표/공지
+  ANNOUNCEMENT // 공식 발표/공지   
+  INTERVIEW // 인터뷰
+  COLLABORATION // 콜라보
+  FANSIGN
+  EVENT
+  RADIO
+  BIRTHDAY
+  ANNIVERSARY
   OTHER
 }
 
@@ -38,14 +43,18 @@ enum ReleaseType {
   SINGLE_ALBUM // 싱글 앨범
   DIGITAL_SINGLE // 디지털 싱글
   PARTICIPATION // OST, SMTOWN, Featuring 등 참여 음반
+  REPACKAGE // 리패키지 앨범
 }
 
 // 앨범 에디션 유형
 enum EditionType {
+  PHOTOBOOK // 포토북 등
   CD // CD-R 등
   SMART_ALBUM // NFC 등
   MUSIC_NFC_CD // SMini 등
   QR_CARD // QR 카드
+  DIGIPACK // 디지팩 등
+  OTHER
 }
 
 // 주요 시장/지역
@@ -68,6 +77,9 @@ enum ProgramType {
   MUSIC_SHOW
   VARIETY_SHOW
   RADIO
+  REALITY
+  NEWS_INFO
+  WEB_CONTENT
 }
 
 // 인증(공인판매량/출하량) 발급 기관
@@ -85,24 +97,32 @@ enum CertLevel {
 }
 
 // 외부 링크 분류 (소셜/플랫폼/공식문서 등)
-enum LinkType {
-  OFFICIAL_SITE // 공식 사이트 (SMTOWN)
-  YOUTUBE // 유튜브
-  X_TWITTER // X
-  INSTAGRAM // 인스타그램
-  TIKTOK // 틱톡
+enum Platform {
+  YOUTUBE
+  INSTAGRAM
+  X_TWITTER
+  TIKTOK
+  WEVERSE
+  FACEBOOK
+  WEIBO
+  BILIBILI
   NAVER_TV
-  SPOTIFY // 스포티파이
-  AMAZON_MUSIC // 아마존 뮤직
-  APPLE_MUSIC // 애플뮤직
-  MELON_MUSIC // 멜론뮤직
-  GENIE_MUSIC // 지니뮤직
-  BUGS_MUSIC // 벅스
-  FACEBOOK // 페이스북
-  WEIBO // 웨이보
-  BILIBILI // 빌리빌리
-  WEVERSE // 위버스
-  ARTICLE // 기사
+  SPOTIFY
+  APPLE_MUSIC
+  AMAZON_MUSIC
+  MELON_MUSIC
+  GENIE_MUSIC
+  BUGS_MUSIC
+  YOUTUBE_MUSIC
+  LINE_MUSIC
+  FLO
+  VIBE
+  OFFICIAL_SITE
+  TICKET_LINK
+  INTERPARK
+  YES24
+  MELON_TICKET
+  ARTICLE
   OTHER
 }
 
@@ -118,40 +138,52 @@ enum CreditRole {
   OTHER
 }
 
-// 컨텐츠(게시물/영상) 플랫폼
-enum ContentPlatform {
-  YOUTUBE
-  WEVERSE
-  NAVER_TV
-  INSTAGRAM
-  X_TWITTER
-  TIKTOK
-  BILIBILI
-  FACEBOOK
-  OFFICIAL_SITE
-  OTHER
-}
-
 // 컨텐츠 유형(티저/비하인드/숏폼/챌린지 등)
 enum ContentType {
   MV
-  MV_TEASER
+  TEASER
+  PERFORMANCE_VIDEO
   DANCE_PRACTICE
-  RECORDING_BEHIND
-  JACKET_BEHIND
-  BEHIND
-  LIVE_STREAM
-  SHORTS
-  POSTER
-  CHALLENGE
-  INTERVIEW
-  VARIETY_CLIP
-  PERFORMANCE_CLIP
-  UNBOXING
-  ANNOUNCEMENT
-  FANCAM
+  CONCEPT_FILM
+  BROADCAST_STAGE
   OFFICIAL_CAM
+  CHEERING_GUIDE
+  FANCAM
+  WEB_VARIETY
+  VARIETY_CLIP
+  REALITY
+  VLOG
+  BEHIND
+  RECORDING
+  SHORTS
+  CHALLENGE
+  COVER
+  LIVE_STREAM
+  FAN_EDIT
+  INTERVIEW
+  UNBOXING
+  PLAYLIST
+  ANNOUNCEMENT
+  REACTION
   OTHER
+}
+
+// Lore 타입
+enum LoreType {
+  CONCEPT // 개념/컨셉
+  SYMBOL // 상징/심볼
+  THEORY // 이론/추측
+  CONNECTION // 연결고리
+  OBJECT // 오브젝트/소품
+  EASTER_EGG // 이스터에그
+}
+
+// Lore 상태
+enum LoreStatus {
+  SOLVED // 해결됨
+  UNSOLVED // 미해결
+  ONGOING // 진행중
+  DEBUNKED // 반박됨
 }
 
 // 가사 표기 스크립트 유형
@@ -167,6 +199,16 @@ enum Currency {
   JPY
   USD
   EUR
+}
+
+enum ExternalLinkType {
+  OFFICIAL
+  SNS
+  NEWS
+  STREAMING
+  TICKET
+  STORE
+  OTHER
 }
 
 // ===========================
@@ -201,15 +243,14 @@ model Group {
   description String? @db.Text // 그룹 소개글
 
   // --- f. 관계 ---
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   members       Member[]
   eras          Era[]
   albums        Album[]
-  externalLinks ExternalLink[]
-  contents      Content[] // 그룹 단위 컨텐츠 (공식 공지 포함)
   awards        AwardWin[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  contents      Content[] // 그룹 단위 컨텐츠
+  externalLinks ExternalLink[]
 }
 
 // === 2. MEMBER (멤버 프로필) ===
@@ -228,7 +269,7 @@ model Member {
   nationality String? // 국적
   hometown    String? // 출신지
 
-  // --- b. 아이돌 프로필 ---  
+  // --- b. 아이돌 프로필 ---
   positions String? // 보컬, 래퍼, 센터 등 (콤마 구분 텍스트)
   emoji     String? // 상징 이모지
   ownNumber String? // 고유 번호
@@ -245,20 +286,19 @@ model Member {
   colorCode String? // 상징색 코드
 
   // --- d. 활동 메타데이터 ---
-  isActive Boolean   @default(true)
   joinDate DateTime? // 데뷔일
+  isActive Boolean   @default(true)
 
   // --- e. 관계 ---
-  events        MemberOnEvent[]
-  contents      MemberOnContent[]
-  externalLinks ExternalLink[]
-  quotes        Quote[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   albumEditions AlbumEdition[]
   awardWins     AwardWin[]
+  externalLinks ExternalLink[]
+  contents      MemberOnContent[]
+  events        MemberOnEvent[]
+  quotes        Quote[]
   appearances   Appearance[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@unique([groupId, stageName])
   @@index([groupId])
@@ -291,7 +331,7 @@ model Album {
 
   iconUrl String? // 폴더/아이콘용 픽셀 아트 커버
 
-  // --- d. 테마 설정 ---  
+  // --- d. 테마 설정 ---
   themeColor     String? // 앨범 테마 메인 컬러
   themeTextColor String? // 테마 텍스트 컬러
 
@@ -307,6 +347,9 @@ model Album {
   isOst      Boolean @default(false) // OST/참여 음반 구분용
 
   // --- f. 관계 ---
+  eraId String?
+  era   Era?    @relation(fields: [eraId], references: [id])
+
   releases       AlbumRelease[]
   tracks         Track[]
   events         EventOnAlbum[]
@@ -317,8 +360,8 @@ model Album {
   externalLinks  ExternalLink[]
   contents       Content[]
   salesDaily     AlbumDailySales[]
-  awards         AwardWin[]         @relation("AlbumAwards")
-  era            Era?
+  awards         AwardWin[]        @relation("AlbumAwards")
+  mainAlbumOfEra Era?              @relation("MainAlbum")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -414,8 +457,9 @@ model Track {
   themeColor String? // 곡 전용 테마색
 
   // --- d. 미디어 링크 ---
-  mvUrl    String? // 공식 MV 링크
-  audioUrl String? // 음원 링크(스트리밍/티저 등)
+  mvUrl           String? // 공식 MV 링크
+  audioUrl        String? // 음원 링크(스트리밍/티저 등)
+  specialVideoUrl String? // 스페셜 영상 링크
 
   note String? // 버전 정보, 피처링 등
 
@@ -511,6 +555,7 @@ model Event {
   date      DateTime // 대표 날짜 (정렬 및 폴더 분류 기준)
   startDate DateTime? // 기간 시작일
   endDate   DateTime? // 기간 종료일
+  time      String? // 시간
 
   // --- b. 이벤트 정보 ---
   title       String // 스케줄명
@@ -523,11 +568,12 @@ model Event {
 
   // --- d. 분류 플래그 ---
   isPreDebut Boolean @default(false) // 프리데뷔 시기 스케줄 (2023.10~2024.02)
+  milestone  Boolean @default(false) // 주요 이벤트 표시
 
   // --- e. 연결 링크 ---
-  relatedUrl     String? // 공식 공지/정보 링크
-  ticketUrl      String? // 예매/신청 페이지 링크
-  galleryAlbumId String? // 연결된 갤러리/앨범 ID
+  relatedUrl        String? // 공식 공지/정보 링크
+  ticketUrl         String? // 예매/신청 페이지 링크
+  galleryFolderPath String? // 연결된 갤러리/앨범 경로
 
   // --- f. 관계 ---
   // 활동 시기
@@ -548,9 +594,10 @@ model Event {
   members MemberOnEvent[]
 
   // 아카이브 데이터
-  appearances   Appearance[]
-  externalLinks ExternalLink[]
-  contents      Content[]
+  appearances     Appearance[]
+  externalLinks   ExternalLink[]
+  contents        Content[]
+  musicShowTrophy MusicShowTrophy?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -561,6 +608,9 @@ model Event {
   @@index([eraId])
   @@index([country])
   @@index([seriesId])
+  @@index([type, date])
+  @@index([country, city])
+  @@index([milestone])
 }
 
 // === 9. EVENT SERIES (이벤트 시리즈) ===
@@ -644,12 +694,13 @@ model Era {
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   events Event[]
+  albums Album[]
+
+  mainAlbumId String? @unique
+  mainAlbum   Album?  @relation("MainAlbum", fields: [mainAlbumId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  mainAlbumId String? @unique
-  mainAlbum   Album?  @relation(fields: [mainAlbumId], references: [id])
 }
 
 // ==================================
@@ -661,10 +712,12 @@ model Program {
   id String @id @default(cuid())
 
   // --- a. 기본 정보 ---
-  name    String // 프로그램명
-  network String? // 방송사
-  country String? // 국가
-  pType   ProgramType // 프로그램 종류
+  name        String // 프로그램명
+  displayName String // 표시명
+  aliases     String[] // 별칭/다른 명칭
+  network     String? // 방송사
+  country     String? // 국가
+  pType       ProgramType // 프로그램 종류
 
   // --- b. 편성 정보 (정기 스케줄용) ---
   dayOfWeek String? // 방송 요일
@@ -718,7 +771,7 @@ model Appearance {
   track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
 
   // 자료 연결
-  externalLinks ExternalLink[] // 외부 영상
+  externalLinks ExternalLink[] // 외부 링크 (텍스트 위주)
   contents      Content[]      @relation("AppearanceContent") // 공식 무대 영상
 
   note String?
@@ -748,11 +801,15 @@ model MusicShowTrophy {
   trackId String? // 1위 곡
   track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
 
+  eventId String @unique
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
   note String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([eventId])
   @@index([programId, date])
   @@index([trackId])
 }
@@ -950,10 +1007,10 @@ model Content {
 
   // --- a. 기본 정보 ---
   title    String // 제목
-  platform ContentPlatform // 플랫폼
+  platform Platform // 플랫폼
   cType    ContentType // 유형
 
-  url          String  @unique // 원본 링크
+  url          String // 원본 링크
   thumbnailUrl String? // 썸네일 이미지
 
   channelName String? // 채널명
@@ -962,6 +1019,8 @@ model Content {
 
   // --- b. 기능용 플래그 ---
   isHighlight Boolean @default(false)
+
+  tags String[]
 
   // --- c. 관계 ---
   groupId String?
@@ -985,8 +1044,6 @@ model Content {
   appearanceId String?
   appearance   Appearance? @relation("AppearanceContent", fields: [appearanceId], references: [id], onDelete: SetNull)
 
-  tags          String[]
-
   // 출연 멤버 & 통계
   members    MemberOnContent[]
   videoStats VideoStat[]
@@ -1001,6 +1058,8 @@ model Content {
   @@index([albumId])
   @@index([eventId])
   @@index([publishedAt])
+  @@index([platform, publishedAt])
+  @@index([isHighlight])
 }
 
 // === 23. MEMBER ON CONTENT (출연 정보) ===
@@ -1140,7 +1199,7 @@ model AwardWin {
   trackId String?
   track   Track?  @relation("TrackAwards", fields: [trackId], references: [id], onDelete: SetNull)
 
-  // --- c. 비주얼 & 콘텐츠 ---
+  // --- c. 비주얼 & 컨텐츠 ---
   sceneImageUrl String? // 수상 장명 스틸컷
   speechUrl     String? // 수상 소감 영상 링크
 
@@ -1167,7 +1226,7 @@ model ExternalLink {
   id String @id @default(cuid())
 
   // --- a. 링크 정보 ---
-  type  LinkType // 플랫폼 타입
+  type  ExternalLinkType // 플랫폼 타입
   title String? // 링크 제목
   url   String // URL 주소
 
@@ -1265,4 +1324,114 @@ model PlaylistTrack {
   isActive Boolean @default(true) // 노출 여부
 
   createdAt DateTime @default(now())
+}
+
+// === 33. [WISH WORLD 위젯] LORE ===
+model Lore {
+  id String @id @default(cuid())
+
+  // 기본 정보
+  title  String     @unique
+  type   LoreType
+  status LoreStatus
+  era    String? // NASA, WISH, Songbird, etc.
+
+  // 본문
+  description String  @db.Text
+  solution    String? @db.Text // solved 상태일 때 공개되는 해답
+
+  // 미디어
+  thumbnailUrl String?
+  images       LoreImage[]
+  videos       LoreVideo[]
+
+  // 메타데이터
+  discoveryDate DateTime? // 떡밥 발견 날짜
+  solvedDate    DateTime? // 해결 날짜
+  tags          String[] // ['mvanalysis', 'interview', 'hidden']
+
+  // 연관 관계
+  relatedEventIds  String[]
+  relatedMemberIds String[]
+  relatedAlbumIds  String[]
+
+  // 유저 제출 정보
+  submittedBy     String? // 제출자 닉네임
+  isUserSubmitted Boolean @default(false)
+  isApproved      Boolean @default(false) // 관리자 승인 여부
+
+  // 커뮤니티 기능
+  upvotes   Int @default(0)
+  downvotes Int @default(0)
+  viewCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@index([era])
+  @@index([isApproved])
+}
+
+model LoreImage {
+  id     String @id @default(cuid())
+  loreId String
+  lore   Lore   @relation(fields: [loreId], references: [id], onDelete: Cascade)
+
+  url     String
+  caption String?
+  order   Int     @default(0)
+  filter  String? // 'redacted', 'classified', 'normal'
+
+  createdAt DateTime @default(now())
+
+  @@index([loreId])
+}
+
+model LoreVideo {
+  id     String @id @default(cuid())
+  loreId String
+  lore   Lore   @relation(fields: [loreId], references: [id], onDelete: Cascade)
+
+  videoUrl  String // YouTube embed URL
+  timestamp String? // "1:23" - 떡밥이 나오는 타임스탬프
+  caption   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([loreId])
+}
+
+// ===========================
+// TO.WISH (방명록/메시지)
+// ===========================
+
+// === WISH MESSAGE (방명록 메시지) ===
+model WishMessage {
+  id String @id @default(cuid())
+
+  // --- a. 작성자 정보 ---
+  authorName  String? // 작성자 이름 (null = 익명)
+  isAnonymous Boolean @default(false) // 익명 여부
+
+  // --- b. 메시지 내용 ---
+  message String @db.Text // 메시지 내용
+
+  // --- c. 타겟 멤버 ---
+  targetMember String? // 멤버 stageName (null = 전체/그룹)
+  // SION, RIKU, YUSHI, JAEHEE, RYO, SAKUYA, null(전체)
+
+  // --- d. 종이학 커스터마이징 ---
+  craneColor String @default("#FFB6C1") // 종이학 색상 (hex)
+
+  // --- e. 메타데이터 ---
+  ipAddress String? // IP 주소 (스팸 방지용)
+  userAgent String? // User Agent
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([targetMember])
+  @@index([createdAt])
 }

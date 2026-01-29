@@ -31,8 +31,8 @@ import { seedLore } from './seeds/99-lore'
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 const pool = new Pool({
   connectionString,
-  max: 20, // 최대 연결 수 증가
-  idleTimeoutMillis: 60000, // 60초
+  max: 10, // connection limit to avoid "MaxClientsInSessionMode" error on Vercel/Supabase
+  idleTimeoutMillis: 60000, // 60s
   connectionTimeoutMillis: 10000, // 10초
   statement_timeout: 600000, // 10분
 });
@@ -131,7 +131,7 @@ async function main() {
           case 'Events':
             result = await step.fn(prisma);
             break;
-          case 'Lore': 
+          case 'Lore':
             result = await step.fn(prisma);
             break;
           case 'Lyrics':

@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { Card, Divider, Modal } from '../ui';
 import { useWindowStore, type AppType } from '@/app/stores/useWindowStore';
+import { Z_INDEX } from '@/lib/z-index';
 
 // TODO: 테마 모드 타입 정의 (추후 구현 예정)
 type ThemeMode = 'classic' | 'dark' | 'wish';
@@ -140,8 +141,8 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
     <>
       <div
         ref={menuRef}
-        className={`
-        fixed z-[999] origin-bottom-left animate-pop-in
+        className="
+        fixed origin-bottom-left animate-pop-in
 
         /* [Mobile] 하단 꽉 채우기 */
         max-md:bottom-[44px] max-md:left-0 max-md:right-0 max-md:w-full
@@ -149,7 +150,8 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
 
         /* [Desktop] 좌측 하단 고정 */
         md:bottom-[52px] md:left-1 md:w-64
-      `}
+      "
+        style={{ zIndex: Z_INDEX.START_MENU }}
       >
         <Card
           variant="window"
@@ -184,7 +186,7 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               </span>
             </div>
 
-            {/* TODO: 실제 실행을 위한 로직 변경 필요 */}
+            {/* 필수 앱 메뉴 */}
             <StartMenuItem
               icon="/system/icons/apps/wisharchive.png"
               label="WISH Archive"
@@ -198,6 +200,32 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               onClick={() => handleOpenApp('disco', 'DISCOGRAPHY', 'Discography', '/system/icons/apps/discography.png')}
               isTouchDevice={isTouchDevice}
             />
+            <StartMenuItem
+              icon="/system/icons/apps/wishgallery.png"
+              label="WISH Gallery"
+              onClick={() => handleOpenApp('gallery', 'WISH_GALLERY', 'WISH Gallery', '/system/icons/apps/wishgallery.png')}
+              isTouchDevice={isTouchDevice}
+            />
+            <StartMenuItem
+              icon="/system/icons/apps/mywish.png"
+              label="My WISH"
+              onClick={() => handleOpenApp('mywish', 'MY_WISH', 'My WISH', '/system/icons/apps/mywish.png')}
+              isTouchDevice={isTouchDevice}
+            />
+            <StartMenuItem
+              icon="/system/icons/apps/wishworld.png"
+              label="WISH World"
+              onClick={() => handleOpenApp('world', 'WISH_WORLD', 'WISH World', '/system/icons/apps/wishworld.png')}
+              isTouchDevice={isTouchDevice}
+            />
+            <StartMenuItem
+              icon="/system/icons/apps/towish.png"
+              label="To WISH"
+              onClick={() => handleOpenApp('towish', 'TO_WISH', 'To WISH', '/system/icons/apps/towish.png')}
+              isTouchDevice={isTouchDevice}
+            />
+            
+            {/* 최근 앱 또는 Programs */}
             {latestApp ? (
               <StartMenuItem
                 icon={latestApp.icon}
@@ -207,14 +235,12 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               />
             ) : (
               <StartMenuItem
-                icon="🧩"
-                label="Programs"
-                onClick={() => handleOpenApp('programs', 'WISH_ARCHIVE', 'Programs', '🧩')}
+                icon="/system/icons/apps/recyclebin.png"
+                label="Recycle Bin"
+                onClick={() => handleOpenApp('trash', 'RECYCLE_BIN', 'Recycle Bin', '/system/icons/apps/recyclebin.png')}
                 isTouchDevice={isTouchDevice}
               />
-            )}
-
-            <div className="my-1 px-1">
+            )}            <div className="my-1 px-1">
               <Divider orientation="horizontal" />
             </div>
 

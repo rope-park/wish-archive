@@ -39,7 +39,8 @@ export default function WindowFrame({
   const isFocused = activeWindowId === id;
 
   // 반응형 상태
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [isTouchCapable, setIsTouchCapable] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   // 1. 마운트 및 터치 디바이스 감지
@@ -53,7 +54,8 @@ export default function WindowFrame({
                              navigator.maxTouchPoints > 0;
       
       // 작은 화면 또는 터치 지원 기기
-      setIsTouchDevice(width < 768 || hasTouchScreen);
+      setIsMobileView(width < 768);
+      setIsTouchCapable(hasTouchScreen);
     };
 
     checkDevice();
@@ -70,8 +72,8 @@ export default function WindowFrame({
 
   const displayStyle = windowState.isMinimized ? 'none' : 'flex';
 
-  // 2. [Touch Device] 최대화 상태로 고정
-  if (isTouchDevice) {
+  // 2. [Mobile View] 최대화 상태로 고정
+  if (isMobileView) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -143,7 +145,7 @@ export default function WindowFrame({
     );
   }
 
-  // 3. [Desktop] 드래그 윈도우
+  // 3. [Desktop/Tablet view] 드래그 윈도우
   return (
     <Rnd
       size={windowState.isMaximized
@@ -183,7 +185,7 @@ export default function WindowFrame({
       style={{
         zIndex: windowState.zIndex,
         display: displayStyle,
-        touchAction: isTouchDevice ? 'pan-x pan-y' : 'none',
+        touchAction: 'none',
       }}
 
       className={`
@@ -200,17 +202,16 @@ export default function WindowFrame({
     >
       {/* 헤더 */}
       <div
-        onDoubleClick={() => !isTouchDevice && maximizeWindow(id)}
+        onDoubleClick={() => maximizeWindow(id)}
         className={`
           window-header h-10 min-h-[44px] px-2 shrink-0
           flex items-center justify-between 
           cursor-default select-none border-b-2 border-[#808080]
-          transition-colors duration-150
+          transition-colors duration-150 touch-none
           ${isFocused
             ? 'bg-linear-to-r from-[#ff2e93] to-[#ff8fab]'
             : 'bg-gray-400'}
         `}
-        style={{ touchAction: isTouchDevice ? 'auto' : 'none' }}
       >
         <div className="flex items-center gap-2">
           {iconSrc && (

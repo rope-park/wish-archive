@@ -1,31 +1,19 @@
 /**
- * WindowRenderer 컴포넌트
+ * Window Renderer
  * 
- * - 열린 윈도우 스토어를 구독하여 각 윈도우에 해당하는 앱 컴포넌트 렌더링
- * - 각 앱 타입에 따라 적절한 컴포넌트를 매핑하여 렌더링
- * - 윈도우 프레임 컴포넌트로 감싸서 창 관리 기능 제공
+ * - 열려있는 모든 창을 렌더링합니다.
+ * - 각 앱 타입에 따라 적절한 컴포넌트를 매핑하여 렌더링합니다.
  */
-
-/* TODO: 앱과 위젯 렌더링 분리 */
 
 'use client';
 
-import { useWindowStore, AppType, WindowState } from '@/app/stores/useWindowStore';
+import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
 import { WindowFrame } from '..';
 
 // 앱 컴포넌트 Imports
-import {
-    DDayCounterWidget,
-    MembersQuoteWidget,
-    MiniPlayerWidget,
-    PhotoCardWidget,
-    PolaroidPhotoWidget,
-    StickyNoteWidget,
-    WichuTamagotchiWidget,
-    WishJarWidget
-} from '@/components/widgets';
 
-import { MyWish, WishWorld, WishArchive, WishGallery, Discography } from '@/components/apps';
+
+import { MyWish, WishWorld, WishArchive, WishGallery, Discography, RecycleBin, ToWish } from '@/components/apps';
 
 function PlaceholderApp({ type }: { type: string }) {
   return (
@@ -40,23 +28,25 @@ function PlaceholderApp({ type }: { type: string }) {
 }
 
 export default function WindowRenderer() {
-    const { windows, closeWindow, minimizeWindow, maximizeWindow } = useWindowStore();
+    const { windows, closeWindow } = useWindowStore();
 
     // 앱 타입에 따른 컴포넌트 매핑
     const renderAppContent = (type: AppType, windowId: string) => {
         switch (type) {
             case 'TO_WISH':
-                return <WishJarWidget />;
+                return <ToWish />;
             case 'MY_WISH':
                 return <MyWish onClose={() => closeWindow(windowId)}/>;
             case 'WISH_WORLD':
-                return <WishWorld onClose={() => closeWindow(windowId)}/>;
+                return <WishWorld />;
             case 'WISH_ARCHIVE':
-                return <WishArchive onClose={() => closeWindow(windowId)}/>;
+                return <WishArchive />;
             case 'WISH_GALLERY':
                 return <WishGallery onClose={() => closeWindow(windowId)} />;
             case 'DISCOGRAPHY':
                 return <Discography onClose={() => closeWindow(windowId)} />;
+            case 'RECYCLE_BIN':
+                return <RecycleBin onClose={() => closeWindow(windowId)} />;
             case 'README':
             default:
                 return <PlaceholderApp type={type} />;

@@ -65,10 +65,25 @@ export default function DesktopIcon({
     lastTapRef.current = now;
   };
 
+  // 키보드 이벤트 핸들러
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onDoubleClick && onDoubleClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+    }
+  };
+
   // 앱 사이즈 (작은 아이콘)
   if (size === 'app') {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`${label} 앱 열기`}
+        aria-pressed={isSelected}
+        onClick={onClick as MouseEventHandler<HTMLDivElement>}
+        onDoubleClick={onDoubleClick}
+        onKeyDown={handleKeyDown}
         className={`relative flex items-center justify-center ${className}`}
         style={{
           width: `${16 * scale}px`,
@@ -93,8 +108,13 @@ export default function DesktopIcon({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${label} 아이콘`}
+      aria-pressed={isSelected}
       onClick={onClick as MouseEventHandler<HTMLDivElement>}
       onDoubleClick={onDoubleClick}
+      onKeyDown={handleKeyDown}
       onTouchEnd={handleTouchEnd}
       className={`group flex flex-col items-center justify-start cursor-pointer select-none ${className}`}
       style={{

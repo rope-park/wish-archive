@@ -13,6 +13,7 @@ import { StartMenu } from '@/components/os';
 import { Button, Divider, Tooltip } from '@/components/ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 import { useAudioStore } from '@/app/stores/useAudioStore';
+import { Z_INDEX } from '@/lib/z-index';
 
 // [하위 컴포넌트] 시작 버튼
 function StartButton() {
@@ -53,9 +54,9 @@ function StartButton() {
       {/* 시작 버튼 */}
       <Button
         className={`
-          h-full
-          px-3 md:px-4
-          gap-2
+          h-full max-h-[48px]
+          px-2 md:px-3
+          gap-1 md:gap-1.5
           font-bold
           transition-all
           shrink-0
@@ -69,8 +70,8 @@ function StartButton() {
         isActive={isOpen}
         style={{ touchAction: 'manipulation' }}
       >
-        <span className="text-brand-retro-navy drop-shadow-md text-xl">★</span>
-        <span className="hidden sm:inline font-pixel pt-1 text-sm">START</span>
+        <span className="text-brand-retro-navy drop-shadow-md text-lg md:text-xl">★</span>
+        <span className="hidden sm:inline font-pixel pt-1 text-xs md:text-sm">START</span>
       </Button>
     </div>
   );
@@ -97,8 +98,8 @@ function SystemClock() {
   return (
     <div className="
       h-full
-      min-w-[100px]
-      px-3
+      w-auto min-w-[65px] md:min-w-[85px]
+      px-1.5
       flex items-center justify-center
       bg-gray-300 border border-gray-400 shadow-inset
       shrink-0
@@ -127,7 +128,9 @@ function SystemTray() {
 
   return (
     <div className="
-      hidden md:flex items-center gap-1 px-2 h-full
+      hidden md:flex items-center
+      gap-0.5
+      px-1.5 h-full
       bg-gray-200 shadow-inset border border-gray-400
       select-none shrink-0
     ">
@@ -135,7 +138,7 @@ function SystemTray() {
       {/* Vaccine: 지루함 방지 시스템 */}
       <Tooltip content="Anti-Boredom 가동 중..." position="top">
         <div className="
-          w-8 h-8 md:w-7 md:h-7 flex items-center justify-center 
+          w-6 h-full flex items-center justify-center 
           cursor-help hover:scale-110 transition-transform
           active:scale-95
         ">
@@ -151,13 +154,11 @@ function SystemTray() {
           onClick={handleIconClick(() => setHasNewMail(false))}
           onTouchEnd={handleIconClick(() => setHasNewMail(false))}
           className={`
-            w-7 h-7 flex items-center justify-center cursor-pointer
+            w-6 h-full flex items-center justify-center cursor-pointer
             active:scale-95 transition-transform
             ${hasNewMail ? 'animate-bounce' : 'opacity-50 grayscale'}
           `}
           style={{
-            minWidth: '36px',
-            minHeight: '36px',
             touchAction: 'manipulation',
           }}
         >
@@ -168,7 +169,7 @@ function SystemTray() {
       {/* Heart: 위츄 체력 상태 */}
       <Tooltip content="WICHU HP: 100%">
         <div className="
-          w-8 h-8 md:w-7 md:h-7 flex items-center justify-center 
+          w-6 h-full flex items-center justify-center 
           cursor-default animate-pulse
         ">
           <span className="text-sm md:text-xs text-green-400 drop-shadow-[1px_1px_0_#000]">❤</span>
@@ -177,7 +178,7 @@ function SystemTray() {
 
       {/* Network: 연결 상태 */}
       <Tooltip content="WISH World와 연결됨">
-        <div className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center cursor-help">
+        <div className="w-6 h-full flex items-center justify-center cursor-help">
           <span className="text-base md:text-sm">📶</span>
         </div>
       </Tooltip>
@@ -189,7 +190,7 @@ function SystemTray() {
           onClick={handleIconClick(toggleMute)}
           onTouchEnd={handleIconClick(toggleMute)}
           className="
-            w-8 h-8 md:w-7 md:h-7 flex items-center justify-center 
+            w-6 h-full flex items-center justify-center 
             hover:bg-gray-300 active:translate-y-[1px] active:scale-95 rounded-sm
             transition-transform
           "
@@ -250,7 +251,6 @@ export default function Taskbar() {
     <nav 
       className="
         fixed bottom-0 left-0 right-0
-        z-[var(--z-taskbar)]
         pb-safe
         bg-[#c0c0c0]
         border-t-2 border-white
@@ -261,6 +261,7 @@ export default function Taskbar() {
       style={{
         height: `${taskbarHeight}px`,
         minHeight: `${taskbarHeight}px`,
+        zIndex: Z_INDEX.TASKBAR,
       }}
     >
 
@@ -269,9 +270,13 @@ export default function Taskbar() {
       <Divider orientation="vertical" />
 
       {/* 윈도우 태스크 탭 영역 */}
-      <div className="flex-1 flex items-center gap-0.5 md:gap-1 lg:gap-2 overflow-x-auto overflow-y-hidden no-scrollbar h-full">
+      <div className="flex-1 flex items-center gap-0.5 md:gap-1 lg:gap-2 overflow-x-hidden h-full">
         {windows.map((win) => {
           const isActive = activeWindowId === win.id && !win.isMinimized;
+          
+          // 열린 창 개수에 따라 동적으로 너비 계산
+          const windowCount = windows.length;
+          const flexBasis = windowCount > 0 ? `${100 / windowCount}%` : '150px';
 
           return (
             <button
@@ -279,14 +284,12 @@ export default function Taskbar() {
               onClick={handleTabClick(win.id, win.isMinimized)}
               onTouchEnd={handleTabClick(win.id, win.isMinimized)}
               className={`
-                h-full
-                w-12 sm:w-auto sm:min-w-[100px] md:max-w-[180px] sm:flex-1
-                flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-3
+                h-[80%]
+                flex items-center justify-center sm:justify-start gap-1 md:gap-2 px-1 sm:px-2
                 border rounded-sm
                 transition-all select-none
                 pointer-events-auto
                 active:scale-95
-                shrink-0
 
                 ${isActive
                   ? 'bg-white shadow-inset border-gray-600 font-bold -translate-y-[1px]'
@@ -296,6 +299,9 @@ export default function Taskbar() {
               style={{
                 touchAction: 'manipulation',
                 WebkitTapHighlightColor: 'transparent',
+                flex: `1 1 ${flexBasis}`,
+                minWidth: '36px',
+                maxWidth: windowCount > 6 ? '120px' : windowCount > 4 ? '140px' : '180px',
               }}
             >
               {/* 아이콘 */}
@@ -327,7 +333,7 @@ export default function Taskbar() {
       <Divider orientation="vertical" />
 
       {/* 트레이 & 시계 영역 */}
-      <div className="flex gap-2 shrink-0 items-center h-full">
+      <div className="flex gap-1 shrink-0 items-center h-full pr-1">
         <SystemTray />
         <SystemClock />
       </div>

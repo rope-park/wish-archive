@@ -11,6 +11,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAudioStore } from '@/app/stores/useAudioStore';
 import { Play, Pause, SkipBack, SkipForward, X, Maximize2, Minimize2, Volume2, VolumeX } from 'lucide-react';
 import Image from 'next/image';
+import { Z_INDEX } from '@/lib/z-index';
 
 export default function MiniPlayer() {
     const {
@@ -95,13 +96,14 @@ export default function MiniPlayer() {
     return (
         <div
             ref={playerRef}
-            className={`fixed z-[9999] transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${
+            className={`fixed transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${
                 miniPlayerExpanded ? 'w-[400px]' : 'w-[300px]'
             }`}
             style={{
                 left: `${miniPlayerPosition.x}px`,
                 top: `${miniPlayerPosition.y}px`,
-                userSelect: isDragging ? 'none' : 'auto'
+                userSelect: isDragging ? 'none' : 'auto',
+                zIndex: Z_INDEX.MINI_PLAYER,
             }}
             onMouseDown={handleMouseDown}
         >

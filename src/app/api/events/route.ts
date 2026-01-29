@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { EventType } from '@prisma/client';
+import { EventType, Prisma } from '@prisma/client';
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const isPreDebut = searchParams.get('isPreDebut'); // 'true' | 'false' | null
 
     // 쿼리 조건 구성
-    const where: any = {};
+    const where: Prisma.EventWhereInput = {};
 
     // isPreDebut 필터
     if (isPreDebut !== null) {

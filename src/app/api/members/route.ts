@@ -1,9 +1,23 @@
 /**
  * Members API Route
+ * 멤버 목록 정보를 제공합니다.
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import {
+  successResponse,
+  errorResponse,
+  handleCorsOptions,
+  API_ERROR_CODES,
+} from '@/lib/api-response';
+
+/**
+ * OPTIONS 요청 핸들러 (CORS preflight)
+ */
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsOptions(request);
+}
 
 /**
  * GET /api/members - 멤버 목록 조회
@@ -15,12 +29,15 @@ export async function GET() {
       orderBy: { birthDate: 'asc' },
     });
 
-    return NextResponse.json(members);
+    return successResponse(members);
   } catch (error) {
-    console.error('Failed to fetch members:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch members' },
-      { status: 500 }
+    console.error('[Members API] Failed to fetch:', error);
+    
+    return errorResponse(
+      API_ERROR_CODES.DATABASE_ERROR,
+      'Failed to fetch members',
+      500,
+      process.env.NODE_ENV === 'development' ? error : undefined
     );
   }
 }

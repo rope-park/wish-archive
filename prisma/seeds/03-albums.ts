@@ -1,6 +1,6 @@
 // prisma/seeds/03-albums.ts
 import { PrismaClient, Album, Market, Currency, EditionType, Member, Prisma } from '@prisma/client'
-import { logger, ProgressTracker } from './utils'
+import { logger, ProgressTracker } from './utils/utils'
 
 /**
  * 앨범 시드
@@ -61,8 +61,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
       iconUrl: '/public/content/albums/00_handsup/HandsUp_icon.png',
 
       label: 'Avex Trax',
-      distributor: 'Avex Entertainment',
-      description: 'NCT NEW TEAM(후에 NCT WISH로 명명)의 프리데뷔 디지털 싱글. 2023년 서바이벌 프로그램 "LASTART"를 통해 선발된 멤버들이 일본에서 먼저 공개한 곡으로, 경쾌하고 에너제틱한 사운드가 특징이다.',
+      distributor: 'Avex Entertainment, Kakao Entertainment',
+      description: "2023년 10월 8일에 발매된 NCT WISH(당시 NCT NEW TEAM)의 프리 데뷔 싱글 앨범. 타이틀 곡 'Hands Up'과 수록곡 'We Go!' 2곡이 수록되어 있으며, 꿈을 향한 멤버들의 열정과 포부를 만끽할 수 있다. 희망찬 에너지와 파워풀한 퍼포먼스가 돋보이는 앨범이다.",
 
       mvUrl: 'https://youtu.be/ZVcy7bQkBhA',
       themeColor: '#C6B2FF',
@@ -117,8 +117,8 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
       iconUrl: '/content/albums/01_wish/icon.png',
 
       label: 'SM Entertainment',
-      distributor: 'Kakao Entertainment',
-      description: 'NCT WISH의 공식 데뷔 싱글 앨범. 2024년 2월 21일 SMTOWN LIVE 2024에서 무대를 먼저 선보인 후, 28일 음원이 공개되었다. 밝고 희망찬 에너지를 담은 타이틀곡 WISH로 데뷔 20일 만에 음악방송 1위를 달성하며 화려하게 K-POP 씬에 입성했다. 보아가 프로듀싱을 맡았으며, 큐피드 콘셉트가 돋보이는 앨범이다.',
+      distributor: 'Kakao Entertainment, Avex Entertainment',
+      description: '2024년 2월 28일에 발매된 NCT WISH의 데뷔 싱글. 타이틀 곡 "WISH"와 수록곡 "Sail Away"가 담겨 있다. 2월 21일 도쿄돔에서 열린 SMTOWN LIVE 2024에서 데뷔 무대를 가졌으며, 한국과 일본 동시 공략을 목표로 한다. "청량 & 네오"라는 독자적인 색깔을 보여주며 데뷔 8일 만에 음악방송 1위를 달성했다.',
 
       mvUrl: 'https://youtu.be/hvQZs3k6Ytk',
       themeColor: '#BFFF00',
@@ -151,7 +151,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
           coverImageUrl: '/content/albums/wish/editions/wichu_kr_a.png',
           packageImageUrl: '/content/albums/wish/editions/wichu_kr_a_pack.png',
           isLimited: true,
-          description: '한국/글로벌 WICHU 발매 버전.',
+          description: '한국/글로벌 WICHU 키링 버전 (스마트 앨범).',
           components: { items: ['Package Box', 'WICHU Keyring', 'NFC CD', 'Photocard (Random 1 out of 6)', 'WICHU Guide (Random 1 out of 6)', 'Polaroid (Random 1 out of 2)', 'Sticker Set (3EA)'] },
           releasePrice: 29700,
           currency: 'KRW' as Currency,
@@ -198,9 +198,9 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
       coverImageUrl: '/content/albums/02_songbird/Songbird_cover_kr.jpg',
       iconUrl: '/content/albums/02_songbird/Songbird_icon_kr.png',
 
-      label: 'Avex Trax',
-      distributor: 'Avex Entertainment',
-      description: '청량하고 시원한 여름 분위기의 2nd 싱글. 일본 시장을 겨냥한 곡으로, 신나는 비트와 상쾌한 멜로디가 돋보인다. 데뷔 앨범에 이어 53만 장의 초동 판매량을 기록하며 2024년 데뷔 아티스트 중 최고 기록을 달성했다.',
+      label: 'SM Entertainment',
+      distributor: 'Kakao Entertainment, Avex Entertainment',
+      description: "2024년 6월 25일(일본), 7월 1일(한국) 발매된 NCT WISH의 싱글 2집. 타이틀 곡 'Songbird'는 행운을 가져다주는 새를 모티브로 하여, 기적을 이루기 위해 함께 날아오르자는 메시지를 담았다. 시원한 기타 리프가 돋보이는 팝 댄스 곡으로, '2024년 최고의 신인'다운 청량한 에너지를 선사한다. 초동 53만 장을 돌파하며 하프 밀리언셀러를 달성했다.",
 
       mvUrl: 'https://youtu.be/2XqVNFBtVo4',
       themeColor: '#8EE3F5',
@@ -280,7 +280,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
-      description: 'NCT WISH의 첫 미니앨범. "꾸준함(Steady)"이라는 메시지를 담아 다양한 장르를 소화하며 음악적 스펙트럼을 확장했다. 선공개 곡 "Dunk Shot"부터 타이틀 "Steady", 그리고 "3분까진 필요없어", "Supercute" 등 개성 있는 수록곡들로 구성되어 있다. 선주문 80만 장을 돌파하며 화제를 모았고, 뮤직뱅크에서 데뷔 후 첫 지상파 1위를 차지했다.',
+      description: '2024년 9월 24일 발매된 NCT WISH의 첫 번째 미니 앨범. 타이틀 곡 "Steady"를 포함해 총 7곡이 수록되었다. 데뷔부터 이어온 "기적"의 서사를 마무리하며, 우리의 기적 같은 순간을 영원히 이어가겠다는 진심("Let\'s go steady")을 담았다. 선주문 80만 장, 초동 79만 장을 기록하며 자체 최고 기록을 경신했고, 지상파 음악방송 첫 1위(뮤직뱅크)를 안겨준 기념비적인 앨범이다.',
 
       mvUrl: 'https://youtu.be/IKlkZZv76Ho',
       themeColor: '#FFB6D9',
@@ -355,7 +355,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       label: 'Avex Trax',
       distributor: 'Avex Entertainment',
-      description: 'NCT WISH의 일본 첫 정규 앨범. 크리스마스 시즌에 맞춰 발매된 앨범으로, 팝 발라드 타이틀곡 "Wishful Winter"를 포함해 신곡 6곡과 기존 곡들의 일본어 버전으로 구성되어 NCT WISH의 모든 매력을 집대성했다. 음원은 11월 27일 공개, 피지컬은 12월 25일 발매되었다.',
+      description: '2024년 11월 27일(음원), 12월 25일(음반) 발매된 NCT WISH의 일본 첫 정규 앨범. 크리스마스 시즌에 맞춰 발매된 선물 같은 앨범으로, 팝 발라드 타이틀곡 "Wishful Winter"를 포함해 신곡 6곡과 기존 발표곡 7곡 등 총 13곡이 수록되었다. "소원을 이뤄주는 아이들"이라는 그룹의 정체성을 따뜻한 겨울 감성으로 풀어냈다.',
 
       mvUrl: 'https://youtu.be/NAhEwvI9TGE',
       themeColor: '#FFF89A',
@@ -370,7 +370,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'Christmas Gift Box Ver.',
           coverImageUrl: '/images/albums/05_wishful/wishful_lim_a.png',
-          description: '일본 발매 크리스마스 기프트 박스 버전. DVD 포함.',
+          description: '일본 발매 크리스마스 기프트 박스 버전 (초회생산한정반). DVD 포함.',
           components: { items: ['Booklet (32p)', 'CD-R', 'DVD (Music Video & Making Film)', 'Trading Card (Random 1 out of 6)'] },
           sku: 'AVCK-99622'
         },
@@ -384,21 +384,45 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
         {
           name: 'ALL Member Ver.',
           coverImageUrl: '/images/albums/05_wishful/wishful_kr_a.png',
-          description: '일본 ALL Member 버전.',
+          description: '일본 ALL Member 버전 (미니 레코드 LP 스타일).',
           components: { items: ['Lyric Book', 'CD-R', 'Photocard (Random 1 out of 6)'] },
           sku: 'SMK1807'
         },
         {
-          name: 'Member Solo Ver.',
+          name: 'Member Solo Ver.', /* TODO: 멤버 SOLO 버전 데이터 관리 스키마 연결 필요 */
           coverImageUrl: '/images/albums/05_wishful/wishful_solo_kr.png',
-          description: '일본 멤버 솔로별 버전.',
+          description: '일본 멤버 솔로별 버전 (스마트 앨범).',
           components: { items: ['Lyric Book', 'CD-R', 'Photocard (Solo Ver.)'] },
           sku: 'SMK1808 ~ SMK1813'
         }
       ]
     },
 
-    // ==================== 5. poppop (2nd Mini Album) ====================
+    // =================== 5. Miracle (Pre-Release Single) ====================
+    {
+      title: 'Miracle',
+      slug: 'miracle',
+      releaseDate: new Date('2025-01-22'),
+      type: 'DIGITAL_SINGLE' as const,
+      market: 'GLOBAL' as const,
+      primaryLanguage: 'KOREAN' as const,
+      isPreDebut: false,
+      isOst: false,
+
+      totalLengthSec: 2 * 60 + 57,
+      trackCount: 1,
+
+      label: 'SM Entertainment',
+      distributor: 'Kakao Entertainment',
+      description: "2025년 1월 22일 발매된 '2025 SMTOWN : THE CULTURE, THE FUTURE' 프로젝트의 선공개 싱글. 2005년 슈퍼주니어의 히트곡 'Miracle'을 리메이크했다. KENZIE가 편곡을 맡아 뉴잭스윙 장르로 재해석했으며, NCT WISH의 청량하고 영(Young)한 에너지가 돋보인다. SM 창립 30주년을 기념하는 의미 있는 곡이다.",
+      groupId,
+
+      releases: [
+        { market: 'GLOBAL' as Market, date: new Date('2025-01-22'), format: 'DIGITAL' as const }
+      ]
+    },
+
+    // ==================== 6. poppop (2nd Mini Album) ====================
     {
       title: 'poppop',
       slug: 'poppop',
@@ -415,7 +439,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
       iconUrl: '/content/albums/06_poppop/poppop_icon.png',
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
-      description: '톡톡 터지는 청량감과 경쾌한 사운드로 가득한 2nd 미니앨범. "Melt Inside My Pocket"을 NCT WISH ASIA TOUR LOG in SEOUL에서 선공개하여 화제를 모았다. 앨범 발매 후 133만 장 이상 판매고를 기록하며 데뷔 후 첫 밀리언셀러에 등극했고, 애플뮤직 Top 100 1위, 엠카운트다운/뮤직뱅크/음악중심에서 1위를 차지했다.',
+      description: '2025년 4월 14일 발매된 NCT WISH의 두 번째 미니 앨범. 타이틀 곡 "poppop"은 사랑이 시작될 때의 두근거림을 "Pop Pop" 터지는 소리에 비유한 경쾌한 댄스 팝 곡이다. KENZIE가 작사에 참여하여 특유의 밝은 감성을 살렸다. "어린 왕자"를 모티브로 한 수록곡 등이 포함되어 있으며, 초동 108만 장을 돌파하며 데뷔 후 첫 밀리언셀러에 등극했다.',
 
       mvUrl: 'https://youtu.be/LNETckymbzk',
       themeColor: '#0C23BC',
@@ -436,7 +460,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
           components: { items: ['Photobook (88p)', 'CD-R', 'Poster (Random 1 out of 2)', 'Photocard (Random 1 out of 6)'] },
         },
         {
-          name: 'Jewel Case Individual Ver.',
+          name: 'Jewel Case Individual Ver.', /* TODO: 멤버 SOLO 버전 데이터 관리 스키마 연결 필요 */
           coverImageUrl: '/images/albums/06_poppop/poppop_jewelcase.png',
           description: '한국/글로벌 발매 쥬얼 케이스 개인별 버전.',
           components: { items: ['Jewel Case', 'CD-R', 'Photocard (Solo Ver.)'] },
@@ -456,7 +480,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
       ]
     },
 
-    // ==================== 6. COLOR (3rd Mini Album) ====================
+    // ==================== 7. COLOR (3rd Mini Album) ====================
     {
       title: 'COLOR',
       slug: 'color',
@@ -474,7 +498,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
 
       label: 'SM Entertainment',
       distributor: 'Kakao Entertainment',
-      description: '다채로운 색깔과 개성을 담은 3rd 미니앨범. 선공개곡 "Surf", 뮤직비디오 선공개곡 "Baby Blue", 타이틀곡 "COLOR"까지 총 3편의 뮤직비디오가 공개되었다. 비디오 게임을 테마로 한 수록곡 "Cheat Code"는 리그 오브 레전드 레퍼런스("Ninjas hide on bush")로 화제가 되었다. COEX 광장에서 공연형 쇼케이스 WISH ON STAGE를 개최하며 팬들과 만났다.',
+      description: '2025년 9월 1일 발매된 NCT WISH의 미니 3집. "다채로운 색으로 세상을 물들인다"는 포부를 담은 앨범으로, 일렉트로닉 팝 장르의 타이틀 곡 "COLOR"를 비롯해 "Surf", "Baby Blue", "Cheat Code" 등 다양한 스타일의 7곡이 수록되었다. 초동 139만 장을 기록하며 자체 최고 기록을 경신했고, 멜론 HOT 100 1위 등 음원 성적에서도 두각을 나타냈다.',
 
       mvUrl: 'https://youtu.be/28dAfmIAlCo',
       themeColor: '#FDF628',
@@ -495,7 +519,7 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
           components: { items: ['Photobook (88p)', 'CD-R', 'Poster (Random 1 out of 2)', 'Photocard (Random 1 out of 7)'] },
         },
         {
-          name: 'Jewel Case Ver.',
+          name: 'Jewel Case Ver.', /* TODO: 멤버 SOLO 버전 데이터 관리 스키마 연결 필요 */
           coverImageUrl: '/images/albums/08_color/color_jewelcase.png',
           description: '한국/글로벌 발매 쥬얼 케이스 버전.',
           components: { items: ['Jewel Case', 'CD-R', 'Photocard (Random 1 out of 7)'] },
@@ -506,6 +530,54 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
           description: '한국/글로벌 발매 Surf 버전.',
           components: { items: ['Surf Keyring', 'Music NFC CD', 'Sticker Set', 'Photocard (Random 1 out of 7)'] },
         },
+      ]
+    },
+
+    // ==================== 8. WISHLIST (Japan 1st Mini Single) ====================
+    {
+      title: 'WISHLIST',
+      slug: 'wishlist',
+      releaseDate: new Date('2026-01-14'),
+      type: 'MINI_ALBUM' as const,
+      market: 'JAPAN' as const,
+      primaryLanguage: 'JAPANESE' as const,
+      isPreDebut: false,
+      isOst: false,
+
+      totalLengthSec: 19 * 60 + 58,
+      trackCount: 7,
+      coverImageUrl: '/content/albums/09_wishlist/Wishlist_cover.jpg',
+      iconUrl: '/content/albums/09_wishlist/Wishlist_icon.png',
+
+      label: 'Avex Trax',
+      distributor: 'Avex Entertainment',
+      description: '2026년 1월 14일 발매된 NCT WISH의 일본 첫 미니 앨범. 타이틀 곡 "Hello Mellow"는 강렬한 드럼 비트와 유니크한 멜로디 라인이 특징인 곡으로, 사랑에 빠진 소년의 설렘을 표현했다. 이 외에도 "ZONE", "BUBBLE GUM", "Dreamcatcher" 등 다채로운 장르의 7곡이 수록되어 NCT WISH의 폭넓은 음악적 스펙트럼을 보여준다.',
+      
+      mvUrl: 'https://youtu.be/8s23tBtQciU',
+      themeColor: '#FFA500',
+      themeTextColor: '#000000',
+      groupId,
+
+      releases: [
+        { market: 'JAPAN' as Market, date: new Date('2026-01-14'), format: 'DIGITAL' as const },
+        { market: 'JAPAN' as Market, date: new Date('2026-01-14'), format: 'PHYSICAL' as const },
+      ],
+      editions: [
+        {
+          name: 'Standard Ver.',
+          coverImageUrl: '/images/albums/09_wishlist/wishlist_std.png',
+          description: '일본 발매 통상반.',
+          components: { items: ['Booklet (24p)', 'CD-R', 'Trading Card (Random 1 out of 6)'] },
+          sku: 'AVCK-99700'
+        },
+        {
+          name: 'Limited Ver.',
+          coverImageUrl: '/images/albums/09_wishlist/wishlist_lim.png',
+          description: '일본 발매 한정반. DVD 포함.',
+          components: { items: ['Booklet (32p)', 'CD-R', 'DVD (Music Video & Making Film)', 'Trading Card (Random 1 out of 6)'] },
+          sku: 'AVCK-99701'
+        },
+        /* TODO: 에디션 추가 */
       ]
     },
   ]
@@ -533,6 +605,9 @@ export async function seedAlbums(prisma: PrismaClient, groupId: string): Promise
       await linkAlbumToEra(prisma, album, groupId)
 
       // 릴리즈 생성
+      await prisma.albumRelease.deleteMany({
+        where: { albumId: album.id },
+      })
       if (releases && releases.length > 0) {
         for (const rel of releases) {
           await prisma.albumRelease.create({
@@ -592,8 +667,10 @@ async function linkAlbumToEra(
     'Songbird': 'SONGBIRD',
     'Steady': 'STEADY',
     'WISHFUL': 'WISHFUL',
+    'Miracle': 'MIRACLE',
     'poppop': 'POPPOP',
     'COLOR': 'COLOR',
+    'WISHLIST': 'WISHLIST',
   };
 
   const eraName = eraMap[album.title] || album.title;
@@ -606,12 +683,22 @@ async function linkAlbumToEra(
   })
 
   if (era) {
+    // mainAlbumId 업데이트
     if (!era.mainAlbumId) {
       await prisma.era.update({
         where: { id: era.id },
         data: { mainAlbumId: album.id },
       })
       logger.debug(`Linked album "${album.title}" to era "${era.name}"`)
+    }
+
+    // eraId 업데이트
+    if (album.eraId !== era.id) {
+      await prisma.album.update({
+        where: { id: album.id },
+        data: { eraId: era.id },
+      })
+      logger.debug(`Updated album "${album.title}" with eraId "${era.id}"`)
     }
   }
 }

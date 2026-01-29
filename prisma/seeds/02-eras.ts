@@ -1,11 +1,11 @@
 // prisma/seeds/02-eras.ts
 import type { PrismaClient } from '@prisma/client'
-import { logger, slugify, ProgressTracker, upsertRecord } from './utils'
+import { logger, slugify, ProgressTracker, upsertRecord } from './utils/utils'
 
 /**
  * Era/활동 시기 시드
  */
-// TODO: 실제 이미지 경로 업데이트 필요
+// TODO: 실제 이미지 경로 업데이트 및 데이터 업데이트 필요
 export async function seedEras(prisma: PrismaClient, groupId: string) {
   const eras = [
     {
@@ -38,7 +38,7 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
 
 주요 성과:
 - The Show 1위 (데뷔 20일 만)
-- 초동 판매량 45만 장
+- 초동 판매량 45만 장 (한터차트 28만장)
 - Circle Album Chart 1위
 - 한국어/일본어 2개 버전 동시 발매`,
       isCurrent: false,
@@ -51,13 +51,15 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
       name: 'Songbird',
       title: 'Songbird: Let\'s ride',
       startDate: new Date('2024-06-25'),
-      endDate: new Date('2024-09-23'),
+      endDate: new Date('2024-09-08'),
       description: `청량하고 시원한 여름 분위기의 2nd 싱글 활동 시기. 일본 시장을 겨냥한 곡으로 신나는 비트와 상쾌한 멜로디가 특징이다.
+      
+6월 26일 일본 발매 후 7월 1일 한국 발매. 
 
 주요 성과:
-- 초동 판매량 53만 장 (2024년 데뷔 아티스트 중 최고 기록)
-- Oricon Weekly Singles Chart 2위
-- RIAJ Gold 인증`,
+- 초동 판매량 53만 장 (하프 밀리언셀러 달성)
+- Oricon Weekly Singles Chart 3위
+- RIAJ Gold 인증 (10만장 이상 출하)`,
       isCurrent: false,
       themeColor: '#8EE3F5',
       iconUrl: '/system/icons/folders/folder_songbird.png',
@@ -67,16 +69,15 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
     {
       name: 'Steady',
       title: 'Steady: Let\'s go Steady',
-      startDate: new Date('2024-09-24'),
+      startDate: new Date('2024-09-09'),
       endDate: new Date('2024-11-26'),
       description: `첫 미니앨범 활동 시기. "꾸준함(Steady)"이라는 메시지를 담아 다양한 장르를 소화하며 음악적 스펙트럼을 확장했다.
 
-선공개 곡 "Dunk Shot"부터 타이틀 "Steady", 그리고 "3분까진 필요없어", "Supercute" 등 개성 있는 수록곡들로 구성되어 있다.
+선공개 곡 "Dunk Shot" (9월 9일)부터 타이틀 "Steady" (9월 24일), 그리고 "3분까진 필요없어", "Supercute" 등 개성 있는 수록곡들로 구성되어 있다.
 
 주요 성과:
-- 선주문 80만 장 돌파
-- Music Bank 1위 (10월 4일 = 1004 = 천사)
-- 데뷔 후 첫 지상파 음악방송 1위
+- 선주문 80만 장 돌파, 초동 79만 장 기록 (자체 최고 경신)
+- Music Bank 1위 (10월 4일 = 1004 = 천사, 데뷔 후 첫 지상파 1위)
 - Circle Album Chart 1위
 - KMCA Double Platinum 인증`,
       isCurrent: false,
@@ -89,7 +90,7 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
       name: 'WISHFUL',
       title: 'WISHFUL: Wishes come true',
       startDate: new Date('2024-11-27'),
-      endDate: new Date('2025-04-13'),
+      endDate: new Date('2025-01-21'),
       description: `일본 첫 정규 앨범 활동 시기. 크리스마스 시즌에 맞춰 발매된 앨범으로, 팝 발라드 타이틀곡 "Wishful Winter"를 포함해 신곡 6곡과 기존 곡들의 일본어 버전으로 구성되어 NCT WISH의 모든 매력을 집대성했다.
 
 음원은 11월 27일 공개, 피지컬은 12월 25일 크리스마스에 발매되었다.
@@ -105,10 +106,24 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
       backgroundUrl: '/content/eras/wishful/background.jpg',
     },
     {
+      name: 'Miracle',
+      title: 'Miracle: 2025 SMTOWN',
+      startDate: new Date('2025-01-22'),
+      endDate: new Date('2025-04-13'),
+      description: `SM 창립 30주년 기념 프로젝트 [2025 SMTOWN : THE CULTURE, THE FUTURE]의 일환으로 발매된 선공개 싱글.
+
+슈퍼주니어의 히트곡 'Miracle'을 리메이크했다. KENZIE가 편곡을 맡아 뉴잭스윙 장르로 모던하게 재해석했으며, 청량한 사운드와 멤버들의 영(Young)한 에너지가 돋보인다.`,
+      isCurrent: false,
+      themeColor: '#FFFFFF',
+      iconUrl: '/system/icons/folders/folder_miracle.png',
+      logoUrl: '/content/eras/miracle/logo.png',
+      backgroundUrl: '/content/eras/miracle/background.jpg',
+    },
+    {
       name: 'poppop',
       title: 'poppop: Feeling go pop',
       startDate: new Date('2025-04-14'),
-      endDate: new Date('2025-08-31'),
+      endDate: new Date('2025-08-11'),
       description: `데뷔 후 첫 밀리언셀러를 달성한 2nd 미니앨범 활동 시기. 톡톡 터지는 청량감과 경쾌한 사운드로 가득한 앨범이다.
 
 "Melt Inside My Pocket"을 NCT WISH ASIA TOUR LOG in SEOUL에서 선공개하여 화제를 모았다.
@@ -129,23 +144,42 @@ export async function seedEras(prisma: PrismaClient, groupId: string) {
     {
       name: 'COLOR',
       title: 'Color: Bring out the color',
-      startDate: new Date('2025-09-01'),
-      endDate: null,
-      description: `다채로운 색깔과 개성을 담은 3rd 미니앨범 활동 시기 (현재 진행 중).
+      startDate: new Date('2025-08-12'),
+      endDate: new Date('2026-01-13'),
+      description: `다채로운 색깔과 개성을 담은 3rd 미니앨범 활동 시기. 9월 1일 발매.
 
 선공개곡 "Surf", 뮤직비디오 선공개곡 "Baby Blue", 타이틀곡 "COLOR"까지 총 3편의 뮤직비디오가 공개되었다. 
 
-비디오 게임을 테마로 한 수록곡 "Cheat Code"는 리그 오브 레전드 레퍼런스("Ninjas hide on bush")로 화제가 되었다.
+수록곡 "Videohood"는 리그 오브 레전드 레퍼런스("Ninjas hide on bush")로 화제가 되었다.
 
-특별 활동:
-- COEX 광장 공연형 쇼케이스 WISH ON STAGE 개최
-- 3곡 뮤직비디오 공개 (Surf, Baby Blue, COLOR)
-- 게임/컬러풀한 콘셉트`,
-      isCurrent: true, // 현재 진행 중
+주요 성과:
+- 초동 판매량 139만 장 (커리어 하이)
+- 멜론 HOT 100 1위, 실시간 4위 등 음원 성적 상승세
+- COEX 광장 공연형 쇼케이스 WISH ON STAGE 개최`,
+      isCurrent: false,
       themeColor: '#FDF628',
       iconUrl: '/system/icons/folders/folder_color.png',
       logoUrl: '/content/eras/color/logo.png',
       backgroundUrl: '/content/eras/color/background.jpg',
+    },
+    {
+      name: 'WISHLIST',
+      title: 'WISHLIST: Hello Mellow',
+      startDate: new Date('2026-01-14'),
+      endDate: null,
+      description: `일본 첫 미니앨범 활동 시기. 2026년 1월 14일 발매.
+
+타이틀곡 "Hello Mellow"는 강렬한 드럼 비트와 유니크한 멜로디 라인이 특징인 곡으로, 사랑에 빠진 소년의 설렘을 표현했다.
+
+특징:
+- 일본 오리지널 미니 앨범
+- 다채로운 장르의 7곡 수록 ("ZONE", "BUBBLE GUM", "Dreamcatcher" 등)
+- NCT WISH의 폭넓은 음악적 스펙트럼`,
+      isCurrent: true,
+      themeColor: '#FFA500',
+      iconUrl: '/system/icons/folders/folder_wishlist.png',
+      logoUrl: '/content/eras/wishlist/logo.png',
+      backgroundUrl: '/content/eras/wishlist/background.jpg',
     },
   ]
 

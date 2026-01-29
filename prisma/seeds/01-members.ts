@@ -1,6 +1,6 @@
 // prisma/seeds/01-members.ts
 import type { PrismaClient } from '@prisma/client'
-import { logger, ProgressTracker, upsertRecord } from './utils'
+import { logger, ProgressTracker, upsertRecord } from './utils/utils'
 import fs from 'fs'
 import path from 'path'
 

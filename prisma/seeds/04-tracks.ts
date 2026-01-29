@@ -1,6 +1,7 @@
 // prisma/seeds/04-tracks.ts
 import type { PrismaClient, Album, Track } from '@prisma/client'
-import { logger, ProgressTracker } from './utils'
+import { logger, ProgressTracker } from './utils/utils'
+import { spec } from 'node:test/reporters'
 
 /**
  * 트랙 시드 (앨범별 수록곡)
@@ -10,7 +11,7 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
   const albumMap = Object.fromEntries(albums.map((a) => [a.title, a.id]))
 
   const tracks = [
-    // ==================== Hands Up (2곡) ====================
+    // ==================== Hands Up (Pre-Debut) ====================
     {
       albumId: albumMap['Hands Up'],
       trackNumber: 1,
@@ -25,7 +26,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/ZVcy7bQkBhA',
       audioUrl: 'https://youtu.be/xB6LGMJG4So',
-      note: 'Pre-debut title track',
+      themeColor: '#C6B2FF',
+      note: "타이틀 곡 'Hands Up'은 강렬한 신스 사운드와 파워풀한 베이스 라인, 경쾌한 리듬 악기에 힘찬 보컬이 조화를 이루는 에너제틱한 댄스 곡으로, 한마음으로 손을 들고 함께 높은 곳을 향해 날갯짓을 하려는 열정과 포부를 담아 NCT NEW TEAM의 패기를 만끽할 수 있다.",
     },
     {
       albumId: albumMap['Hands Up'],
@@ -40,10 +42,11 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2023-10-08'),
       hasMv: false,
       audioUrl: 'https://youtu.be/iVEHidURFoU',
-      note: null,
+      themeColor: '#A090FF',
+      note: "'We Go!'는 생동감 있는 기타 리플레인이 돋보이는 팝 곡으로, 멤버들의 청량하고 맑은 보컬이 곡의 상쾌함을 더하며, 꿈꿔왔던 무대로의 여정을 시작하기 위해 출발선에 선 지금 이 순간의 마음을 진솔하게 표현한 가사가 눈길을 끈다.",
     },
 
-    // ==================== WISH (4곡) ====================
+    // ==================== WISH (Debut Single) ====================
     {
       albumId: albumMap['WISH'],
       trackNumber: 1,
@@ -58,11 +61,28 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/hvQZs3k6Ytk',
       audioUrl: 'https://youtu.be/UrMOr7JCwbM',
-      note: 'Debut title track Korean version',
+      themeColor: '#BFFF00',
+      note: "타이틀 곡 'WISH'는 올드스쿨 힙합을 기반으로 한 미디엄 템포의 댄스 곡으로, 에너지 넘치는 훅과 서정적인 멜로디, 청량하면서도 감성적인 보컬이 조화를 이루며 벅찬 설렘을 전한다.",
     },
     {
       albumId: albumMap['WISH'],
       trackNumber: 2,
+      title: 'Sail Away (Korean Ver.)',
+      durationSec: 3 * 60 + 25,
+      genre: 'Pop',
+      language: 'KOREAN' as const,
+      isTitle: false,
+      isSingle: false,
+      isPreRelease: false,
+      releaseDate: new Date('2024-02-28'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/VLtIZR4wHtU',
+      themeColor: '#80CCFF',
+      note: "'Sail Away'는 밝은 멜로디와 이국적인 트랙 사운드가 조화를 이루는 팝 장르의 곡으로, 강렬한 랩과 풍성한 보컬 하모니의 대비가 인상적이며, 앞으로 펼쳐질 미래에 대한 설렘과 기대를 '항해'에 빗댄 가사에는 꿈에 닿고 싶은 NCT WISH의 소원을 청량하게 표현했다.",
+    },
+    {
+      albumId: albumMap['WISH'],
+      trackNumber: 3,
       title: 'WISH (Japanese Ver.)',
       durationSec: 3 * 60 + 5,
       genre: 'Dance',
@@ -74,22 +94,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/ZgrEZmAgzM8',
       audioUrl: 'https://youtu.be/9iGQcADfOtU',
-      note: 'Debut title track Japanese version',
-    },
-    {
-      albumId: albumMap['WISH'],
-      trackNumber: 3,
-      title: 'Sail Away (Korean Ver.)',
-      durationSec: 3 * 60 + 25,
-      genre: 'Pop',
-      language: 'KOREAN' as const,
-      isTitle: false,
-      isSingle: false,
-      isPreRelease: false,
-      releaseDate: new Date('2024-02-28'),
-      hasMv: false,
-      audioUrl: 'https://youtu.be/VLtIZR4wHtU',
-      note: 'Korean version',
+      themeColor: '#BFFF00',
+      note: "타이틀 곡 'WISH'의 일본어 버전이다.",
     },
     {
       albumId: albumMap['WISH'],
@@ -104,10 +110,11 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-02-28'),
       hasMv: false,
       audioUrl: 'https://youtu.be/ne-rLStTjZg',
-      note: 'Japanese version',
+      themeColor: '#80CCFF',
+      note: "수록곡 'Sail Away'의 일본어 버전이다.",
     },
 
-    // ==================== Songbird (2곡) ====================
+    // ==================== Songbird (2nd Single) ====================
     {
       albumId: albumMap['Songbird'],
       trackNumber: 1,
@@ -122,7 +129,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/2XqVNFBtVo4',
       audioUrl: 'https://youtu.be/1wcQnFzozLI',
-      note: 'Songbird title Korean version',
+      themeColor: '#8EE3F5',
+      note: "타이틀곡 'Songbird'는 중독성 있는 기타 리프가 귀를 사로잡는 팝 댄스 곡으로, 행운을 가져다주는 새를 모티브로 한 가사에는 기적을 이루기 위해 함께 날아오르자는 희망찬 메시지를 담고 있으며, NCT WISH의 시원한 보컬이 곡의 청량한 매력을 더욱 배가시킨다.",
     },
     {
       albumId: albumMap['Songbird'],
@@ -136,8 +144,10 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       isPreRelease: false,
       releaseDate: new Date('2024-07-01'),
       hasMv: false,
+      specialVideoUrl: 'https://youtu.be/UmY0WFzUN-s',
       audioUrl: 'https://youtu.be/UxEdtQR7gUM',
-      note: 'Korean version',
+      themeColor: '#A0D8EF',
+      note: "'Tears Are Falling'은 미니멀한 트랙 사운드와 속삭이듯 스며드는 멤버들의 따뜻한 보컬이 조화로운 미디엄 템포의 곡으로, 힘든 일이 생기더라도 언제나 곁에서 힘이 되어 주겠다는 솔직한 마음을 긍정적인 에너지로 풀어낸 가사가 인상적이다.",
     },
     {
       albumId: albumMap['Songbird'],
@@ -153,7 +163,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/C_qALZPuK8I',
       audioUrl: 'https://youtu.be/5kKZ53-uJCU',
-      note: 'Songbird title Japanese version',
+      themeColor: '#8EE3F5',
+      note: "타이틀곡 'Songbird'의 일본어 버전이다.",
     },
     {
       albumId: albumMap['Songbird'],
@@ -168,10 +179,11 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-06-25'),
       hasMv: false,
       audioUrl: 'https://youtu.be/gKhf-U9l0nE',
-      note: 'Japanese version',
+      themeColor: '#A0D8EF',
+      note: "수록곡 'Tears Are Falling'의 일본어 버전이다.",
     },
 
-    // ==================== Steady (7곡) ====================
+    // ==================== Steady (1st Mini Album) ====================
     {
       albumId: albumMap['Steady'],
       trackNumber: 1,
@@ -186,7 +198,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/IKlkZZv76Ho',
       audioUrl: 'https://youtu.be/mcFWD-sgi_Y',
-      note: 'Steady title',
+      themeColor: '#FFB6D9',
+      note: "타이틀곡 ‘Steady’는 하우스와 UK 개라지, 저지 클럽이 믹스된 비트와 모던한 멜로디가 조화롭게 어우러진 댄스 곡으로, 지금 우리의 기적 같은 만남을 변치 말고 영원히 이어 나가자는 순수한 마음을 젠지(Gen Z)의 통통 튀는 감성으로 표현한 가사와 청량한 보컬이 만나 곡의 경쾌한 매력을 배가한다.",
     },
     {
       albumId: albumMap['Steady'],
@@ -202,7 +215,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/GTFqQDZ6jec',
       audioUrl: 'https://youtu.be/rEDmIVUK1TU0',
-      note: null,
+      themeColor: '#FF99CC',
+      note: "‘3분까진 필요없어 (3 Minutes)’는 하이퍼 팝(Hyper Pop)을 경쾌하게 비튼 경쾌한 신스 리프와 투박하면서도 정교하게 어우러지는 사운드가 인상적인 곡으로, 마음을 전하려면 3분까지도 필요 없다는 풋풋하고 솔직한 고백을 실제 3분이 안 되는 노래 길이에 맞춰 위트 있게 담았다.",
     },
     {
       albumId: albumMap['Steady'],
@@ -218,7 +232,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/4vgac97VlCE',
       audioUrl: 'https://youtu.be/qqWK1i9wnt4',
-      note: 'Pre-release track',
+      themeColor: '#FF6600',
+      note: '‘Dunk Shot’은 농구 드리블을 연상케 하는 스네어와 시원한 신스 사운드가 인상적인 댄스 곡으로, 꿈을 이루기 위해 달려가는 과정을 농구에 빗대어 표현한 가사와 패기 넘치는 보컬이 어우러져 듣는 이들에게 에너제틱한 매력을 선사한다.',
     },
     {
       albumId: albumMap['Steady'],
@@ -233,7 +248,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-09-24'),
       hasMv: false,
       audioUrl: 'https://youtu.be/dVLwxf5LNSg',
-      note: 'Alternative R&B dance track',
+      themeColor: '#DDA0DD',
+      note: "‘On & On (점점 더 더)’은 레이백된 그루브와 비트감 있는 트랙 사운드가 환상적인 분위기를 자아내는 얼터너티브 R&B 댄스 곡으로, 상대를 향해 점점 더 커지는 마음과 둘만의 이야기를 계속 써 내려가고 싶은 바람을 섬세하고 감성적인 보컬로 표현했다.",
     },
     {
       albumId: albumMap['Steady'],
@@ -248,7 +264,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-09-24'),
       hasMv: false,
       audioUrl: 'https://youtu.be/G0B76L_wKBM',
-      note: null,
+      themeColor: '#FFC0CB',
+      note: "‘Supercute’는 카니발을 연상시키는 반짝거리는 룹 사운드와 강렬한 드럼의 대조가 돋보이는 팝 곡으로, 너와 나, 설레는 우리의 관계를 귀엽게 표현한 순수하고 직설적인 가사와 풋풋한 보컬이 만나 NCT WISH의 발랄한 매력을 느낄 수 있다.",
     },
     {
       albumId: albumMap['Steady'],
@@ -263,7 +280,9 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-09-24'),
       hasMv: false,
       audioUrl: 'https://youtu.be/HEHd32HE8Co',
-      note: 'Stage Video',
+      specialVideoUrl: 'https://youtu.be/jTky5sdSbEI',
+      themeColor: '#ADD8E6',
+      note: "‘Skate’는 도시 안에서 젊음과 자유를 만끽하며 그 순간을 간직하고자 하는 바람을 담았으며, 경쾌한 스네어와 캐치한 기타 리프, 그에 걸맞은 쿨한 어쿠스틱 연주가 스케이트를 타듯 시원한 에너지를 선사한다.",
     },
     {
       albumId: albumMap['Steady'],
@@ -278,15 +297,16 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-09-24'),
       hasMv: false,
       audioUrl: 'https://youtu.be/BWk1NYg-QeQ',
-      note: 'Korean version of pre-debut track',
+      themeColor: '#C6B2FF',
+      note: "NCT WISH의 정식 데뷔 전 발매된 프리 데뷔곡 'Hands Up'의 한국어 버전이다. ",
     },
 
-    // ==================== WISHFUL (13곡) ====================
+    // ==================== WISHFUL (Japan 1st Album) ====================
     {
       albumId: albumMap['WISHFUL'],
       trackNumber: 1,
       title: 'Wishful Winter',
-      durationSec: 3 * 60 + 9,
+      durationSec: 3 * 60 + 8,
       genre: 'Ballad',
       language: 'JAPANESE' as const,
       isTitle: true,
@@ -296,7 +316,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/NAhEwvI9TGE',
       audioUrl: 'https://youtu.be/5lyZJtvt880',
-      note: 'Wishful Winter title track',
+      themeColor: '#FFF89A',
+      note: "타이틀곡 ‘Wishful Winter’는 아르페지오 피아노 사운드가 돋보이는 팝 발라드 곡으로, 풍성한 하모니가 인상적인 피아노와 스트링 사운드가 마치 종소리를 연상케 하며, 크리스마스에 소원을 이뤄주겠다는 NCT WISH의 아이덴티티를 녹인 가사와 멤버들의 섬세한 보컬이 겨울 감성을 더욱 배가시킨다.",
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -311,7 +332,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/SJzPVrcEjT8',
-      note: null,
+      themeColor: '#BFFF00',
+      note: '수록곡으로 재발매.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -326,7 +348,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/Bnth3pE1Pus',
-      note: null,
+      themeColor: '#8EE3F5',
+      note: '수록곡으로 재발매.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -341,7 +364,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/F6z5pFEoSSs',
-      note: null,
+      themeColor: '#E6E6FA',
+      note: "‘FAR AWAY’는 일렉트로닉 댄스와 UK Garage 요소를 결합한 업템포 댄스 팝 곡으로, 곡을 이끄는 팬플루트의 멜로디와 멤버들의 청량한 목소리, 긍정적인 메시지가 어우러져 몽환적이면서도 경쾌한 분위기를 자아낸다.",
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -356,7 +380,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/JkvpOhzEnnE',
-      note: null,
+      themeColor: '#A090FF',
+      note: '수록곡으로 재발매.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -371,7 +396,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/Gwes7rTpoRY',
-      note: null,
+      themeColor: '#FF4500',
+      note: "‘Touchdown’는 묵직한 킥 베이스와 경쾌한 드럼 신스 라인이 어우러진 리드미컬한 댄스 곡으로, 비행기가 목적지에 착륙하듯이 기다리고 있는 너에게 다가간다는 내용의 가사가 듣는 재미를 더하며, 파워풀하고 시원한 보컬이 인상적이다.",
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -386,7 +412,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/hHdU2NvD88I',
-      note: null,
+      themeColor: '#C6B2FF',
+      note: '수록곡으로 재발매.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -401,7 +428,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/RYuUciEJmko',
-      note: null,
+      themeColor: '#80CCFF',
+      note: '수록곡으로 재발매.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -416,13 +444,14 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/yA1r0U-nojg',
-      note: null,
+      themeColor: '#FFCC00',
+      note: "‘CHOO CHOO’는 중독성 있는 후렴구와 강렬한 멜로디 라인, 신비로우면서도 다크한 무드가 인상적인 댄스 곡으로, 기차가 출발할 때 나는 소리를 표현한 의성어 'CHOO CHOO'를 활용해 듣는 재미를 더했으며, 지금까지 본 적 없는 미지의 세계로 너를 데려간다는 내용을 담은 가사와 멤버들의 한층 성숙하고 쿨한 보컬이 조화를 이뤄 NCT WISH의 새로운 매력을 느낄 수 있다.",
     },
     {
       albumId: albumMap['WISHFUL'],
       trackNumber: 10,
       title: 'NASA',
-      durationSec: 3 * 60 + 4,
+      durationSec: 3 * 60 + 3,
       genre: 'Dance',
       language: 'JAPANESE' as const,
       isTitle: false,
@@ -430,8 +459,10 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       isPreRelease: true,
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
+      specialVideoUrl: 'https://youtu.be/SzMU3RUGvEQ', 
       audioUrl: 'https://youtu.be/noGjEgZ15PM',
-      note: 'Pre-released as performance video',
+      themeColor: '#000000',
+      note: '프리데뷔 기간 공개되었던 퍼포먼스 곡. ‘NASA’는 강렬한 드럼과 스케일감 있는 신스 사운드, 유려한 베이스 라인이 어우러진 일렉트로닉 댄스 곡으로, 가사에는 한계 없이 앞으로 나아가고자 하는 의지와 패기 넘치는 포부를 담았다.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -446,7 +477,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/89b5nlmE3nc',
-      note: null,
+      themeColor: '#9370DB',
+      note: "‘P.O.V’는 산뜻한 Jersey Club 리듬 위로 쉴 틈 없이 쏟아지는 다양한 신스 사운드와 베이스가 매력적인 댄스 곡으로, 서로 다른 관점을 가진 너를 만나 점점 변해가는 나의 모습을 재치 있게 풀어낸 가사가 인상적이다.",
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -461,7 +493,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/sjT6pd8PJSM',
-      note: null,
+      themeColor: '#A0D8EF',
+      note: '수록곡으로 재발매.',
     },
     {
       albumId: albumMap['WISHFUL'],
@@ -476,10 +509,30 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2024-11-27'),
       hasMv: false,
       audioUrl: 'https://youtu.be/kTGA3ov4Na0',
-      note: null,
+      themeColor: '#90EE90',
+      note: "‘Our Adventures’는 인트로의 귀를 사로잡는 경쾌한 일렉 기타 리프를 시작으로, 2000년대 초반의 레트로 밴드 사운드를 연상시키는 팝 장르의 곡이다. 리드미컬한 드럼과 어쿠스틱 기타 스트로크, 키보드의 멜로디컬한 연주가 감성적인 보컬과 조화를 이루며, 가사에는 지금까지 쌓아온 우리의 추억과 앞으로 함께할 여정을 모험에 빗대어 표현했다.",
     },
 
-    // ==================== poppop (6곡) ====================
+    // ==================== Miracle (Pre-Release Single) ====================
+    {
+      albumId: albumMap['Miracle'],
+      trackNumber: 1,
+      title: 'Miracle',
+      durationSec: 2 * 60 + 57,
+      genre: 'Pop',
+      language: 'KOREAN' as const,
+      isTitle: true,
+      isSingle: false,
+      isPreRelease: true,
+      releaseDate: new Date('2025-01-22'),
+      hasMv: false,
+      specialVideoUrl: 'https://youtu.be/R319nIK_P4s',
+      audioUrl: 'https://youtu.be/u0JxxLZpc3E',
+      themeColor: '#FFFFFF',
+      note: "선공개곡 ‘Miracle’은 2005년 발표된 슈퍼주니어 히트곡 'Miracle'을 NCT WISH만의 스타일로 재해석한 리메이크 곡으로, 뉴잭스윙 장르로 모던하게 풀어낸 편곡이 돋보이며, 청량한 사운드와 NCT WISH의 영(Young)한 에너지, 맑은 보컬이 듣는 재미를 더한다.",
+    },
+
+    // ==================== poppop (2nd Mini Album) ====================
     {
       albumId: albumMap['poppop'],
       trackNumber: 1,
@@ -494,7 +547,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/LNETckymbzk',
       audioUrl: 'https://youtu.be/sAwVsdQOogQ',
-      note: null,
+      themeColor: '#0C23BC',
+      note: "타이틀곡 'poppop'은 통통 튀는 멜로디와 NCT WISH의 청량한 감성이 어우러진 댄스 팝 곡으로, 벨, 리드 신스와 함께 등장하는 묵직한 베이스 라인, 역동적인 퍼커션 사운드가 조화를 이루며 쉴 새 없이 귀를 즐겁게 한다. 2번 트랙에 수록된 'Melt Inside My Pocket'과 이어지는 곡으로, 고백에 성공해 마침내 사귀기 시작한 두 주인공의 풋풋한 스토리를 담았다. 사랑에 빠진 순간 세상이 마치 애니메이션의 한 장면처럼 톡 터지듯 생동감 있게 다가오고, 매일 지나던 거리와 익숙한 풍경마저 새롭게 느껴지는 설렘을 감성적으로 그린 가사가 인상적이다.",
     },
     {
       albumId: albumMap['poppop'],
@@ -509,13 +563,14 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-04-14'),
       hasMv: false,
       audioUrl: 'https://youtu.be/GIoDgHfQX6Y',
-      note: null,
+      themeColor: '#FF69B4',
+      note: "'Melt Inside My Pocket'은 일렉트로 팝 댄스 장르에 록 감성을 더한 곡으로, 기타 리프와 신스 사운드, 퓨처리스틱한 FX 소스가 어우러져 이번 앨범에서 가장 강렬한 사운드를 지녔으며, 영하고 모던한 NCT WISH만의 색깔이 뚜렷하게 드러나는 트랙이다. 가사에는 좋아하는 사람에게 초콜릿을 건네며 고백하고 싶었지만, 망설이다 전하지 못하고 끝내 주머니 속에서 녹아버린 초콜릿에 빗대어 첫사랑의 풋풋한 감정을 표현했다.",
     },
     {
       albumId: albumMap['poppop'],
       trackNumber: 3,
       title: 'Design',
-      durationSec: 2 * 60 + 5,
+      durationSec: 2 * 60 + 59,
       genre: 'R&B/Soul',
       language: 'KOREAN' as const,
       isTitle: false,
@@ -524,7 +579,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-04-14'),
       hasMv: false,
       audioUrl: 'https://youtu.be/nIH8J6wkzOo',
-      note: null,
+      themeColor: '#4682B4',
+      note: "'Design'은 NCT WISH의 색다른 매력을 느낄 수 있는 2000년대 바이브의 R&B 댄스 팝 곡으로, 에너제틱한 킥, 베이스의 조화와 디테일한 사운드가 심플하면서도 유연한 흐름을 만들어내며, 구성 변화에 따라 펼쳐지는 보컬 하모니가 듣는 재미를 더한다. 가사에는 각자의 숨겨진 매력과 감성을 자유롭게 표현하길 바라는 메시지를 담아 NCT WISH 특유의 긍정적인 에너지를 전한다.",
     },
     {
       albumId: albumMap['poppop'],
@@ -539,7 +595,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-04-14'),
       hasMv: false,
       audioUrl: 'https://youtu.be/8GCSIIzFEg8',
-      note: null,
+      themeColor: '#FFFF00',
+      note: "'1000'은 좋아하는 사람을 위해 1000마리의 학을 접어 마음을 표현하겠다는 귀여운 고백송으로, NCT WISH의 발랄하고 통통 튀는 젠지(Gen Z) 감성을 느끼기에 충분하다. R&B와 저지 클럽 장르가 믹스된 댄스 곡으로, 카와이 베이스와 플럭앤비에서 영향을 받은 신디사이저 사운드와 노스탤직한 로우파이 기타 사운드의 합이 매력을 배가하며, 벌스부터 후렴까지 계속해서 바뀌는 편곡의 변화 역시 듣는 재미를 더한다.",
     },
     {
       albumId: albumMap['poppop'],
@@ -554,7 +611,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-04-14'),
       hasMv: false,
       audioUrl: 'https://youtu.be/QZOrObTL_V8',
-      note: null,
+      themeColor: '#32CD32',
+      note: "업템포 댄스 팝 장르의 'Silly Dance'는 속도감 있는 드럼 비트 위 신스와 기타 사운드가 경쾌함을 자아내며, 에너제틱한 후렴은 강력한 중독성으로 듣는 순간 몸을 들썩이게 만든다. 가사에는 좋아하는 사람 앞에만 서면 마치 바보 같은 춤을 추는 것처럼 뚝딱거리고 실수하는 모습을 위트 있게 표현했으며, 청량한 멜로디와 달콤한 가사가 NCT WISH의 장난스러우면서도 설렘 가득한 매력을 느끼게 한다.",
     },
     {
       albumId: albumMap['poppop'],
@@ -569,10 +627,11 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-04-14'),
       hasMv: false,
       audioUrl: 'https://youtu.be/to6dnhwZb1E',
-      note: null,
+      themeColor: '#FF4500',
+      note: "'만약 네가 4시에 온다면 (Still 3PM)'은 올드스쿨 기반의 팝 곡으로, 2000년대 R&B 감성의 멜로디가 따뜻하고 포근한 분위기를 자아내며, 후렴의 드라이브 기타, 펄스베이스 사운드와 어우러지는 드럼의 비트감은 청량감을 더한다. 소설 '어린 왕자'속의 어린 왕자와 여우의 에피소드를 모티브로 한 가사는 좋아하는 상대방이 4시에 온다면, 3시부터 떨리고 기다리게 된다는 설렘을 솔직하게 담아냈다.",
     },
 
-    // ==================== COLOR (7곡) ====================
+    // ==================== COLOR (3rd Mini Album) ====================
     {
       albumId: albumMap['COLOR'],
       trackNumber: 1,
@@ -587,7 +646,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/28dAfmIAlCo',
       audioUrl: 'https://youtu.be/r4RQR3OHXqg',
-      note: 'COLOR title track',
+      themeColor: '#FDF628',
+      note: "타이틀곡 ‘COLOR’는 강렬한 신디사이저와 재지(Jazzy)한 코드 진행, 후렴의 리듬 변화가 인상적인 일렉트로 팝 곡으로, ‘Bring out the color’라는 메인 슬로건을 힘차게 외치는 포스트 코러스 구간은 곡의 생동감을 극대화한다.",
     },
     {
       albumId: albumMap['COLOR'],
@@ -603,7 +663,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/FBr4hA9L90s',
       audioUrl: 'https://youtu.be/rW55eTaEtj8',
-      note: 'MV pre-release',
+      themeColor: '#89CFF0',
+      note: "‘Baby Blue’는 잔잔한 R&B 사운드로 시작해 클래식한 전개로 감정을 쌓아 올리는 크로스오버 R&B 팝 곡으로, 다이내믹하게 펼쳐지는 신디사이저와 현악 사운드가 귀를 사로잡는다.",
     },
     {
       albumId: albumMap['COLOR'],
@@ -619,7 +680,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       hasMv: true,
       mvUrl: 'https://youtu.be/1pyO6oNmACs',
       audioUrl: 'https://youtu.be/rd3vDNHHdNQ',
-      note: 'Pre-release single',
+      themeColor: '#00B7EB',
+      note: "‘Surf’는 펑키하고 묵직한 리듬 위에 청량한 소스를 더한 하이브리드 댄스 팝 곡으로, 리드미컬한 사운드와 서정적인 멜로디, NCT WISH 특유의 맑고 투명한 보컬이 조화를 이루며 무더위를 날려버릴 듯한 짜릿한 에너지를 선사한다. 가사에는 파도를 가르며 질주하는 듯한 청춘의 설렘과 자유로운 마음을 서핑에 빗대어 표현, 여름과 어울리는 청량한 감성을 한층 더 풍성하게 담아냈다.",
     },
     {
       albumId: albumMap['COLOR'],
@@ -634,7 +696,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-09-01'),
       hasMv: false,
       audioUrl: 'https://youtu.be/4VvbSmlcGxo',
-      note: null,
+      themeColor: '#FF00FF',
+      note: "‘Cheat Code’는 레트로 게임을 연상케 하는 글리치한 신디사이저와 FX 사운드의 감각적인 조합이 돋보이는 퓨처 베이스 기반의 일렉트로 팝 곡이다. 가사에는 사랑하는 사람의 마음에 빨리 닿고 싶다는 조급함을 게임 속 캐릭터의 모험에 빗대어 표현, “‘Cheat Code’를 써서라도 네게 빨리 가고 싶어”라는 솔직한 구절이 매력을 더한다. 곡 후반부에는 게임 속 NPC 시점으로 전환되며 새로운 전개가 펼쳐져 흥미를 더한다.",
     },
     {
       albumId: albumMap['COLOR'],
@@ -649,7 +712,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-09-01'),
       hasMv: false,
       audioUrl: 'https://youtu.be/5cIo87AEbeY',
-      note: 'Video game themed - Features LOL reference "Ninjas hide on bush"',
+      themeColor: '#008000',
+      note: "‘Videohood’는 강렬한 베이스 라인 위로 에너제틱한 리듬이 펼쳐지는 힙합 곡으로, 현실의 틀을 벗어나 게임 속 세상을 자유롭게 넘나드는 상상력 가득한 가사와 일렉트로한 질감의 사운드, 긴장감 있는 구성이 흥미로운 몰입감을 선사하며, NCT WISH의 자신감과 개성을 위트 있게 표현해 리스너들의 좋은 반응이 기대된다.",
     },
     {
       albumId: albumMap['COLOR'],
@@ -664,7 +728,8 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       releaseDate: new Date('2025-09-01'),
       hasMv: false,
       audioUrl: 'https://youtu.be/BKJlyleaaqM',
-      note: null,
+      themeColor: '#FFD700',
+      note: "‘WICHU’는 Chris Brown의 ‘With You’를 샘플링한 2000년대 감성의 드럼과 신디사이저가 돋보이는 R&B 곡으로, 제목 ‘WICHU’는 NCT WISH의 공식 캐릭터이자 ‘With You’를 귀엽게 발음한 표현에서 착안해 언제나 팬들과 함께하겠다는 메시지를 담았다. 누구보다 서로를 잘 알고 아껴주는 관계의 소중함을 노래한 가사와 멤버들의 성숙해진 보컬이 어우러져 진솔하고 포근한 감성을 전한다.",
     },
     {
       albumId: albumMap['COLOR'],
@@ -678,8 +743,125 @@ export async function seedTracks(prisma: PrismaClient, albums: Album[]): Promise
       isPreRelease: false,
       releaseDate: new Date('2025-09-01'),
       hasMv: false,
-      audioUrl: 'https://youtu.be/KO2xk8JyCc4',
-      note: null,
+      specialVideoUrl: '',
+      audioUrl: 'https://youtu.be/ya_LLqsH92s',
+      themeColor: '#FFB6C1',
+      note: "‘고양이 릴스 (Reel-ationship)’는 감미로운 멜로디와 정교한 하모니가 조화를 이루는 R&B 곡으로, 따뜻한 감성의 멜로트론과 건반이 곡을 이끌며, NCT WISH의 부드럽고 감성적인 보컬이 포근한 분위기를 자아낸다. 곡의 부제 ‘Reel-ationship’은 숏폼 콘텐츠를 의미하는 콘텐츠 ‘Reel’과 ‘Relationship’을 결합한 단어로, 가사에는 귀여운 고양이 영상을 주고받으며 시작된 관계의 설렘을 담았으며 점점 가까워지는 감정을 사랑스럽고 섬세하게 그려냈다.",
+    },
+
+    // ==================== WISHLIST (Japan 1st Mini Album) ====================
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 1,
+      title: 'Hello Mellow',
+      durationSec: 3 * 60 + 2,
+      genre: 'Dance',
+      language: 'JAPANESE' as const,
+      isTitle: true,
+      isSingle: false,
+      isPreRelease: false,
+      releaseDate: new Date('2026-01-14'),
+      hasMv: true,
+      mvUrl: 'https://youtu.be/8s23tBtQciU',
+      audioUrl: 'https://youtu.be/xzJePMCFbAo',
+      themeColor: '#FFA500',
+      note: "타이틀곡 ‘Hello Mellow’는 강렬한 드럼 비트 위로 유연하게 흐르는 멜로디와 베이스 라인이 자유롭고 에너지 넘치는 댄스 팝 곡으로, 어떤 시련과 어려움도 시간이 지나 돌아보면 소중한 추억이 된다는 메시지와 지금 이 순간을 소중히 살아가자는 따뜻한 마음을 노래한다.",
+    },
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 2,
+      title: 'ZONE',
+      durationSec: 2 * 60 + 41,
+      genre: 'Future Bass',
+      language: 'JAPANESE' as const,
+      isTitle: false,
+      isSingle: false,
+      isPreRelease: false,
+      releaseDate: new Date('2026-01-14'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/HdnUliKQSCo',
+      themeColor: '#8A2BE2',
+      note: "‘ZONE’은 너의 ‘ZONE’에 빠져들어 헤어 나올 수 없다는 가사를 통해 사랑에 빠진 순간의 설렘을 표현한 퓨처 베이스 기반의 곡이다.",
+    },
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 3,
+      title: 'BUBBLE GUM',
+      durationSec: 2 * 60 + 34,
+      genre: 'Hip-hop',
+      language: 'JAPANESE' as const,
+      isTitle: false,
+      isSingle: false,
+      isPreRelease: false,
+      releaseDate: new Date('2026-01-14'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/dhLzkb0tcN0',
+      themeColor: '#FF69B4',
+      note: "‘BUBBLE GUM’은 R&B 바이브의 힙합 댄스 곡으로, 중독성 있는 후렴과 NCT 위시의 여유로운 애티튜드가 조화를 이뤄 새롭고 강렬한 인상을 남긴다.",
+    },
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 4,
+      title: 'Dreamcatcher',
+      durationSec: 2 * 60 + 58,
+      genre: 'Pop',
+      language: 'JAPANESE' as const,
+      isTitle: false,
+      isSingle: false,
+      isPreRelease: true,
+      releaseDate: new Date('2025-11-06'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/1gB7Aop-4aw',
+      themeColor: '#483D8B',
+      note: "‘Dreamcatcher’는 환상적인 신스 사운드와 감성적인 멜로디가 조화를 이루는 팝 곡으로, NCT WISH의 섬세하고 맑은 보컬이 어우러져 신비로운 분위기 속 청량함을 더하며, ‘너를 괴롭히는 악몽을 내가 지워줄게’라는 메시지가 리스너들에게 따뜻한 위로를 전한다.",
+    },
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 5,
+      title: 'SOMEDAY',
+      durationSec: 2 * 60 + 38,
+      genre: 'Pop',
+      language: 'JAPANESE' as const,
+      isTitle: false,
+      isSingle: false,
+      isPreRelease: false,
+      releaseDate: new Date('2026-01-14'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/M2PZUOQDNrc',
+      themeColor: '#87CEEB',
+      note: "‘SOMEDAY’는 UK 개러지 장르의 곡으로, 응원의 메시지를 담은 긍정적인 가사와 밝은 멜로디로 기분 좋은 에너지를 선사한다.",
+    },
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 6,
+      title: 'Good Morning',
+      durationSec: 3 * 60 + 3,
+      genre: 'Ballad',
+      language: 'JAPANESE' as const,
+      isTitle: false,
+      isSingle: false,
+      isPreRelease: false,
+      releaseDate: new Date('2026-01-14'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/n4hfPv-tJuI',
+      themeColor: '#FFFACD',
+      note: "‘Good Morning’은 좋아하는 상대를 만난 뒤 잠들어 있던 세상이 깨어난 듯한 설렘과 두근거림을 표현한 R&B 곡이다.",
+    },
+    {
+      albumId: albumMap['WISHLIST'],
+      trackNumber: 7,
+      title: 'poppop (Japanese Ver.)',
+      durationSec: 3 * 60 + 2,
+      genre: 'Pop',
+      language: 'JAPANESE' as const,
+      isTitle: false,
+      isSingle: true,
+      isPreRelease: false,
+      releaseDate: new Date('2026-01-14'),
+      hasMv: false,
+      audioUrl: 'https://youtu.be/vE6oprHXdJc',
+      themeColor: '#98FB98',
+      note: "'poppop'의 일본어 버전이다."
     },
   ]
 

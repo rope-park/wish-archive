@@ -45,3 +45,6 @@ next-env.d.ts
 /reference
 /scripts
 /nctwish_official
+.agent
+.antigravity
+/logs

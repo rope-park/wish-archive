@@ -10,16 +10,16 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET - Lore 상세 조회
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     const lore = await prisma.lore.findUnique({
       where: { id },
       include: {
@@ -29,20 +29,20 @@ export async function GET(request: NextRequest, { params }: Params) {
         videos: true
       }
     });
-    
+
     if (!lore) {
       return NextResponse.json(
         { error: 'Lore not found' },
         { status: 404 }
       );
     }
-    
+
     // 조회수 증가
     await prisma.lore.update({
       where: { id },
       data: { viewCount: { increment: 1 } }
     });
-    
+
     return NextResponse.json(lore);
   } catch (error) {
     console.error('Error fetching lore:', error);
@@ -56,9 +56,9 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PATCH - Lore 수정
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
-    
+
     const {
       title,
       type,
@@ -70,9 +70,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       thumbnailUrl,
       isApproved
     } = body;
-    
+
     const updateData: Prisma.LoreUpdateInput = {};
-    
+
     if (title !== undefined) updateData.title = title;
     if (type !== undefined) updateData.type = type;
     if (status !== undefined) updateData.status = status;
@@ -82,12 +82,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (tags !== undefined) updateData.tags = tags;
     if (thumbnailUrl !== undefined) updateData.thumbnailUrl = thumbnailUrl;
     if (isApproved !== undefined) updateData.isApproved = isApproved;
-    
+
     // status가 SOLVED로 변경되면 solvedDate 기록
     if (status === 'SOLVED' && !updateData.solvedDate) {
       updateData.solvedDate = new Date();
     }
-    
+
     const lore = await prisma.lore.update({
       where: { id },
       data: updateData,
@@ -96,7 +96,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         videos: true
       }
     });
-    
+
     return NextResponse.json(lore);
   } catch (error) {
     console.error('Error updating lore:', error);
@@ -110,12 +110,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 // DELETE - Lore 삭제
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     await prisma.lore.delete({
       where: { id }
     });
-    
+
     return NextResponse.json({ success: true, message: 'Lore deleted' });
   } catch (error) {
     console.error('Error deleting lore:', error);

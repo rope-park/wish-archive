@@ -3185,12 +3185,12 @@ export const events2024: EventInput[] = [
       },
     ],
   },
-  {
+  /*{
     title: "【CDTV】 NCT WISH⚡️好きなパン聞いてみたら回答自由すぎか",
     url: "https://www.youtube.com/watch?v=WpQy19wqhhk",
     type: ContentType.YOUTUBE,
     platform: Platform.YOUTUBE,
-  },
+  },*/
   {
     date: "2024-06-22",
     type: EventType.FANMEETING,

@@ -20,7 +20,6 @@ export { default as Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';
 
 export { default as ColorChip } from './ColorChip';
-export type { ColorChipProps } from './ColorChip';
 
 export { default as Divider } from './Divider';
 export type { DividerProps } from './Divider';

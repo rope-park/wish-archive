@@ -10,7 +10,9 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button, Spinner, MenuBar, MenuItemType, Dropdown, ToolBar } from '@/components/ui';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { useWindowStore } from '@/app/stores/useWindowStore';
+import { ArrowLeft, FolderOpen, Image as ImageIcon, Grid3x3, List as ListIcon, PlayCircle, ZoomIn, ZoomOut } from 'lucide-react';
 
 // ----------------------------------------------------------------------
 // Types & Icons
@@ -34,8 +36,6 @@ const QUICK_LINKS = [
   { name: 'Members', path: 'nct-wish/members', icon: '👥' },
   { name: 'Eras (Album)', path: 'nct-wish/eras', icon: '💿' },
   { name: 'Events (Schedule)', path: 'nct-wish/events', icon: '📅' },
-  { name: 'Widgets', path: 'nct-wish/widgets', icon: '🧩' },
-  { name: 'System', path: 'nct-wish/system', icon: '⚙️' },
 ];
 
 // ----------------------------------------------------------------------
@@ -237,68 +237,103 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
   ];
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#f0f0f0] font-sans select-none overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white font-sans select-none overflow-hidden">
 
-      {/* 1. Menu Bar */}
-      <MenuBar items={menuItems} className="bg-[#f0f0f0]" />
-
-      {/* 2. Tool Bar */}
-      <ToolBar hasGripper={true} className="border-b-0">
-        <div className="flex gap-1 items-center">
-          <NavButton
-            label="Back"
-            icon="⬅️"
-            onClick={handleBack}
-            disabled={currentPath === 'nct-wish'}
-          />
-          <div className="w-[1px] h-5 bg-gray-400 mx-2" />
-          <NavButton label="Folders" icon="📂" active={showSidebar} onClick={() => setShowSidebar(!showSidebar)} />
-          <div className="w-[1px] h-5 bg-gray-400 mx-2" />
-          <NavButton
-            label={isSlideshow ? "Stop" : "SlideShow"}
-            icon={isSlideshow ? "⏹️" : "🎞️"}
-            onClick={toggleSlideshow}
-            active={isSlideshow}
-            disabled={currentImages.length === 0}
-          />
-          <NavButton
-            label="Wallpaper"
-            icon="🖼️"
-            onClick={() => selectedItem?.src && setBackgroundImage(selectedItem.src)}
-            disabled={!selectedItem || selectedItem.type !== 'image'}
-          />
-        </div>
-      </ToolBar>
-
-      {/* 3. Address Bar / View Options */}
-      <div className="h-7 bg-[#f0f0f0] border-b border-white border-t border-gray-200 flex items-center px-2 gap-2 text-xs">
-        <span className="text-gray-500">Path:</span>
-        <div className="flex-1 bg-white border border-gray-400 px-2 py-0.5 truncate text-gray-700 shadow-inner">
-          {currentPath.replace('nct-wish', 'Root')}
-        </div>
-
-        <div className="w-[1px] h-4 bg-gray-400 mx-1" />
-
-        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'thumb' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('thumb')}>Thumb</button>
-        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'preview' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('preview')}>Prev</button>
-        <button className={`hover:bg-blue-100 px-1 rounded ${viewMode === 'details' ? 'font-bold text-blue-800' : ''}`} onClick={() => setViewMode('details')}>List</button>
-
-        {viewMode === 'preview' && (
-          <>
-            <div className="w-[1px] h-3 bg-gray-400 mx-1" />
-            <button onClick={() => handleZoom(-0.25)} className="hover:bg-gray-200 px-1 rounded">🔍-</button>
-            <span className="text-[10px] w-8 text-center">{Math.round(zoomLevel * 100)}%</span>
-            <button onClick={() => handleZoom(0.25)} className="hover:bg-gray-200 px-1 rounded">🔍+</button>
-          </>
-        )}
-      </div>
+      {/* 통일된 헤더 */}
+      <AppHeader
+        menuItems={[
+          {
+            label: 'File',
+            items: [
+              { 
+                label: 'Set as Wallpaper', 
+                onClick: () => selectedItem?.src && setBackgroundImage(selectedItem.src),
+                disabled: !selectedItem || selectedItem.type !== 'image',
+                shortcut: 'Ctrl+W'
+              },
+              { divider: true },
+              { label: 'Close', onClick: onClose, shortcut: 'Alt+F4' }
+            ]
+          },
+          {
+            label: 'View',
+            items: [
+              { label: 'Thumbnails', onClick: () => setViewMode('thumb'), shortcut: 'Ctrl+1' },
+              { label: 'Preview', onClick: () => setViewMode('preview'), shortcut: 'Ctrl+2' },
+              { label: 'Details', onClick: () => setViewMode('details'), shortcut: 'Ctrl+3' },
+              { divider: true },
+              { label: 'Sidebar', onClick: () => setShowSidebar(!showSidebar), shortcut: 'Ctrl+B' },
+              { divider: true },
+              { label: 'Slideshow', onClick: toggleSlideshow, disabled: currentImages.length === 0, shortcut: 'F5' }
+            ]
+          },
+          {
+            label: 'Tools',
+            items: [
+              { label: 'Zoom In', onClick: () => handleZoom(0.25), shortcut: 'Ctrl+Plus' },
+              { label: 'Zoom Out', onClick: () => handleZoom(-0.25), shortcut: 'Ctrl+Minus' },
+              { label: 'Actual Size', onClick: () => setZoomLevel(1), shortcut: 'Ctrl+0' }
+            ]
+          }
+        ]}
+        toolbarButtons={[
+          {
+            icon: <ArrowLeft size={18} />,
+            label: 'Back',
+            onClick: handleBack,
+            disabled: currentPath === 'nct-wish'
+          },
+          {
+            icon: <FolderOpen size={18} />,
+            label: 'Folders',
+            onClick: () => setShowSidebar(!showSidebar),
+            active: showSidebar
+          },
+          {
+            icon: <Grid3x3 size={18} />,
+            label: 'Grid',
+            onClick: () => setViewMode('thumb'),
+            active: viewMode === 'thumb'
+          },
+          {
+            icon: <ListIcon size={18} />,
+            label: 'List',
+            onClick: () => setViewMode('details'),
+            active: viewMode === 'details'
+          },
+          {
+            icon: <PlayCircle size={18} />,
+            label: isSlideshow ? 'Stop' : 'Slide',
+            onClick: toggleSlideshow,
+            active: isSlideshow,
+            disabled: currentImages.length === 0
+          }
+        ]}
+        addressBar={{
+          value: currentPath.replace('nct-wish', 'Root'),
+          readOnly: true,
+          placeholder: 'Gallery Path'
+        }}
+        actionButtons={viewMode === 'preview' ? [
+          {
+            icon: <ZoomOut size={18} />,
+            label: 'Zoom Out',
+            onClick: () => handleZoom(-0.25)
+          },
+          {
+            icon: <ZoomIn size={18} />,
+            label: 'Zoom In',
+            onClick: () => handleZoom(0.25)
+          }
+        ] : []}
+      />
 
       {/* 4. Main Content Area */}
       <div className="flex-1 flex m-1 bg-white border-2 border-inset border-gray-400 shadow-[inset_1px_1px_0px_#888] min-h-0 relative">
 
         {/* [Left] Quick Access Sidebar */}
         {showSidebar && (
-          <div className="h-full w-[160px] bg-[#f5f5f5] border-r border-gray-300 overflow-y-auto custom-scrollbar flex flex-col shrink-0">
+          <div className="h-full w-[160px] bg-gray-50 border-r border-gray-300 overflow-y-auto custom-scrollbar flex flex-col shrink-0">
             <div className="p-2 font-bold text-xs text-gray-500 uppercase tracking-wider">Quick Access</div>
             {QUICK_LINKS.map((link) => (
               <div
@@ -409,7 +444,7 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
 
               {/* C. Preview View */}
               {viewMode === 'preview' && (
-                <div className="flex-1 flex flex-col bg-[#505050] relative overflow-hidden">
+                <div className="flex-1 flex flex-col bg-gray-700 relative overflow-hidden">
                   {selectedItem && selectedItem.type === 'image' ? (
                     <>
                       {/* Main Canvas */}
@@ -440,7 +475,7 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
                       <button onClick={() => navigateImage('next')} className="absolute top-1/2 right-2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center text-2xl z-10">›</button>
 
                       {/* Filmstrip */}
-                      <div className="h-16 bg-[#333] border-t border-gray-600 flex items-center gap-2 px-4 overflow-x-auto custom-scrollbar shrink-0">
+                      <div className="h-16 bg-gray-800 border-t border-gray-600 flex items-center gap-2 px-4 overflow-x-auto custom-scrollbar shrink-0">
                         {currentImages.map(img => (
                           <button
                             key={img.id}
@@ -468,7 +503,7 @@ export default function WishGallery({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* 5. Status Bar */}
-      <div className="h-6 border-t border-gray-300 bg-[#f0f0f0] px-2 flex items-center gap-4 text-xs text-gray-600 select-none">
+      <div className="h-6 border-t border-gray-300 bg-gray-100 px-2 flex items-center gap-4 text-xs text-gray-600 select-none">
         <span className="flex-1 truncate">
           {viewMode === 'preview'
             ? `${currentImages.findIndex(i => i.id === selectedItem?.id) + 1} / ${currentImages.length}`

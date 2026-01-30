@@ -57,11 +57,7 @@
      타이포그래피 (Typography)
      ============================================ */
 
-  /* 폰트 패밀리 */
-  --font-pixel: "Neo둥근모 Pro", "DungGeunMo", monospace;
-  --font-gothic:
-    "Pretendard Variable", "Pretendard", -apple-system, system-ui, sans-serif;
-  --font-hand: "상상토끼 신비는일곱살", cursive;
+
 
   /* 폰트 크기 */
   --font-size-xs: 0.75rem; /* 12px */

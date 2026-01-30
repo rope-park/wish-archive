@@ -147,7 +147,7 @@ module.exports = {
 
       fontSize: {
         // Design Token 기반
-        'xs': 'varcalc(--font-size-xs, 0.75rem)',
+        'xs': 'var(--font-size-xs, 0.75rem)',
         'sm': 'var(--font-size-sm, 0.875rem)',
         'base': 'var(--font-size-base, 1rem)',
         'lg': 'var(--font-size-lg, 1.125rem)',

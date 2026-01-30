@@ -2,21 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { useArchiveStore } from '@/app/stores/useArchiveStore';
+import { useWindowStore } from '@/app/stores/useWindowStore';
 import Image from 'next/image';
 import { 
   XMarkIcon, 
-  CalendarDaysIcon, 
   LinkIcon, 
-  ArrowTopRightOnSquareIcon,
   InformationCircleIcon,
-  TagIcon
+  TagIcon,
+  PhotoIcon 
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { Content, ExternalLink, EventType } from '@prisma/client';
 
 // API 응답 타입 확장
 interface ContentDetail extends Content {
-  event?: { title: string; type: EventType; era?: { name: string } } | null;
+  event?: { 
+    id: string; 
+    title: string; 
+    type: EventType; 
+    date: Date | string; // JSON Date string
+    era?: { name: string };
+    _count: { galleryPosts: number };
+  } | null;
   album?: { title: string } | null;
   program?: { name: string } | null;
   members: { member: { stageName: string; colorCode: string | null; iconUrl: string | null } }[];
@@ -81,6 +88,7 @@ interface InspectorProps {
 
 export default function Inspector({ onClose }: InspectorProps) {
   const { selectedEventId, setSelectedEvent } = useArchiveStore();
+  const { openWindow } = useWindowStore(); // Window Store
   const [data, setData] = useState<ContentDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -110,6 +118,30 @@ export default function Inspector({ onClose }: InspectorProps) {
     }
     fetchDetail();
   }, [selectedEventId]);
+  
+  // 갤러리 열기 핸들러
+  const handleOpenGallery = () => {
+    if (!data?.event) return;
+    
+    // data.event.date is string from JSON
+    const dateObj = new Date(data.event.date);
+    const dateStr = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+    const year = dateStr.split('-')[0];
+    const monthDay = dateStr.substring(5).replace('-', '');
+    const safeTitle = data.event.title.replace(/[\/\s]/g, "_");
+    const folderName = `${monthDay}_${safeTitle}`;
+    
+    // Path: nct-wish/YEAR/MMDD_Title (Logic must match API route)
+    const path = `nct-wish/${year}/${folderName}`;
+    
+    openWindow({
+      id: 'gallery',
+      type: 'WISH_GALLERY',
+      title: 'WISH Gallery',
+      icon: '/system/icons/apps/wishgallery.png',
+      props: { initialPath: path }
+    });
+  };
 
   if (!selectedEventId) return null; // 선택 없으면 숨김
 
@@ -151,6 +183,7 @@ export default function Inspector({ onClose }: InspectorProps) {
           <>
             {/* 썸네일 & 기본 정보 */}
             <div className="text-center">
+              {/* ... (Existing code for thumbnail) ... */}
               <div className="relative aspect-video bg-black border-2 border-gray-400 mb-3 shadow-md">
                 {isPlaying && data.platform === 'YOUTUBE' && getYoutubeVideoId(data.url) ? (
                   // YouTube iframe 플레이어
@@ -207,6 +240,17 @@ export default function Inspector({ onClose }: InspectorProps) {
               <p className="text-xs text-gray-500 mt-1 font-mono">
                 {format(new Date(data.publishedAt), 'yyyy-MM-dd HH:mm')}
               </p>
+              
+              {/* Event Link Button (New) */}
+              {data.event && data.event._count.galleryPosts > 0 && (
+                <button
+                  onClick={handleOpenGallery}
+                  className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 hover:border-blue-400 text-xs font-bold text-gray-700 transition-colors"
+                >
+                  <PhotoIcon className="w-4 h-4 text-blue-500" />
+                  View Photos ({data.event._count.galleryPosts})
+                </button>
+              )}
             </div>
 
             {/* 메타 데이터 테이블 */}

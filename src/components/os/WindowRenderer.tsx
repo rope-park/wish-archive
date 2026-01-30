@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useWindowStore, AppType } from '@/app/stores/useWindowStore';
+import { useWindowStore, WindowState } from '@/app/stores/useWindowStore';
 import { WindowFrame } from '..';
 
 // 앱 컴포넌트 Imports
@@ -31,22 +31,25 @@ export default function WindowRenderer() {
     const { windows, closeWindow } = useWindowStore();
 
     // 앱 타입에 따른 컴포넌트 매핑
-    const renderAppContent = (type: AppType, windowId: string) => {
+    const renderAppContent = (win: WindowState) => {
+        const { type, id, props } = win;
+        
         switch (type) {
             case 'TO_WISH':
-                return <ToWish />;
+                return <ToWish {...props} />;
             case 'MY_WISH':
-                return <MyWish onClose={() => closeWindow(windowId)}/>;
+                return <MyWish onClose={() => closeWindow(id)} {...props} />;
             case 'WISH_WORLD':
-                return <WishWorld />;
+                return <WishWorld {...props} />;
             case 'WISH_ARCHIVE':
-                return <WishArchive />;
+                return <WishArchive {...props} />;
             case 'WISH_GALLERY':
-                return <WishGallery onClose={() => closeWindow(windowId)} />;
+                // WishGallery에 props 전달 (initialPath 등)
+                return <WishGallery onClose={() => closeWindow(id)} {...props} />;
             case 'DISCOGRAPHY':
-                return <Discography onClose={() => closeWindow(windowId)} />;
+                return <Discography onClose={() => closeWindow(id)} {...props} />;
             case 'RECYCLE_BIN':
-                return <RecycleBin onClose={() => closeWindow(windowId)} />;
+                return <RecycleBin onClose={() => closeWindow(id)} {...props} />;
             case 'README':
             default:
                 return <PlaceholderApp type={type} />;
@@ -64,7 +67,7 @@ export default function WindowRenderer() {
                     initialSize={win.size}
                     initialPosition={win.position}
                 >
-                    {renderAppContent(win.type, win.id)}
+                    {renderAppContent(win)}
                 </WindowFrame>
             ))}
         </>

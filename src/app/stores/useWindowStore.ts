@@ -25,6 +25,8 @@ export interface AppInfo {
   type: AppType; // 앱 종류
   title: string; // 창 제목
   icon: string; // 창 아이콘 경로
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  props?: Record<string, any>; // 앱에 전달할 props (추가)
 }
 
 // 개별 창(Window) 상태 인터페이스
@@ -59,6 +61,8 @@ interface WindowStore {
     icon: string;
     defaultPosition?: { x: number; y: number };
     defaultSize?: { width: number; height: number };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    props?: Record<string, any>;
   }) => void;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
@@ -92,6 +96,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       type: app.type,
       title: app.title,
       icon: app.icon,
+      props: app.props,
     };
     const updatedRecentApps = [
       newAppInfo,
@@ -102,8 +107,14 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
     const existingWindow = windows.find((w) => w.id === app.id);
 
     if (existingWindow) {
+      // 기존 창이 있으면 props 업데이트 및 포커스
+      set((state) => ({
+        windows: state.windows.map((w) =>
+          w.id === app.id ? { ...w, props: app.props } : w
+        ),
+        recentApps: updatedRecentApps,
+      }));
       get().focusWindow(app.id); // 맨 앞으로
-      set({ recentApps: updatedRecentApps });
       return;
     }
 

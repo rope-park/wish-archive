@@ -42,13 +42,26 @@ const QUICK_LINKS = [
 // 메인 컴포넌트
 // ----------------------------------------------------------------------
 
-export default function WishGallery({ onClose }: { onClose: () => void }) {
+interface WishGalleryProps {
+  onClose?: () => void;
+  initialPath?: string;
+}
+
+export default function WishGallery({ onClose, initialPath }: WishGalleryProps) {
   // Global Store
   const setBackgroundImage = useWindowStore((state) => state.setBackgroundImage);
 
   // 상태 관리
-  const [currentPath, setCurrentPath] = useState<string>('nct-wish'); // 현재 경로
+  // use initialPath if provided, otherwise default
+  const [currentPath, setCurrentPath] = useState<string>(initialPath || 'nct-wish'); 
   const [items, setItems] = useState<GalleryItem[]>([]); // 현재 폴더의 아이템들
+
+  // update currentPath if initialPath prop changes (e.g. reopening from Archive)
+  useEffect(() => {
+    if (initialPath) {
+      setCurrentPath(initialPath);
+    }
+  }, [initialPath]);
   const [loading, setLoading] = useState(true);
 
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null); // 선택된 아이템

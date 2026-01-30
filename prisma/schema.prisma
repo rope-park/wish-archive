@@ -168,6 +168,17 @@ enum ContentType {
   OTHER
 }
 
+// 갤러리 사진 종류 카테고리
+enum GalleryCategory {
+  OFFICIAL // 티저, 앨범 컨셉 포토, 포스터 (각 잡고 찍은 공식 사진)
+  BEHIND // 촬영장 비하인드, 대기실 스케치, 연습실 (자연스러운 모습)
+  SELFIE // 멤버 셀카
+  PRESS // 기사 사진, 공항 사진 (워터마크 있는 미디어 사진)
+  FAN // 팬이 찍은 사진, 직찍 (트위터/인스타 링크 저장용)
+  EVENT // 팬사인회, 공연 현장 공식 사진 (애매하면 여기로)
+  OTHER // 기타
+}
+
 // Lore 타입
 enum LoreType {
   CONCEPT // 개념/컨셉
@@ -299,6 +310,7 @@ model Member {
   events        MemberOnEvent[]
   quotes        Quote[]
   appearances   Appearance[]
+  galleryPosts  GalleryPost[]
 
   @@unique([groupId, stageName])
   @@index([groupId])
@@ -598,6 +610,7 @@ model Event {
   externalLinks   ExternalLink[]
   contents        Content[]
   musicShowTrophy MusicShowTrophy?
+  galleryPosts    GalleryPost[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1434,4 +1447,29 @@ model WishMessage {
 
   @@index([targetMember])
   @@index([createdAt])
+}
+
+// === GALLERY POST (위시 갤러리) ===
+model GalleryPost {
+  id String @id @default(cuid())
+
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  // 미디어 소스 info
+  originalUrl String // 원본 링크 (트윗/인스타/이미지URL)
+  platform    Platform // X_TWITTER, INSTAGRAM 등
+  imageUrl    String // 긁어온 고화질 이미지 URL
+  caption     String?  @db.Text // 게시물 내용 (og:title)
+
+  category GalleryCategory @default(EVENT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members Member[]
+
+  @@index([eventId])
+  @@index([platform])
+  @@index([category])
 }

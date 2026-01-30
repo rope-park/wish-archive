@@ -10,6 +10,7 @@ import {
   Album,
   Member,
   Track,
+  GalleryCategory
 } from "@prisma/client";
 
 // 월별 이벤트 데이터 import
@@ -347,6 +348,16 @@ async function processEvent(
       appearances: { deleteMany: {}, create: appearanceCreates },
       contents: { deleteMany: {}, create: contentCreates },
       externalLinks: { deleteMany: {}, create: externalLinkCreates },
+      galleryPosts: {
+        deleteMany: {},
+        create: eventData.galleryPosts?.map((post) => ({
+          originalUrl: post.url,
+          imageUrl: post.url,
+          platform: post.platform,
+          category: (post.type as GalleryCategory) || GalleryCategory.OFFICIAL,
+          caption: post.caption,
+        })) || []
+      },
     },
     create: {
       id: uniqueKey,
@@ -383,6 +394,15 @@ async function processEvent(
       appearances: { create: appearanceCreates },
       contents: { create: contentCreates },
       externalLinks: { create: externalLinkCreates },
+      galleryPosts: {
+        create: eventData.galleryPosts?.map((post) => ({
+          originalUrl: post.url,
+          imageUrl: post.url,
+          platform: post.platform,
+          category: (post.type as GalleryCategory) || GalleryCategory.OFFICIAL,
+          caption: post.caption,
+        })) || []
+      },
     },
   });
 

@@ -111,6 +111,17 @@ export interface EventInput {
         type: ContentType; // 콘텐츠 유형
         cast?: string[]; // 출연 멤버
     }[];
+
+    // ==========================================
+    // 10. 갤러리 포스트 (Gallery Posts)
+    // ==========================================
+    // 트위터/인스타그램 등 공식 사진 아카이빙
+    galleryPosts?: {
+        url: string; // 원본 링크
+        platform: Platform; // 플랫폼
+        type?: string; // OFFICIAL, FAN, etc
+        caption?: string; // 설명
+    }[];
 }
 
 // ==========================================

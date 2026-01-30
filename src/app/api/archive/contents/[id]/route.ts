@@ -11,7 +11,16 @@ export async function GET(
     const content = await prisma.content.findUnique({
       where: { id },
       include: {
-        event: { select: { title: true, type: true, era: { select: { name: true } } } },
+        event: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            date: true,
+            era: { select: { name: true } },
+            _count: { select: { galleryPosts: true } }
+          }
+        },
         album: { select: { title: true } },
         members: {
           include: { member: { select: { stageName: true, colorCode: true, iconUrl: true } } }

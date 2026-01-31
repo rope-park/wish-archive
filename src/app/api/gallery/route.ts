@@ -2,9 +2,8 @@
  * Gallery API Route
  */
 import { NextResponse } from 'next/server';
-import { Platform, PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { Platform } from '@prisma/client';
 
 // ----------------------------------------------------------------------
 // Interfaces

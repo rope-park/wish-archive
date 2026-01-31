@@ -369,6 +369,13 @@ export default function Home() {
 
   // 앱 실행 핸들러
   const executeApp = (icon: DesktopIconConfig) => {
+    // [ToWish Logic]: 전체 앱 실행 시, 개별 위젯 창이 열려있다면 닫기
+    if (icon.id === 'towish') {
+       const { windows, closeWindow } = useWindowStore.getState();
+       if (windows.find(w => w.id === 'wish_list_viewer')) closeWindow('wish_list_viewer');
+       if (windows.find(w => w.id === 'wish_maker')) closeWindow('wish_maker');
+    }
+
     openWindow({
       id: icon.id,
       type: icon.type,

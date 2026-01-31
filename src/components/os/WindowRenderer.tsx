@@ -36,7 +36,7 @@ export default function WindowRenderer() {
         
         switch (type) {
             case 'TO_WISH':
-                return <ToWish {...props} />;
+                return <ToWish {...props} windowId={id} />;
             case 'MY_WISH':
                 return <MyWish onClose={() => closeWindow(id)} {...props} />;
             case 'WISH_WORLD':

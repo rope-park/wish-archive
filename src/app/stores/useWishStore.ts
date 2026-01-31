@@ -43,6 +43,10 @@ interface WishStore {
     setFormData: (data: WishFormData | ((prev: WishFormData) => WishFormData)) => void;
     resetFormData: () => void;
 
+    // Loading State
+    isLoading: boolean;
+    setLoading: (loading: boolean) => void;
+
     // List State
     wishes: WishMessage[];
     setWishes: (wishes: WishMessage[] | ((prev: WishMessage[]) => WishMessage[])) => void;
@@ -50,14 +54,20 @@ interface WishStore {
     setCursor: (cursor: string | null) => void;
     scrollPosition: number;
     setScrollPosition: (pos: number) => void;
+
+    // Actions
+    fetchWishes: (reset?: boolean) => Promise<void>;
 }
 
-export const useWishStore = create<WishStore>((set) => ({
+export const useWishStore = create<WishStore>((set, get) => ({
     formData: DEFAULT_FORM_DATA,
     setFormData: (input) => set((state) => ({
         formData: typeof input === 'function' ? input(state.formData) : input
     })),
     resetFormData: () => set({ formData: DEFAULT_FORM_DATA }),
+
+    isLoading: false,
+    setLoading: (loading) => set({ isLoading: loading }),
 
     wishes: [],
     setWishes: (input) => set((state) => ({
@@ -66,5 +76,45 @@ export const useWishStore = create<WishStore>((set) => ({
     cursor: null,
     setCursor: (cursor) => set({ cursor }),
     scrollPosition: 0,
-    setScrollPosition: (pos) => set({ scrollPosition: pos })
+    setScrollPosition: (pos) => set({ scrollPosition: pos }),
+
+    fetchWishes: async (reset = false) => {
+        const { cursor, isLoading } = get();
+        if (isLoading) return;
+
+        set({ isLoading: true });
+        try {
+            const url = '/api/wishes';
+            const params = new URLSearchParams();
+
+            // If NOT resetting and we have cursor, append it
+            // If resetting, we fetching fresh (no cursor)
+            if (!reset && cursor) {
+                params.set('cursor', cursor);
+            }
+
+            // Wait, if no cursor and not reset, it means we have no next page?
+            // Or it means initial load? 
+            // WishList logic was: if (cursor) fetchNext.
+            // If !reset && !cursor && wishes.length > 0 => Stop.
+            // But here we rely on caller to check? Or check inside?
+            // "If not reset and no cursor, and we already have wishes, we can't fetch more."
+            // But let's keep it simple: just fetch with what we have.
+
+            const queryString = params.toString() ? `?${params.toString()}` : '';
+            const res = await fetch(`${url}${queryString}`);
+            const data = await res.json();
+
+            if (data.data) {
+                set((state) => ({
+                    wishes: reset ? data.data : [...state.wishes, ...data.data],
+                    cursor: data.nextCursor
+                }));
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            set({ isLoading: false });
+        }
+    }
 }));

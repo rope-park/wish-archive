@@ -10,7 +10,13 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
+
+const pool = new Pool({
+  connectionString,
+  max: process.env.NODE_ENV === 'production' ? 1 : undefined, // Production(Serverless)에서는 1로 제한
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
 const adapter = new PrismaPg(pool);
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 

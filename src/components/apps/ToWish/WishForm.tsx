@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
-import { Loader2, X, Minus } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface WishFormProps {
     onSuccess: () => void;
@@ -16,15 +16,13 @@ const CRANE_COLORS = [
     '#FF6B6B'  // Red
 ];
 
+import { useWishStore } from '@/app/stores/useWishStore';
+
+// ...
+
 export const WishForm = ({ onSuccess }: WishFormProps) => {
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        message: '',
-        authorName: '',
-        isAnonymous: false,
-        targetMember: 'ALL',
-        craneColor: CRANE_COLORS[0]
-    });
+    const { formData, setFormData, resetFormData } = useWishStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,13 +37,7 @@ export const WishForm = ({ onSuccess }: WishFormProps) => {
 
             if (!res.ok) throw new Error('Failed to submit wish');
             
-            setFormData({
-                message: '',
-                authorName: '',
-                isAnonymous: false,
-                targetMember: 'ALL',
-                craneColor: CRANE_COLORS[0]
-            });
+            resetFormData();
             onSuccess();
         } catch (error) {
             console.error(error);
@@ -57,18 +49,7 @@ export const WishForm = ({ onSuccess }: WishFormProps) => {
 
     return (
         <div className="w-full bg-[#d4d4d4] border-2 border-white border-r-gray-500 border-b-gray-500 shadow-xl flex flex-col">
-            {/* Retro Window Header */}
-            <div className="bg-linear-to-r from-[#ff69b4] to-[#db7093] px-2 py-1 flex justify-between items-center border-b border-gray-500">
-                <span className="text-white font-bold text-sm tracking-wide drop-shadow-md">Make_a_Wish.exe</span>
-                <div className="flex gap-1">
-                     <button className="w-4 h-4 bg-[#c0c0c0] border border-white border-r-black border-b-black flex items-center justify-center hover:bg-white/50 active:border-t-black active:border-l-black active:border-r-white active:border-b-white">
-                        <Minus size={10} className="text-black" />
-                    </button>
-                    <button className="w-4 h-4 bg-[#c0c0c0] border border-white border-r-black border-b-black flex items-center justify-center hover:bg-red-400 active:border-t-black active:border-l-black active:border-r-white active:border-b-white">
-                        <X size={10} className="text-black" />
-                    </button>
-                </div>
-            </div>
+
 
             {/* Content Area */}
             <div className="p-6 flex flex-col items-center gap-6">
@@ -83,7 +64,7 @@ export const WishForm = ({ onSuccess }: WishFormProps) => {
                                 key={color}
                                 className={`w-8 h-8 rounded-md border-2 shadow-sm transition-transform active:scale-95 ${formData.craneColor === color ? 'border-black scale-110 ring-1 ring-black/20' : 'border-gray-400 hover:border-gray-600'}`}
                                 style={{ backgroundColor: color }}
-                                onClick={() => setFormData({...formData, craneColor: color})}
+                                onClick={() => setFormData(prev => ({ ...prev, craneColor: color }))}
                             />
                         ))}
                     </div>

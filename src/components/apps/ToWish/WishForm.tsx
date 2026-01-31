@@ -16,13 +16,13 @@ const CRANE_COLORS = [
     '#FF6B6B'  // Red
 ];
 
-import { useWishStore } from '@/app/stores/useWishStore';
+import { useWishStore, WishMessage } from '@/app/stores/useWishStore';
 
 // ...
 
-export const WishForm = ({ onSuccess }: WishFormProps) => {
+ export const WishForm = ({ onSuccess }: WishFormProps) => {
     const [loading, setLoading] = useState(false);
-    const { formData, setFormData, resetFormData } = useWishStore();
+    const { formData, setFormData, resetFormData, fetchWishes } = useWishStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -37,6 +37,9 @@ export const WishForm = ({ onSuccess }: WishFormProps) => {
 
             if (!res.ok) throw new Error('Failed to submit wish');
             
+            // Server fetch as requested by user
+            await fetchWishes(true);
+
             resetFormData();
             onSuccess();
         } catch (error) {

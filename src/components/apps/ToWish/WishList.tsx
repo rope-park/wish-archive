@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { PaperCrane } from './PaperCrane';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,45 +23,18 @@ import { useWishStore } from '@/app/stores/useWishStore';
 
 export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
     // Use Store
-    const { wishes, setWishes, cursor, setCursor } = useWishStore();
+    const { wishes, cursor, fetchWishes, isLoading } = useWishStore();
     
-    const [loading, setLoading] = useState(false);
-    const [totalCount, setTotalCount] = useState(0); 
-
+    // (Local loading removed, use isLoading from store)
+    // (totalCount removed or derived - let's remove for now as requested by plan)
+    // Actually, keeping totalCount for UI if possible, but store doesn't provide it yet.
+    // I'll show wishes.length.
+    
     // Infinite scroll ref
     const observerTarget = useRef(null);
 
-    const fetchWishes = async (reset = false) => {
-        if (loading) return;
-        setLoading(true);
-        try {
-            const url = new URL('/api/wishes', window.location.origin);
-            // Use local variable for cursor check if resetting, otherwise store cursor
-            const currentCursor = reset ? null : cursor;
-            if (currentCursor) url.searchParams.set('cursor', currentCursor);
-            
-            const res = await fetch(url.toString());
-            const data = await res.json();
-            
-            if (data.data) {
-                if (reset) {
-                    setWishes(data.data);
-                } else {
-                    setWishes(prev => [...prev, ...data.data]);
-                }
-                setCursor(data.nextCursor);
-                setTotalCount(prev => reset ? data.data.length : prev + data.data.length); 
-            }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        // Only fetch if empty to preserve state, OR if we want to refresh on mount?
-        // User wants to "preserve state". So if we have wishes, don't auto-fetch.
+        // Initial fetch if empty
         if (wishes.length === 0) {
             fetchWishes(true);
         }
@@ -71,7 +44,7 @@ export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
     useEffect(() => {
         const observer = new IntersectionObserver(
             entries => {
-                if (entries[0].isIntersecting && cursor) {
+                if (entries[0].isIntersecting && cursor && !isLoading) {
                     fetchWishes(false);
                 }
             },
@@ -87,7 +60,7 @@ export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
                 observer.unobserve(observerTarget.current);
             }
         };
-    }, [cursor]);
+    }, [cursor, isLoading, fetchWishes]);
 
     return (
         <div className="w-full h-full flex flex-col bg-[#d4d4d4] border-l-2 border-white">
@@ -97,10 +70,10 @@ export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
             {/* Sub-header / Stats */}
             <div className="bg-white border-b border-gray-300 px-4 py-3 flex justify-between items-center">
                  <span className="text-sm font-pixel text-gray-700">
-                    {totalCount > 0 ? `${totalCount}개의 소원이 모였어요!` : '로딩 중...'}
+                    {wishes.length > 0 ? `${wishes.length}개의 소원이 모였어요!` : (isLoading ? '로딩 중...' : '아직 소원이 없어요')}
                  </span>
                  <button onClick={() => fetchWishes(true)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                    <RefreshCw size={14} className="text-gray-500" />
+                    <RefreshCw size={14} className={`text-gray-500 ${isLoading ? 'animate-spin' : ''}`} />
                  </button>
             </div>
 
@@ -145,10 +118,10 @@ export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
 
                 {/* Loading / Observer Sentinel */}
                 <div ref={observerTarget} className="h-10 flex items-center justify-center w-full">
-                    {loading && <Loader2 className="animate-spin text-gray-500" />}
+                    {isLoading && <Loader2 className="animate-spin text-gray-500" />}
                 </div>
 
-                 {!loading && !cursor && wishes.length > 0 && (
+                 {!isLoading && !cursor && wishes.length > 0 && (
                     <div className="text-center text-xs text-gray-400 py-4 font-pixel">
                         모든 소원을 불러왔습니다.
                     </div>

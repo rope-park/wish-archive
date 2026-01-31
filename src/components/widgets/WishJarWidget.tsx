@@ -7,27 +7,43 @@
 
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useWindowStore } from '@/app/stores/useWindowStore';
+import { useWishStore } from '@/app/stores/useWishStore';
 import { PaperCrane } from '@/components/apps/ToWish/PaperCrane';
-
-// Dummy Wishes for visualization inside the jar
-const DUMMY_WISHES = [
-  { id: 1, color: 'var(--color-sion)', x: 20, y: 60, r: 10 },  // Pink
-  { id: 2, color: 'var(--color-riku)', x: 50, y: 70, r: -5 },  // Blue
-  { id: 3, color: 'var(--color-yushi)', x: 80, y: 65, r: 15 },  // Green
-  { id: 4, color: 'var(--color-jaehee)', x: 35, y: 80, r: -10 }, // Yellow
-  { id: 5, color: 'var(--color-ryo)', x: 65, y: 85, r: 5 },   // Purple
-  { id: 6, color: 'var(--color-sakuya)', x: 45, y: 55, r: 20 },  // Red
-];
 
 export default function WishJarWidget() {
   const { openWindow } = useWindowStore();
-  const [isHovered, setIsHovered] = useState(false);
+  const { wishes, fetchWishes } = useWishStore(); // Get shared wishes
+  const [isHovered, setIsHovered] = useState(false); // Retain for cork animation logic in render (line 81 uses it)
 
+  // Fetch initial if empty so the jar is not empty
+  useEffect(() => {
+      if (wishes.length === 0) {
+          fetchWishes(true);
+      }
+  }, [wishes.length, fetchWishes]);
 
+  // Generate visual cranes from real wishes or valid dummy if empty (to avoid empty jar initially?)
+  // User wants "wish를 작성하면 ... 추가되어야해". So we should show real wishes.
+  // If empty, maybe show nothing or keep dummy? Let's use real wishes mixed with dummy if < 5?
+  // Let's stick to real wishes. Upon first load, wishes might be empty if not fetched.
+  // Maybe we should fetch initial wishes here too? Or let the list do it?
+  // Ideally, the widget should just reflect the store.
+  
+  // We need stable positions for the cranes so they don't jump on every render.
+  // In a real app we'd seed the random position by ID.
+  
+  const visualWishes = wishes.slice(0, 20).map((wish) => {
+      // Simple pseudo-random based on ID string chars
+      const seed = wish.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const x = (seed * 17) % 60 + 20; // 20% to 80%
+      const y = (seed * 31) % 40 + 50; // 50% to 90%
+      const r = (seed * 13) % 90 - 45; // -45 to 45 deg
+      return { ...wish, x, y, r };
+  });
 
   return (
     <div className="relative w-[300px] h-[300px] flex items-center justify-center">
@@ -90,15 +106,17 @@ export default function WishJarWidget() {
                     className="w-full rounded-t-sm"
                 />
             </motion.div>
-
+            
             {/* 유리병에 넣은 학종이(소원 메시지) */}
             <div className="absolute inset-0 z-0 overflow-hidden" style={{ clipPath: 'path("M74.5,60 C74.5,60 110,90 140,90 C170,90 205.5,60 205.5,60 L220,100 C220,100 280,110 270,160 C260,210 220,240 200,280 L140,260 L80,280 C60,240 20,210 10,160 C0,110 60,100 60,100 Z")' }}> 
-                 {/* Note: Clip path is approximate for star shape, may need fine tuning or use mask image */}
                  <div className="absolute bottom-[20%] left-[15%] right-[15%] h-[120px] flex flex-wrap justify-center content-end gap-1 opacity-90">
-                    {/* Render dummy cranes for visual effect */}
-                    {DUMMY_WISHES.map((wish) => (
+                    <AnimatePresence>
+                    {visualWishes.map((wish) => (
                         <motion.div
                             key={wish.id}
+                            initial={{ scale: 0, y: -100, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 15 }}
                             className="absolute"
                             style={{ 
                                 left: `${wish.x}%`, 
@@ -106,9 +124,10 @@ export default function WishJarWidget() {
                                 rotate: wish.r 
                             }}
                         >
-                             <PaperCrane color={wish.color} className="w-8 h-8" />
+                             <PaperCrane color={wish.craneColor} className="w-8 h-8" />
                         </motion.div>
                     ))}
+                    </AnimatePresence>
                  </div>
             </div>
         </div>

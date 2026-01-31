@@ -27,24 +27,41 @@ export default function WishJarWidget() {
   const { openWindow } = useWindowStore();
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleOpenApp = () => {
-    openWindow({
-      id: 'to_wish_app',
-      type: 'TO_WISH',
-      title: 'To. WISH',
-      icon: '/system/icons/apps/towish.png',
-      defaultSize: { width: 900, height: 600 } // Wider for split view
-    });
-  };
+
 
   return (
     <div className="relative w-[300px] h-[300px] flex items-center justify-center">
       
-      {/* 1. 유리병 본체 (클릭 시 앱 실행) */}
+      {/* 1. 유리병 본체 (클릭 시 앱 실행 -> Read Only Mode) */}
       <motion.div 
         className="relative w-full h-full cursor-pointer group no-drag flex items-center justify-center"
-        onClick={handleOpenApp}
-        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenApp(); }}
+        onClick={() => {
+            const { windows, focusWindow } = useWindowStore.getState();
+            if (windows.find(w => w.id === 'towish')) {
+                focusWindow('towish');
+                return;
+            }
+            openWindow({
+                id: 'wish_list_viewer',
+                type: 'TO_WISH',
+                title: 'Wish_list',
+                icon: '/system/icons/apps/towish.png',
+                defaultSize: { width: 400, height: 600 },
+                props: { mode: 'read_only' }
+            });
+        }}
+        onTouchEnd={(e) => { 
+            e.preventDefault(); 
+            e.stopPropagation(); 
+            openWindow({
+                id: 'wish_list_viewer',
+                type: 'TO_WISH',
+                title: 'Wish_list',
+                icon: '/system/icons/apps/towish.png',
+                defaultSize: { width: 400, height: 600 },
+                props: { mode: 'read_only' }
+            });
+        }}
         whileHover={{ scale: 1.02 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
@@ -97,10 +114,25 @@ export default function WishJarWidget() {
         </div>
       </motion.div>
 
-      {/* 2. Side Item: Sticky Notes / Paper Stack */}
+      {/* 2. Side Item: Sticky Notes / Paper Stack (클릭 시 앱 실행 -> Write Only Mode) */}
       <motion.button
          className="absolute -right-4 bottom-4 w-16 h-16 cursor-pointer no-drag hover:scale-110 transition-transform"
-         onClick={(e) => { e.stopPropagation(); handleOpenApp(); }}
+         onClick={(e) => { 
+             e.stopPropagation(); 
+             const { windows, focusWindow } = useWindowStore.getState();
+             if (windows.find(w => w.id === 'towish')) {
+                 focusWindow('towish');
+                 return;
+             }
+             openWindow({
+                id: 'wish_maker',
+                type: 'TO_WISH',
+                title: 'Make_a_wish',
+                icon: '/system/icons/apps/towish.png',
+                defaultSize: { width: 400, height: 600 },
+                props: { mode: 'write_only' }
+             });
+         }}
          whileTap={{ scale: 0.95 }}
       >
         <Image 

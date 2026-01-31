@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, RefreshCw, X, Minus } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { PaperCrane } from './PaperCrane';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,15 +15,18 @@ interface WishMessage {
     createdAt: string;
 }
 
-interface WishListProps {
-    onWriteClick: () => void;
-}
+import { useWishStore } from '@/app/stores/useWishStore';
 
-export const WishList = ({ onWriteClick }: WishListProps) => {
-    const [wishes, setWishes] = useState<WishMessage[]>([]);
+// ... (imports)
+
+// remove local WishMessage interface if imported or keep if compatible
+
+export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
+    // Use Store
+    const { wishes, setWishes, cursor, setCursor } = useWishStore();
+    
     const [loading, setLoading] = useState(false);
-    const [cursor, setCursor] = useState<string | null>(null);
-    const [totalCount, setTotalCount] = useState(0); // Optional: if API returns count
+    const [totalCount, setTotalCount] = useState(0); 
 
     // Infinite scroll ref
     const observerTarget = useRef(null);
@@ -33,7 +36,9 @@ export const WishList = ({ onWriteClick }: WishListProps) => {
         setLoading(true);
         try {
             const url = new URL('/api/wishes', window.location.origin);
-            if (!reset && cursor) url.searchParams.set('cursor', cursor);
+            // Use local variable for cursor check if resetting, otherwise store cursor
+            const currentCursor = reset ? null : cursor;
+            if (currentCursor) url.searchParams.set('cursor', currentCursor);
             
             const res = await fetch(url.toString());
             const data = await res.json();
@@ -45,7 +50,6 @@ export const WishList = ({ onWriteClick }: WishListProps) => {
                     setWishes(prev => [...prev, ...data.data]);
                 }
                 setCursor(data.nextCursor);
-                // Assume API might return total count or we just count loaded
                 setTotalCount(prev => reset ? data.data.length : prev + data.data.length); 
             }
         } catch (err) {
@@ -56,7 +60,11 @@ export const WishList = ({ onWriteClick }: WishListProps) => {
     };
 
     useEffect(() => {
-        fetchWishes(true);
+        // Only fetch if empty to preserve state, OR if we want to refresh on mount?
+        // User wants to "preserve state". So if we have wishes, don't auto-fetch.
+        if (wishes.length === 0) {
+            fetchWishes(true);
+        }
     }, []);
 
     // Infinite Scroll Observer
@@ -84,18 +92,7 @@ export const WishList = ({ onWriteClick }: WishListProps) => {
     return (
         <div className="w-full h-full flex flex-col bg-[#d4d4d4] border-l-2 border-white">
             
-             {/* Retro Header */}
-             <div className="bg-linear-to-r from-[#db7093] to-[#ff1493] px-2 py-1 flex justify-between items-center border-b border-gray-600 shadow-md z-10">
-                <span className="text-white font-bold text-sm font-pixel tracking-wide drop-shadow-md">WISH Archive.txt</span>
-                <div className="flex gap-1">
-                    <button className="w-4 h-4 bg-[#c0c0c0] border border-white border-r-black border-b-black flex items-center justify-center">
-                        <Minus size={10} className="text-black" />
-                    </button>
-                    <button className="w-4 h-4 bg-[#c0c0c0] border border-white border-r-black border-b-black flex items-center justify-center hover:bg-red-400">
-                        <X size={10} className="text-black" />
-                    </button>
-                </div>
-            </div>
+
 
             {/* Sub-header / Stats */}
             <div className="bg-white border-b border-gray-300 px-4 py-3 flex justify-between items-center">

@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { GalleryCategory, Platform } from '@prisma/client';
 import { scrapeMetadata } from '../../scripts/scraper/x_twitter/metadata-scraper'
 import { galleryLinks } from './13-gallery-links';
-import { prisma } from '../../src/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
 const dbUrl = process.env.DATABASE_URL || process.env.DIRECT_URL;
 
@@ -18,15 +18,15 @@ console.log(`🔌 Connecting to DB...`);
 
 // 🕵️‍♀️ 멤버 탐정단: 본문에서 이 단어가 보이면 해당 멤버를 태그합니다.
 const MEMBER_KEYWORDS: Record<string, string[]> = {
-    sion: ['sion', '시온', '숀', 'leader'],
-    riku: ['riku', '리쿠', '쿠리', '다람쥐'],
-    yushi: ['yushi', '유우시', '우시', '윳시', '토쿠노'],
-    jaehee: ['jaehee', '재희', '대영', '큰댕', '댕'],
-    ryo: ['ryo', '료', '히로세', '작댕'],
-    sakuya: ['sakuya', '사쿠야', '쿠야', '빵', '후지나가'],
+    sion: ['sion', 'SION', '시온', '숀', 'leader'],
+    riku: ['riku', 'RIKU', '리쿠', '쿠리', '다람쥐'],
+    yushi: ['yushi', 'YUSHI', '유우시', '우시', '윳시', '토쿠노'],
+    jaehee: ['jaehee', 'JAEHEE', '재희', '대영', '큰댕', '댕'],
+    ryo: ['ryo', 'RYO', '료', '히로세', '작댕'],
+    sakuya: ['sakuya', 'SAKUYA', '사쿠야', '쿠야', '빵', '후지나가'],
 };
 
-async function main() {
+export async function seedGallery(prisma: PrismaClient) {
     console.log('📸 [Wish Gallery] 자동 아카이빙 (날짜 자동 계산 모드) 시작...');
 
     // 1. 멤버 맵핑 준비
@@ -123,7 +123,3 @@ async function main() {
 
     console.log(`\n🎉 완료! 총 ${successCount}개의 추억을 저장했습니다.`);
 }
-
-main()
-    .catch((e) => console.error(e))
-    .finally(async () => await prisma.$disconnect());

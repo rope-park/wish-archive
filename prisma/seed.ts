@@ -26,6 +26,7 @@ import { seedWidgets } from './seeds/09-widgets'
 import { seedAlbumSales } from './seeds/10-sales'
 import { seedAwards } from './seeds/11-awards'
 import { seedLyrics } from './seeds/12-lyrics'
+import { seedGallery } from './seeds/seed-gallery'
 import { seedLore } from './seeds/99-lore'
 
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
@@ -60,6 +61,7 @@ type SeedResults = {
   Contents?: unknown[];
   Awards?: unknown[];
   Lyrics?: unknown[];
+  Gallery?: unknown[];
   Lore?: unknown[];
 };
 
@@ -79,6 +81,7 @@ const SEED_STEPS = [
   { name: 'Awards', fn: seedAwards, deps: [] },
   { name: 'Lore', fn: seedLore, deps: [] },
   { name: 'Lyrics', fn: seedLyrics, deps: ['Tracks'] },
+  { name: 'Gallery', fn: seedGallery, deps: [] },
 ] as const
 
 // 메인 시드 함수
@@ -131,6 +134,9 @@ async function main() {
           case 'Events':
             result = await step.fn(prisma);
             break;
+          case 'Gallery':
+            result = await step.fn(prisma);
+            break;
           case 'Lore':
             result = await step.fn(prisma);
             break;
@@ -174,6 +180,7 @@ async function main() {
     console.log(`  • Music Show Trophies: ${Array.isArray(seedResults.MusicShowTrophies) ? seedResults.MusicShowTrophies.length : 0}`)
     console.log(`  • Album Sales: ${Array.isArray(seedResults.AlbumSales) ? seedResults.AlbumSales.length : 0}`)
     console.log(`  • Awards: ${Array.isArray(seedResults.Awards) ? seedResults.Awards.length : 0}`)
+    console.log(`  • Gallery: ${Array.isArray(seedResults.Gallery) ? seedResults.Gallery.length : 0}`)
     console.log(`  • Lore: ${Array.isArray(seedResults.Lore) ? seedResults.Lore.length : 0}`)
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)

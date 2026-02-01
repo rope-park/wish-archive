@@ -17,18 +17,9 @@ interface WishMessage {
 
 import { useWishStore } from '@/app/stores/useWishStore';
 
-// ... (imports)
-
-// remove local WishMessage interface if imported or keep if compatible
-
 export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
     // Use Store
     const { wishes, cursor, fetchWishes, isLoading } = useWishStore();
-    
-    // (Local loading removed, use isLoading from store)
-    // (totalCount removed or derived - let's remove for now as requested by plan)
-    // Actually, keeping totalCount for UI if possible, but store doesn't provide it yet.
-    // I'll show wishes.length.
     
     // Infinite scroll ref
     const observerTarget = useRef(null);
@@ -64,9 +55,6 @@ export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
 
     return (
         <div className="w-full h-full flex flex-col bg-[#d4d4d4] border-l-2 border-white">
-            
-
-
             {/* Sub-header / Stats */}
             <div className="bg-white border-b border-gray-300 px-4 py-3 flex justify-between items-center">
                  <span className="text-sm font-pixel text-gray-700">
@@ -123,7 +111,7 @@ export const WishList = ({ onWriteClick }: { onWriteClick: () => void }) => {
 
                  {!isLoading && !cursor && wishes.length > 0 && (
                     <div className="text-center text-xs text-gray-400 py-4 font-pixel">
-                        모든 소원을 불러왔습니다.
+                        All Wishes Loaded Completely!
                     </div>
                 )}
             </div>

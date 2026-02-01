@@ -1,12 +1,9 @@
-
 'use client';
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
 
-// Color map for hex to SVG filename
-// We use rough hex matching or just expect the specific hex codes we set in WishForm
 const COLOR_MAP: Record<string, string> = {
     '#FFB6C1': 'Pink',   // LightPink
     '#87CEFA': 'Blue',   // LightSkyBlue
@@ -16,19 +13,25 @@ const COLOR_MAP: Record<string, string> = {
     '#FF6B6B': 'Red',    // Custom Red
 };
 
-// Fallback if random hex is passed (default to Pink)
 const getCraneSrc = (color: string) => {
     const colorName = COLOR_MAP[color] || 'Pink';
     return `/system/widgets/WishJar/Origami_Crane_${colorName}.svg`;
 };
 
-export const PaperCrane = ({ color = '#FFB6C1', className = "w-12 h-12" }: { color?: string, className?: string }) => {
-    // Randomize float animation (calculated in useEffect to avoid hydration mismatch and pure render errors)
+export const PaperCrane = ({ 
+    color = '#FFB6C1', 
+    className = "w-12 h-12",
+    animate = true 
+}: { 
+    color?: string, 
+    className?: string,
+    animate?: boolean 
+}) => {
     const [animation, setAnimation] = useState({ duration: 3, delay: 0 });
 
     useEffect(() => {
-        // Use setTimeout to avoid "calling setState synchronously within an effect" warning
-        // and ensure the update happens after the initial paint.
+        if (!animate) return; // Skip if no animation needed
+
         const timer = setTimeout(() => {
             setAnimation({
                 duration: 3 + Math.random(),
@@ -36,21 +39,21 @@ export const PaperCrane = ({ color = '#FFB6C1', className = "w-12 h-12" }: { col
             });
         }, 0);
         return () => clearTimeout(timer);
-    }, []);
+    }, [animate]);
 
     return (
         <motion.div 
             className={`${className} relative select-none`}
-            animate={{ 
+            animate={animate ? { 
                 y: [-3, 3, -3],
                 rotate: [-2, 2, -2]
-            }}
-            transition={{
+            } : undefined}
+            transition={animate ? {
                 duration: animation.duration,
                 repeat: Infinity,
                 ease: "easeInOut",
                 delay: animation.delay
-            }}
+            } : undefined}
         >
             <NextImage 
                 src={getCraneSrc(color)} 

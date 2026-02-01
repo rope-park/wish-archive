@@ -1,3 +1,10 @@
+/**
+ * APP: TO_WISH (소원 기록)
+ * 
+ * - 소원 입력 폼
+ * - 소원 목록
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -48,9 +55,7 @@ export default function ToWish({ mode = 'full', windowId }: ToWishProps) {
                     props: { mode: 'read_only' }
                 });
             }
-            
-            // Close current window ONLY if we opened a new one (i.e., we are transforming)
-            // If we just focused an existing one, we keep both open.
+
             if (windowId && (windowId === 'wish_maker' || windowId === 'wish_list_viewer')) {
                 closeWindow(windowId);
             }
@@ -65,9 +70,9 @@ export default function ToWish({ mode = 'full', windowId }: ToWishProps) {
             
             {/* Write Section */}
             {isWriteVisible && (
-                <div className={`${mode === 'full' ? 'w-full md:w-1/2 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-600' : 'w-full h-full'} p-4 flex items-center justify-center relative bg-[url('/system/wallpapers/grid_pattern.png')] bg-repeat`}>
+                <div className={`${mode === 'full' ? 'w-full md:w-1/2 h-auto md:h-full border-b md:border-b-0 md:border-r border-gray-600 shrink-0' : 'w-full h-full'} p-0 flex items-center justify-center relative bg-[url('/system/wallpapers/grid_pattern.png')] bg-repeat`}>
                     <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-                    <div className="z-10 w-full max-w-md relative">
+                    <div className="z-10 w-full h-full relative">
                         <WishForm onSuccess={handleSuccess} />
                          {/* Navigation for Write-only mode */}
                         {mode === 'write_only' && (
@@ -75,7 +80,7 @@ export default function ToWish({ mode = 'full', windowId }: ToWishProps) {
                                 onClick={() => switchToMode('read_only')}
                                 className="absolute -bottom-10 right-0 text-xs text-gray-400 hover:text-white underline decoration-dashed underline-offset-4"
                             >
-                                다른 친구들 소원 보기 &rarr;
+                                WISH LIST &rarr;
                             </button>
                         )}
                     </div>
@@ -84,7 +89,7 @@ export default function ToWish({ mode = 'full', windowId }: ToWishProps) {
 
             {/* List Section */}
             {isListVisible && (
-                <div className={`${mode === 'full' ? 'w-full md:w-1/2 h-1/2 md:h-full' : 'w-full h-full'} bg-gray-200 text-black relative`}>
+                <div className={`${mode === 'full' ? 'w-full md:w-1/2 flex-1 md:h-full overflow-hidden' : 'w-full h-full'} bg-gray-200 text-black relative`}>
                     <WishList key={refreshKey} onWriteClick={() => {}} />
                      {/* Navigation for Read-only mode */}
                      {mode === 'read_only' && (
@@ -92,7 +97,7 @@ export default function ToWish({ mode = 'full', windowId }: ToWishProps) {
                             onClick={() => switchToMode('write_only')}
                             className="absolute bottom-4 right-6 z-20 bg-black text-white px-3 py-1.5 text-xs rounded-full shadow-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
                         >
-                            <span>✎</span> 나도 소원 적기
+                            <span>✎</span> Make a Wish!
                         </button>
                     )}
                 </div>

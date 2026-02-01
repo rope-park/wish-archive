@@ -13,6 +13,7 @@ import { Taskbar } from "@/components/os"
 import MiniPlayer from "@/components/os/MiniPlayer";
 import CustomCursor from "@/components/ui/CustomCursor";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import EULAModal from "@/components/modals/EULAModal";
 import { generateWebsiteJsonLd, generateOrganizationJsonLd } from "@/lib/json-ld";
 import "./styles/globals.css";
 
@@ -77,7 +78,7 @@ export const metadata: Metadata = {
     siteName: "WISH OS",
     images: [
       {
-        url: "/og-image.png",
+        url: "/system/icons/opengraph-image.png",
         width: 1200,
         height: 630,
         alt: "WISH OS - NCT WISH Archive",
@@ -89,7 +90,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WISH OS",
     description: "NCT WISH Fan-made Archive",
-    images: [""], // TODO: 트위터 카드 이미지 URL 삽입
+    images: ["/system/icons/opengraph-image.png"],
   },
 };
 
@@ -130,8 +131,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* layout에 두어야 페이지 이동 시에도 배경이 깜빡이지 않음 */}
         <div className="fixed inset-0 -z-20 bg-linear-to-br from-[#E0F7FA] via-[#bfdef0] to-[#A7C7E7]" />
 
-        {/* [B] 노이즈 텍스처 레이어 (Z-Index: -10) */}
-        <div className="fixed inset-0 -z-10 opacity-30 bg-noise-texture mix-blend-overlay pointer-events-none" />
+        {/* [B] 노이즈 텍스처 레이어 (Z-Index: Highest) */}
+        {/* 투명도를 낮추고 맨 위에 씌워서 아날로그 필름 입자 느낌 구현 (클릭 영향 X) */}
+        <div 
+          className="fixed inset-0 z-[99999] opacity-[0.02] pointer-events-none"
+          style={{ 
+            backgroundImage: "url('/system/wallpapers/noise.png')",
+            backgroundRepeat: 'repeat'
+          }}
+        />
 
         {/* [C] 메인 콘텐츠 영역 */}
         {/* 하단 Taskbar 높이(50px)만큼 패딩을 주어 가려짐 방지 */}
@@ -151,6 +159,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* [F] 커스텀 커서 (Deskotp Only) */}
         <CustomCursor />
 
+        {/* [G] EULA 동의 모달 (첫 방문 시) */}
+        <EULAModal />
 
       </body>
     </html>

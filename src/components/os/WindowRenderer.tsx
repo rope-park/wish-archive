@@ -10,10 +10,7 @@
 import { useWindowStore, WindowState } from '@/app/stores/useWindowStore';
 import { WindowFrame } from '..';
 
-// 앱 컴포넌트 Imports
-
-
-import { MyWish, WishWorld, WishArchive, WishGallery, Discography, RecycleBin, ToWish } from '@/components/apps';
+import { MyWish, WishWorld, WishArchive, WishGallery, Discography, RecycleBin, ToWish, Settings, README } from '@/components/apps';
 
 function PlaceholderApp({ type }: { type: string }) {
   return (
@@ -50,7 +47,10 @@ export default function WindowRenderer() {
                 return <Discography onClose={() => closeWindow(id)} {...props} />;
             case 'RECYCLE_BIN':
                 return <RecycleBin onClose={() => closeWindow(id)} {...props} />;
+            case 'SETTINGS':
+                return <Settings />;
             case 'README':
+                return <README />;
             default:
                 return <PlaceholderApp type={type} />;
         }

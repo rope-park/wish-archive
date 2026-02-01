@@ -295,7 +295,12 @@ export default function DraggableWidget({
             touchAction: isTouchDevice ? 'auto' : 'none',
           }}
         >
-          {children}
+          {React.Children.map(children, child => {
+            if (React.isValidElement(child)) {
+              return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, { rotation });
+            }
+            return child;
+          })}
         </div>
       </div>
     </Draggable>

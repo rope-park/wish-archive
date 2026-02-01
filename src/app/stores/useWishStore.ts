@@ -93,14 +93,6 @@ export const useWishStore = create<WishStore>((set, get) => ({
                 params.set('cursor', cursor);
             }
 
-            // Wait, if no cursor and not reset, it means we have no next page?
-            // Or it means initial load? 
-            // WishList logic was: if (cursor) fetchNext.
-            // If !reset && !cursor && wishes.length > 0 => Stop.
-            // But here we rely on caller to check? Or check inside?
-            // "If not reset and no cursor, and we already have wishes, we can't fetch more."
-            // But let's keep it simple: just fetch with what we have.
-
             const queryString = params.toString() ? `?${params.toString()}` : '';
             const res = await fetch(`${url}${queryString}`);
             const data = await res.json();

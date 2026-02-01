@@ -54,7 +54,7 @@ export default function CustomCursor() {
       }}
     >
       <img 
-        src="/system/cursors/cursor.svg" 
+        src="/system/cursors/wichu.svg" 
         alt="Custom Cursor" 
         width={32}
         height={32}

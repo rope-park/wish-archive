@@ -2,7 +2,6 @@
  * StartMenu 컴포넌트
  * 
  * - 시작 메뉴 UI 및 기능 구현
- * - 테마 변경 기능 추가 (클래식, 다크, WISH 모드)  TODO: 추후 추가 
  */
 
 'use client';
@@ -13,9 +12,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Card, Divider, Modal } from '../ui';
 import { useWindowStore, type AppType } from '@/app/stores/useWindowStore';
 import { Z_INDEX } from '@/lib/z-index';
-
-// TODO: 테마 모드 타입 정의 (추후 구현 예정)
-type ThemeMode = 'classic' | 'dark' | 'wish';
 
 interface StartMenuProps {
   onClose: () => void;
@@ -28,8 +24,6 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
   const menuRef = useRef<HTMLDivElement>(null);
   const [shutdownModalOpen, setShutdownModalOpen] = useState(false);
 
-  // 테마 상태 관리 (TODO: 전역 상태/Context로 교체 필요)
-  //const [theme, setTheme] = useState<ThemeMode>('classic');
   // 반응형 상태 - 터치 디바이스 감지
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
@@ -114,29 +108,6 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
     }, 100);
   };
 
-  // TODO: 테마 변경 핸들러 (추후 구현 예정)
-  /*
-  const toggleTheme = () => {
-    const nextTheme: Record<ThemeMode, ThemeMode> = {
-      classic: 'dark',
-      dark: 'wish',
-      wish: 'classic',
-    };
-    const newTheme = nextTheme[theme];
-    
-    setTheme(newTheme);
-    // 실제 적용: document.documentElement.classList.add(newTheme)...
-    console.log(`Theme changed to: ${newTheme}`); 
-  };
-
-  // TODO: 현재 테마에 따른 라벨 및 아이콘 설정 (추후 구현 예정)
-  const themeConfig = {
-    classic: { label: 'Theme: Classic', icon: '☀' }, // 윈도우 98 기본
-    dark:    { label: 'Theme: Dark',    icon: '🌙' }, // 다크 모드
-    wish:    { label: 'Theme: WISH',    icon: '🍀' }, // 위시 시그니처 컬러
-  };
-  */
-
   return (
     <>
       <div
@@ -170,7 +141,7 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
         ">
             <span className="
             text-white font-semibold font-pixel text-lg tracking-widest whitespace-nowrap
-            md:-rotate-90 md:mb-2
+            md:-rotate-90 md:mb-8
             drop-shadow-[1px_1px_1px_#000]
           ">
               WISH OS 98
@@ -244,26 +215,16 @@ export default function StartMenu({ onClose, isOpen, anchorRef }: StartMenuProps
               <Divider orientation="horizontal" />
             </div>
 
-            {/* TODO: [Future] 테마 변경 메뉴 (추후 구현 예정) */}
-            {/* 
-          <StartMenuItem 
-            icon="☀" 
-            label="Theme: Classic" 
-            arrow={false}
-            onClick={toggleTheme} 
-          />
-          */}
-
             <StartMenuItem
               icon="🛠️"
               label="Settings"
-              onClick={() => handleOpenApp('settings', 'MY_WISH', 'Settings', '🛠️')}
+              onClick={() => handleOpenApp('settings', 'SETTINGS', 'Settings', '🛠️')}
               isTouchDevice={isTouchDevice}
             />
             <StartMenuItem
-              icon="❓"
+              icon="/system/icons/apps/readme.png"
               label="Help & Support"
-              onClick={() => handleOpenApp('help', 'README', 'Help & Support', '❓')}
+              onClick={() => handleOpenApp('help', 'README', 'Help & Support', '/system/icons/apps/readme.png')}
               isTouchDevice={isTouchDevice}
             />
 

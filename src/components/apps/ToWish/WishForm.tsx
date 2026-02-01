@@ -2,7 +2,9 @@
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import { Loader2 } from 'lucide-react';
-import { useWishStore, WishMessage } from '@/app/stores/useWishStore';
+import { useWishStore } from '@/app/stores/useWishStore';
+import BlueScreen from '@/components/modals/BlueScreen';
+import { containsProfanity } from '@/lib/profanity-filter';
 
 interface WishFormProps {
     onSuccess: () => void;
@@ -21,10 +23,18 @@ const CRANE_COLORS_DATA = [
 
  export const WishForm = ({ onSuccess }: WishFormProps) => {
     const [loading, setLoading] = useState(false);
+    const [showBlueScreen, setShowBlueScreen] = useState(false);
     const { formData, setFormData, resetFormData, fetchWishes } = useWishStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // 욕설 검사
+        if (containsProfanity(formData.message) || containsProfanity(formData.authorName)) {
+            setShowBlueScreen(true);
+            return;
+        }
+        
         setLoading(true);
 
         try {
@@ -50,7 +60,13 @@ const CRANE_COLORS_DATA = [
     };
 
     return (
-        <div className="w-full h-full bg-[#d4d4d4] border-2 border-white border-r-gray-500 border-b-gray-500 shadow-xl flex flex-col">
+        <>
+            {/* 블루스크린 경고 */}
+            {showBlueScreen && (
+                <BlueScreen onClose={() => setShowBlueScreen(false)} />
+            )}
+            
+            <div className="w-full h-full bg-[#d4d4d4] border-2 border-white border-r-gray-500 border-b-gray-500 shadow-xl flex flex-col">
 
 
             {/* Content Area */}
@@ -99,7 +115,7 @@ const CRANE_COLORS_DATA = [
                     
                     {/* Bottom Controls */}
                     <div className="flex items-center justify-between p-3 border-t border-gray-200 bg-[#f9f9f9]/80 backdrop-blur-sm">
-                        <div className="w-full h-[1px] bg-gray-300 absolute top-0 left-0" /> {/* decorative line */}
+                        <div className="w-full h-px bg-gray-300 absolute top-0 left-0" /> {/* decorative line */}
                         <label className="text-xs text-gray-500 cursor-pointer flex items-center gap-1 select-none">
                              <input 
                                 type="checkbox" 
@@ -134,6 +150,7 @@ const CRANE_COLORS_DATA = [
                 </Button>
 
             </div>
-        </div>
+            </div>
+        </>
     );
 };

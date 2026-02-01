@@ -17,6 +17,7 @@ export type AppType =
   | "WISH_WORLD" // 인터넷 (외부 링크 모음)
   | "TO_WISH" // 방명록/소원함
   | "RECYCLE_BIN" // 휴지통
+  | "SETTINGS" // 설정
   | "README"; // README 파일
 
 // 앱 기본 정보

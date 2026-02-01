@@ -77,14 +77,23 @@ export default function StickyNoteWidget({
     onSave?.(text, noteColor);
   };
 
-  // 색상 테마 매핑
+  // 색상 테마 매핑 (ToWish 색종이 색상과 통일)
+  const NOTE_COLORS = {
+    pink: '#FFB6C1',
+    yellow: '#F0E68C',
+    green: '#98FB98',
+    blue: '#87CEFA',
+    purple: '#DDA0DD',
+    red: '#FF6B6B'
+  };
+
   const colorStyles: Record<NoteColor, string> = {
-    red: 'bg-[#FFB7B2] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    yellow: 'bg-[#FFF9C4] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    green: 'bg-[#8FD0AC] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    blue: 'bg-[#B9E6FD] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    purple: 'bg-[#E9B0EF] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
-    pink: 'bg-[#F5CAD4] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]',
+    red: `bg-[#FF6B6B] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]`,
+    yellow: `bg-[#F0E68C] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]`,
+    green: `bg-[#98FB98] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]`,
+    blue: `bg-[#87CEFA] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]`,
+    purple: `bg-[#DDA0DD] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]`,
+    pink: `bg-[#FFB6C1] shadow-[2px_4px_6px_rgba(0,0,0,0.15)]`,
   };
 
   const baseSize = (scale >= 1 ? 208 : 160) * scale;
@@ -164,7 +173,7 @@ export default function StickyNoteWidget({
           {PALETTE.map((col) => (
             <ColorChip
               key={col}
-              color={col}
+              color={NOTE_COLORS[col]}
               size='sm'
               selected={noteColor === col}
               onClick={() => setNoteColor(col)}

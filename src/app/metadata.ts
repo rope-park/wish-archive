@@ -10,8 +10,8 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   // 기본 메타데이터
   title: {
-    default: "WISH Archive - NCT WISH 아카이브",
-    template: "%s | WISH Archive",
+    default: "WISH OS - NCT WISH 아카이브",
+    template: "%s | WISH OS",
   },
   description:
     "NCT WISH의 모든 활동을 기록하는 팬 아카이브. 음반, 영상, 사진, 일정 등을 한눈에 확인하세요.",
@@ -36,24 +36,24 @@ export const metadata: Metadata = {
     "RYO",
     "SAKUYA",
   ],
-  authors: [{ name: "WISH Archive Team" }],
-  creator: "NCTzen",
+  authors: [{ name: "rope_park", url: "https://github.com/rope-park/wish-archive" }],
+  creator: "rope_park",
 
   // Open Graph
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://wish-archive.com",
-    title: "WISH Archive - NCT WISH 아카이브",
+    url: "https://nct-wish-os.vercel.app",
+    title: "WISH OS - NCT WISH 아카이브",
     description:
-      "NCT WISH의 모든 활동을 한곳에서. 데뷔부터 현재까지의 모든 기록.",
-    siteName: "WISH Archive",
+      "System Loading... Click to Start.",
+    siteName: "WISH OS",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/system/icons/opengraph-image.png",
         width: 1200,
         height: 630,
-        alt: "WISH Archive - NCT WISH 팬 아카이브",
+        alt: "WISH OS - NCT WISH 팬 아카이브",
       },
     ],
   },
@@ -61,10 +61,10 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "WISH Archive - NCT WISH 아카이브",
-    description: "NCT WISH의 모든 활동을 한곳에서",
-    images: ["/og-image.jpg"],
-    creator: "@NCTsmtown_WISH",
+    title: "WISH OS - NCT WISH 아카이브",
+    description: "System Loading... Click to Start.",
+    images: ["/system/icons/opengraph-image.png"],
+    creator: "@rope_park",
   },
 
   // Icons

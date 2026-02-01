@@ -17,3 +17,7 @@ export { default as Discography } from "./Discography/Discography";
 export { default as RecycleBin } from "./Recycle_Bin/RecycleBin";
 
 export { default as ToWish } from "./ToWish/ToWish";
+
+export { default as Settings } from "./Settings/Settings";
+
+export { default as README } from "./README/README";

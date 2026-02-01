@@ -31,52 +31,52 @@ interface MemberStat {
 
 const MEMBER_STATS: Record<string, MemberStat[]> = {
     'sion': [
-        { subject: 'Vocal', A: 90, fullMark: 100 },
-        { subject: 'Dance', A: 95, fullMark: 100 },
-        { subject: 'Leader', A: 100, fullMark: 100 },
-        { subject: 'Visual', A: 90, fullMark: 100 },
-        { subject: 'Funny', A: 85, fullMark: 100 },
-        { subject: 'Passion', A: 98, fullMark: 100 },
+        { subject: '리더십', A: 95, fullMark: 100 },
+        { subject: '비주얼', A: 100, fullMark: 100 },
+        { subject: '댄스', A: 90, fullMark: 100 },
+        { subject: '보컬', A: 88, fullMark: 100 },
+        { subject: '사투리', A: 90, fullMark: 100 },
+        { subject: '혈당', A: 95, fullMark: 100 },
     ],
     'riku': [
-        { subject: 'Vocal', A: 88, fullMark: 100 },
-        { subject: 'Rap', A: 95, fullMark: 100 },
-        { subject: 'Cool', A: 90, fullMark: 100 },
-        { subject: 'Cute', A: 92, fullMark: 100 },
-        { subject: 'Game', A: 80, fullMark: 100 },
-        { subject: 'Dance', A: 92, fullMark: 100 },
+        { subject: '랩', A: 90, fullMark: 100 },
+        { subject: '패션', A: 95, fullMark: 100 },
+        { subject: '애햄력', A: 100, fullMark: 100 },
+        { subject: '간지', A: 95, fullMark: 100 },
+        { subject: '댄스', A: 95, fullMark: 100 },
+        { subject: '미모', A: 100, fullMark: 100 },
     ],
     'yushi': [
-        { subject: 'Vocal', A: 92, fullMark: 100 },
-        { subject: 'Dance', A: 96, fullMark: 100 },
-        { subject: 'Shy', A: 85, fullMark: 100 },
-        { subject: 'Artist', A: 90, fullMark: 100 },
-        { subject: 'Face', A: 95, fullMark: 100 },
-        { subject: 'Tone', A: 98, fullMark: 100 },
+        { subject: '보컬', A: 92, fullMark: 100 },
+        { subject: '댄스', A: 95, fullMark: 100 },
+        { subject: '수줍음', A: 100, fullMark: 100 },
+        { subject: '목소리 크기', A: 10, fullMark: 100 },
+        { subject: '엉뚱함', A: 95, fullMark: 100 },
+        { subject: '먹방', A: 95, fullMark: 100 },
     ],
     'jaehee': [
-        { subject: 'Vocal', A: 98, fullMark: 100 },
-        { subject: 'Piano', A: 90, fullMark: 100 },
-        { subject: 'Kind', A: 95, fullMark: 100 },
-        { subject: 'Tree', A: 100, fullMark: 100 },
-        { subject: 'Clean', A: 88, fullMark: 100 },
-        { subject: 'Smile', A: 92, fullMark: 100 },
+        { subject: '보컬', A: 98, fullMark: 100 },
+        { subject: '피아노', A: 90, fullMark: 100 },
+        { subject: '다정함', A: 100, fullMark: 100 },
+        { subject: '웃음장벽', A: 15, fullMark: 100 },
+        { subject: '눈물', A: 75, fullMark: 100 },
+        { subject: '사투리', A: 90, fullMark: 100 },
     ],
     'ryo': [
-        { subject: 'Vocal', A: 85, fullMark: 100 },
-        { subject: 'Energy', A: 95, fullMark: 100 },
-        { subject: 'NCTzen', A: 100, fullMark: 100 },
-        { subject: 'Talk', A: 90, fullMark: 100 },
-        { subject: 'Cute', A: 95, fullMark: 100 },
-        { subject: 'Wit', A: 88, fullMark: 100 },
+        { subject: '보컬', A: 88, fullMark: 100 },
+        { subject: '귀여움', A: 100, fullMark: 100 },
+        { subject: '시즈니력', A: 100, fullMark: 100 },
+        { subject: '똑똑함', A: 95, fullMark: 100 },
+        { subject: '말티즈', A: 95, fullMark: 100 },
+        { subject: '츳코미', A: 98, fullMark: 100 },
     ],
     'sakuya': [
-        { subject: 'Rap', A: 92, fullMark: 100 },
-        { subject: 'Bread', A: 100, fullMark: 100 },
-        { subject: 'Maknae', A: 100, fullMark: 100 },
-        { subject: 'Cute', A: 98, fullMark: 100 },
-        { subject: 'Growth', A: 90, fullMark: 100 },
-        { subject: 'Smile', A: 95, fullMark: 100 },
+        { subject: '랩', A: 90, fullMark: 100 },
+        { subject: '빵', A: 100, fullMark: 100 },
+        { subject: '막내', A: 100, fullMark: 100 },
+        { subject: '목소리 높낮이', A: 15, fullMark: 100 },
+        { subject: '볼따구', A: 85, fullMark: 100 },
+        { subject: 'Gen-Z력', A: 100, fullMark: 100 },
     ],
 };
 
@@ -90,12 +90,14 @@ const MEMBER_STATUS_MESSAGES: Record<string, string> = {
     'sakuya': "Device is hungry. Needs bread immediately. 🥐",
 };
 
+/*
 // 위츄(Wichu) 멘트
 const WICHU_MESSAGES: Record<string, string> = {
     'general': "안녕? 난 위츄야! 우리 위시의 기본 정보를 여기서 확인해봐 츄! 💚",
     'members': "멤버를 클릭하면 내가 숨겨진 능력치를 분석해줄게! (삐빅-)",
     'perf': "열심히 활동한 기록들을 조각 모음 중이야... 블록이 꽉 찼어!",
 };
+*/
 
 // ----------------------------------------------------------------------
 // Types & Utils
@@ -155,6 +157,7 @@ const calculateAge = (birthDate: Date | string | null) => {
 // ----------------------------------------------------------------------
 // Component: Wichu Assistant (시스템 도우미)
 // ----------------------------------------------------------------------
+/*
 function WichuAssistant({ currentTab }: { currentTab: string }) {
     const [isAnimating, setIsAnimating] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
@@ -206,10 +209,8 @@ function WichuAssistant({ currentTab }: { currentTab: string }) {
                 className="absolute z-50 cursor-pointer group flex flex-col items-center transition-all duration-300"
                 onClick={handleClick}
             >
-                {/* 1. 활성화 상태 (캐릭터 + 말풍선) */}
                 {!isMinimized ? (
                     <div className="relative flex flex-col items-center w-32 group">
-                        {/* 최소화 버튼 (호버 시 등장) */}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation(); // 클릭 이벤트 전파 방지 (애니메이션 실행 안 함)
@@ -221,13 +222,11 @@ function WichuAssistant({ currentTab }: { currentTab: string }) {
                             <Minimize2 size={12} />
                         </button>
 
-                        {/* 말풍선 */}
                         <div className="bg-[#ffffe1] border border-black px-2 py-1.5 rounded-sm mb-2 text-xs font-pixel shadow-[2px_2px_0px_rgba(0,0,0,0.2)] text-black relative break-keep text-center animate-fade-in-up">
                             {message}
                             <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#ffffe1] border-r border-b border-black rotate-45"></div>
                         </div>
 
-                        {/* 위츄 캐릭터 */}
                         <div className={`text-5xl transition-transform duration-200 ${isAnimating ? 'animate-bounce' : 'hover:scale-110'}`}>
                             <Image
                                 src="/content/etc/wichu.png"
@@ -253,6 +252,7 @@ function WichuAssistant({ currentTab }: { currentTab: string }) {
         </Draggable>
     );
 }
+*/
 
 // ----------------------------------------------------------------------
 // Tab 1: General (그룹 소개 + 네트워크)
@@ -361,7 +361,7 @@ function MembersTab({ members }: { members: Member[] }) {
     // 초기 선택 (첫 번째 멤버)
     useEffect(() => {
         if (!selectedId && members.length > 0) {
-             
+             // eslint-disable-next-line
             setSelectedId(members[0].id);
         }
     }, [members, selectedId]);
@@ -667,7 +667,7 @@ export default function MyWish({ onClose }: MyWishProps) {
         <div className="flex flex-col h-full w-full p-1 relative bg-gray-200">
 
             {/* 위츄 시스템 도우미 */}
-            <WichuAssistant currentTab={activeTab} />
+            {/* <WichuAssistant currentTab={activeTab} /> */}
 
             {loading && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-200/80 backdrop-blur-sm">

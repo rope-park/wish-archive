@@ -13,6 +13,7 @@ import { StartMenu } from '@/components/os';
 import { Button, Divider, Tooltip } from '@/components/ui';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 import { useAudioStore } from '@/app/stores/useAudioStore';
+import { useWishStore } from '@/app/stores/useWishStore';
 import { Z_INDEX } from '@/lib/z-index';
 
 // [하위 컴포넌트] 시작 버튼
@@ -113,12 +114,29 @@ function SystemClock() {
 
 // [하위 컴포넌트] 시스템 트레이 (아이콘 모음)
 function SystemTray() {
-  // 트레이 아이콘 데이터
-  /** TODO: 아이콘 이미지 추가 */
-
   const { isMuted, volume, toggleMute } = useAudioStore();
-  /** TODO: 전역 상태로 관리 */
-  const [hasNewMail, setHasNewMail] = useState(true);
+  const { openWindow } = useWindowStore();
+  
+  // 방명록 스토어 연결
+  const { wishes, fetchWishes } = useWishStore();
+  
+  // 컴포넌트 마운트 시 소원 데이터 확인
+  useEffect(() => {
+    fetchWishes(); // 최신 소원 가져오기
+  }, [fetchWishes]);
+
+  // 소원이 있으면 알림 표시
+  const hasNewMail = wishes.length > 0;
+
+  const handleMailClick = () => {
+    openWindow({
+      id: 'wish_list_viewer',
+      type: 'TO_WISH',
+      title: 'Wish List',
+      icon: '/system/icons/apps/towish.png',
+      props: { mode: 'read_only' }
+    });
+  };
 
   const handleIconClick = (handler: () => void) => (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -147,22 +165,22 @@ function SystemTray() {
       </Tooltip>
 
       {/* Mail: 새 소식 알림 */}
-      {/* 메일이 있을 때만 깜빡거리는 애니메이션 추가 */}
-      {/* TODO: 실제 방명록 데이터와 연동 */}
-      <Tooltip content={hasNewMail ? "새로운 방명록이 도착했습니다!" : "새로운 메시지가 없습니다."}>
+      <Tooltip content={hasNewMail ? `${wishes.length}개의 소원이 도착했습니다!` : "새로운 메시지가 없습니다."}>
         <div
-          onClick={handleIconClick(() => setHasNewMail(false))}
-          onTouchEnd={handleIconClick(() => setHasNewMail(false))}
+          onClick={handleIconClick(handleMailClick)}
+          onTouchEnd={handleIconClick(handleMailClick)}
           className={`
             w-6 h-full flex items-center justify-center cursor-pointer
             active:scale-95 transition-transform
-            ${hasNewMail ? 'animate-bounce' : 'opacity-50 grayscale'}
+            ${hasNewMail ? 'animate-bounce' : 'opacity-80'}
           `}
           style={{
             touchAction: 'manipulation',
           }}
         >
-          <span className="text-sm">📩</span>
+          <span className="text-sm">
+            {hasNewMail ? '📩' : '📫'}
+          </span>
         </div>
       </Tooltip>
 

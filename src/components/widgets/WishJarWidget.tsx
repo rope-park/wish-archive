@@ -2,73 +2,224 @@
  * WishJarWidget 컴포넌트
  * 
  * - SVG 기반의 별 병 위젯
- * - WishForm/List 앱 실행 트리거
+ * - Matter.js 물리 엔진 적용 (중력, 관성, 충돌)
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useWindowStore } from '@/app/stores/useWindowStore';
 import { useWishStore } from '@/app/stores/useWishStore';
 import { PaperCrane } from '@/components/apps/ToWish/PaperCrane';
+import Matter from 'matter-js';
 
-export default function WishJarWidget() {
+interface WishJarWidgetProps {
+  rotation?: number;
+}
+
+export default function WishJarWidget({ rotation = 0 }: WishJarWidgetProps) {
   const { openWindow } = useWindowStore();
-  const { wishes, fetchWishes } = useWishStore(); // Get shared wishes
-  const [isHovered, setIsHovered] = useState(false); // Retain for cork animation logic in render (line 81 uses it)
+  const { wishes, fetchWishes } = useWishStore();
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Fetch initial if empty so the jar is not empty
+  // Physics Refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  interface PhysicsScene {
+    engine: Matter.Engine;
+    runner: Matter.Runner;
+    bodies: Record<string, Matter.Body>;
+  }
+  const sceneRef = useRef<PhysicsScene | null>(null);
+  const craneRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  
+  // Drag Inertia Refs (Used for calculating delta)
+  const lastPosRef = useRef({ x: 0, y: 0 });
+
+  // 1. Initial Data Fetch
   useEffect(() => {
       if (wishes.length === 0) {
           fetchWishes(true);
       }
   }, [wishes.length, fetchWishes]);
 
-  // Generate visual cranes from real wishes or valid dummy if empty (to avoid empty jar initially?)
-  // User wants "wish를 작성하면 ... 추가되어야해". So we should show real wishes.
-  // If empty, maybe show nothing or keep dummy? Let's use real wishes mixed with dummy if < 5?
-  // Let's stick to real wishes. Upon first load, wishes might be empty if not fetched.
-  // Maybe we should fetch initial wishes here too? Or let the list do it?
-  // Ideally, the widget should just reflect the store.
-  
-  // We need stable positions for the cranes so they don't jump on every render.
-  // In a real app we'd seed the random position by ID.
-  
-  const visualWishes = wishes.slice(0, 20).map((wish) => {
-      // Simple pseudo-random based on ID string chars
-      const seed = wish.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const x = (seed * 17) % 60 + 20; // 20% to 80%
-      const y = (seed * 31) % 40 + 50; // 50% to 90%
-      const r = (seed * 13) % 90 - 45; // -45 to 45 deg
-      return { ...wish, x, y, r };
-  });
+  // 2. Physics Engine Setup & Sync
+  useEffect(() => {
+    // ---- Setup Matter.js ----
+    const Engine = Matter.Engine,
+          Runner = Matter.Runner,
+          Bodies = Matter.Bodies,
+          Composite = Matter.Composite;
+
+    const engine = Engine.create();
+    const world = engine.world;
+    
+    // Engine config
+    engine.gravity.y = 1; // Standard gravity
+
+    // -- Boundaries (Jar Shape Approximation) --
+    const walls = [
+        // Bottom Floor
+        Bodies.rectangle(140, 270, 160, 20, { 
+            isStatic: true, 
+            render: { visible: false },
+            label: 'Floor' 
+        }),
+        // Left Wall
+        Bodies.rectangle(60, 200, 20, 200, { 
+            isStatic: true, 
+             angle: -0.3,
+            render: { visible: false } 
+        }),
+        // Right Wall
+        Bodies.rectangle(220, 200, 20, 200, { 
+            isStatic: true, 
+            angle: 0.3,
+            render: { visible: false } 
+        }),
+        // Shoulder Left
+        Bodies.rectangle(90, 110, 80, 20, { 
+            isStatic: true, 
+            angle: 0.8,
+            render: { visible: false } 
+        }),
+         // Shoulder Right
+         Bodies.rectangle(190, 110, 80, 20, { 
+            isStatic: true, 
+            angle: -0.8,
+            render: { visible: false } 
+        }),
+    ];
+    Composite.add(world, walls);
+
+    // -- Runner --
+    const runner = Runner.create();
+    Runner.run(runner, engine);
+
+    sceneRef.current = { engine, runner, bodies: {} };
+
+    // Cleanup
+    return () => {
+        Runner.stop(runner);
+        Engine.clear(engine);
+    };
+  }, []);
+
+  // 2.5 Sync Gravity with Rotation
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    const { engine } = sceneRef.current;
+    
+    
+    const rad = (rotation * Math.PI) / 180;
+    engine.gravity.x = Math.sin(rad);
+    engine.gravity.y = Math.cos(rad);
+    
+  }, [rotation]);
+
+
+  // 3. Sync Wishes to Physics Bodies
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    const { engine, bodies } = sceneRef.current;
+    // Remove unused World import
+    const Bodies = Matter.Bodies;
+    const Composite = Matter.Composite;
+
+    // Add new wishes
+    wishes.slice(0, 30).forEach((wish, i) => {
+        if (!bodies[wish.id]) {
+            // Random spawn position at top
+            const x = 120 + (Math.random() * 40 - 20);
+            const y = 50 - (i * 20);
+
+            // Crane Body
+            const body = Bodies.circle(x, y, 12, {
+                restitution: 0.2,
+                friction: 0.5,
+                density: 0.002,
+                label: `crane-${wish.id}`
+            });
+            
+            bodies[wish.id] = body;
+            Composite.add(engine.world, body);
+        }
+    });
+  }, [wishes]);
+
+
+  // 4. Animation Loop (Sync Physics -> DOM & Inertia)
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const loop = () => {
+        if (!sceneRef.current || !containerRef.current) return;
+        const { bodies } = sceneRef.current; // engine not used directly here
+
+        // -- Inertia Logic --
+        const rect = containerRef.current.getBoundingClientRect();
+        const currentX = rect.left;
+        const currentY = rect.top;
+
+        // Calculate delta (velocity of container)
+        if (lastPosRef.current.x === 0 && lastPosRef.current.y === 0) {
+            lastPosRef.current = { x: currentX, y: currentY };
+        }
+
+        const dx = currentX - lastPosRef.current.x;
+        const dy = currentY - lastPosRef.current.y;
+
+        // Apply force if moving
+        if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+            const forceX = -dx * 0.00015; // Counter-force
+            const forceY = -dy * 0.00015;
+
+            Object.values(bodies).forEach((body) => {
+                 if (!body.isStatic) {
+                     Matter.Body.applyForce(body, body.position, { x: forceX, y: forceY });
+                 }
+            });
+        }
+
+        lastPosRef.current = { x: currentX, y: currentY };
+
+
+        // -- Update DOM Positions --
+        Object.keys(bodies).forEach(wishId => {
+            const body = bodies[wishId];
+            const domNode = craneRefs.current[wishId];
+            
+            if (domNode && body) {
+                const { x, y } = body.position;
+                const angle = body.angle;
+
+                domNode.style.transform = `translate(${x}px, ${y}px) rotate(${angle}rad)`;
+            }
+        });
+
+        animationFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
 
   return (
-    <div className="relative w-[300px] h-[300px] flex items-center justify-center">
+    <div ref={containerRef} className="relative w-[300px] h-[300px] flex items-center justify-center">
       
-      {/* 1. 유리병 본체 (클릭 시 앱 실행 -> Read Only Mode) */}
+      {/* 1. 유리병 본체 */}
       <motion.div 
-        className="relative w-full h-full cursor-pointer group no-drag flex items-center justify-center"
-        onClick={() => {
+        className="relative w-full h-full group flex items-center justify-center"
+        onDoubleClick={() => {
             const { windows, focusWindow } = useWindowStore.getState();
             if (windows.find(w => w.id === 'towish')) {
                 focusWindow('towish');
                 return;
             }
-            openWindow({
-                id: 'wish_list_viewer',
-                type: 'TO_WISH',
-                title: 'Wish_list',
-                icon: '/system/icons/apps/towish.png',
-                defaultSize: { width: 400, height: 600 },
-                props: { mode: 'read_only' }
-            });
-        }}
-        onTouchEnd={(e) => { 
-            e.preventDefault(); 
-            e.stopPropagation(); 
             openWindow({
                 id: 'wish_list_viewer',
                 type: 'TO_WISH',
@@ -89,7 +240,7 @@ export default function WishJarWidget() {
                 alt="Wish Jar" 
                 width={280}
                 height={300}
-                className="w-full h-full object-contain drop-shadow-xl"
+                className="w-full h-full object-contain drop-shadow-xl pointer-events-none select-none"
             />
             
             {/* Cork (Animated) */}
@@ -107,35 +258,40 @@ export default function WishJarWidget() {
                 />
             </motion.div>
             
-            {/* 유리병에 넣은 학종이(소원 메시지) */}
-            <div className="absolute inset-0 z-0 overflow-hidden" style={{ clipPath: 'path("M74.5,60 C74.5,60 110,90 140,90 C170,90 205.5,60 205.5,60 L220,100 C220,100 280,110 270,160 C260,210 220,240 200,280 L140,260 L80,280 C60,240 20,210 10,160 C0,110 60,100 60,100 Z")' }}> 
-                 <div className="absolute bottom-[20%] left-[15%] right-[15%] h-[120px] flex flex-wrap justify-center content-end gap-1 opacity-90">
-                    <AnimatePresence>
-                    {visualWishes.map((wish) => (
-                        <motion.div
-                            key={wish.id}
-                            initial={{ scale: 0, y: -100, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                            className="absolute"
-                            style={{ 
-                                left: `${wish.x}%`, 
-                                top: `${wish.y}%`,
-                                rotate: wish.r 
-                            }}
-                        >
-                             <PaperCrane color={wish.craneColor} className="w-8 h-8" />
-                        </motion.div>
-                    ))}
-                    </AnimatePresence>
-                 </div>
+            {/* Physics Layer (Cranes) */}
+            <div className="absolute inset-0 z-0 overflow-hidden" 
+                 // Removing clipPath for now to see if physics bounds work well, usually better to keep it visually clipped
+                 style={{ clipPath: 'path("M74.5,60 C74.5,60 110,90 140,90 C170,90 205.5,60 205.5,60 L220,100 C220,100 280,110 270,160 C260,210 220,240 200,280 L140,260 L80,280 C60,240 20,210 10,160 C0,110 60,100 60,100 Z")' }}
+            > 
+                 {/* 
+                    Direct render of cranes. 
+                    Positions are 0,0 initially, updated by loop via ref transform.
+                    Origin should be center for rotation.
+                 */}
+                 {wishes.slice(0, 30).map((wish) => (
+                    <div
+                        key={wish.id}
+                        ref={el => { craneRefs.current[wish.id] = el; }} // No return, void function
+                        className="absolute top-0 left-0 w-8 h-8 flex items-center justify-center will-change-transform"
+                        style={{
+                            // Start invisible or at top? Physics spawns them.
+                            // We center the element on the physics body position (which is center of mass)
+                            marginTop: '-16px', // Half size
+                            marginLeft: '-16px'
+                        }}
+                    >
+                        <PaperCrane color={wish.craneColor} className="w-8 h-8 drop-shadow-sm" animate={false} />
+                    </div>
+                 ))}
+                 
+                 {/* Fallback empty message or just empty */}
             </div>
         </div>
       </motion.div>
 
-      {/* 2. Side Item: Sticky Notes / Paper Stack (클릭 시 앱 실행 -> Write Only Mode) */}
+      {/* 2. Side Item: Sticky Notes / Paper Stack */}
       <motion.button
-         className="absolute -right-4 bottom-4 w-16 h-16 cursor-pointer no-drag hover:scale-110 transition-transform"
+         className="absolute -right-4 bottom-4 w-16 h-16 cursor-pointer no-drag hover:scale-110 transition-transform z-20"
          onClick={(e) => { 
              e.stopPropagation(); 
              const { windows, focusWindow } = useWindowStore.getState();
